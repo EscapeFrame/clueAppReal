@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 
-class ServiceGongJi extends StatelessWidget {
-
-  const ServiceGongJi({super.key});
+class Iljeonggongji extends StatelessWidget {
+  const Iljeonggongji({super.key});
 
   // url도 달아야됨
-  final List<Map<String, String>> noticeList = const [
-    {'title': 'CLUE 서비스 추가 기능', 'date': '25.10.21'},
-    {'title': '시스템 점검 안내', 'date': '25.10.19'},
-    {'title': '앱 업데이트 공지', 'date': '25.10.15'},
-    {'title': '앱 업데이트 공지', 'date': '25.10.15'},
+  final List<Map<String, String>> noticeList = const [ 
+    {'title': '2025년도 학사일정 안내', 'date': '25.10.21'}, 
+    {'title': '2025년도 반배정 안내', 'date': '25.10.21'},
+    
   ];
 
   @override
@@ -32,7 +30,7 @@ class ServiceGongJi extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            '서비스공지',
+            '일정안내',
             style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
           ),
           const SizedBox(height: 10),
@@ -49,16 +47,18 @@ class ServiceGongJi extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(height: 10),
+          SizedBox(height:10),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
 
             children: [
+              
+              Image.asset('assets/images/jagunbar.png'),
+              SizedBox(width:7),
+              Image.asset('assets/images/jagunbar.png'),
+              SizedBox(width:7),
               Image.asset('assets/images/ginbar.png'),
-              SizedBox(width: 7),
-              Image.asset('assets/images/jagunbar.png'),
-              SizedBox(width: 7),
-              Image.asset('assets/images/jagunbar.png'),
+              
             ],
           ),
         ],

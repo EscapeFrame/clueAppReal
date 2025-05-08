@@ -1,14 +1,26 @@
 import 'package:clue/widgets/DayCard.dart';
+import 'package:clue/widgets/HakKyoGonji.dart';
 import 'package:clue/widgets/HomepageCard.dart';
+import 'package:clue/widgets/IlJeongGongji.dart';
 import 'package:clue/widgets/ServiceGongji.dart';
 import 'package:clue/widgets/Suap.dart';
 import 'package:clue/widgets/TimetableStyledPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  void _nextCard() {
+    setState(() {
+      index = (index + 1) % cards.length;
+    });
+  }
 
   final List<Map<String, String>> DayCardList = const [
     {'day': '1', 'neyong': '5차시 국어 독서 수행평가를 해야겠죠? 30자 채우기'},
@@ -20,7 +32,6 @@ class HomePage extends StatelessWidget {
     },
     {'day': '16', 'neyong': 'ㄴㅇㅁ'},
   ];
-
 
   final List<Map<String, dynamic>> SuapList = const [
     {
@@ -43,8 +54,13 @@ class HomePage extends StatelessWidget {
     },
   ];
 
-  
+  final List<Widget> cards = [
+    const ServiceGongJi(key: ValueKey('service')),
+    const Hakkyogonji(key: ValueKey('hakgyo')),
+    const Iljeonggongji(key: ValueKey('iljeong')),
+  ];
 
+  int index = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -230,8 +246,44 @@ class HomePage extends StatelessWidget {
                   ),
 
                   SizedBox(height: 25),
-                  ServiceGongJi(),
-                  SizedBox(height: 30),
+
+                  // AnimatedSwitcher(
+                  //   duration: const Duration(milliseconds: 300),
+                  //   transitionBuilder: (
+                  //     Widget child,
+                  //     Animation<double> animation,
+                  //   ) {
+                  //     final offsetAnimation = Tween<Offset>(
+                  //       begin: const Offset(1.0, 0.0), // 오른쪽에서 시작
+                  //       end: Offset.zero,
+                  //     ).animate(animation);
+
+                  //     return SlideTransition(
+                  //       position: offsetAnimation,
+                  //       child: child,
+                  //     );
+                  //   },
+                  //   child: cards[index],
+                  // ),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      return ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: constraints.maxWidth * 0.6,
+                        ),
+                        child: PageView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            ServiceGongJi(),
+                            Hakkyogonji(),
+                            Iljeonggongji(),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+
+                  // SizedBox(height: 30),
                 ],
               ),
             ),
