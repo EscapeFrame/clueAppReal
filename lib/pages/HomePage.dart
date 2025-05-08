@@ -265,22 +265,30 @@ class _HomePageState extends State<HomePage> {
                   //   },
                   //   child: cards[index],
                   // ),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      return ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxHeight: constraints.maxWidth * 0.6,
+                  Container(
+                    height: (MediaQuery.of(context).size.height) / 3 + 20,
+                    margin: EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.white,
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 10,
+                          offset: Offset(0, 4),
                         ),
-                        child: PageView(
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            ServiceGongJi(),
-                            Hakkyogonji(),
-                            Iljeonggongji(),
-                          ],
-                        ),
-                      );
-                    },
+                      ],
+                    ),
+
+                    child: PageView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        ServiceGongJi(),
+                        Hakkyogonji(),
+                        Iljeonggongji(),
+                      ],
+                    ),
                   ),
 
                   // SizedBox(height: 30),
