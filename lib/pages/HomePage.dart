@@ -16,8 +16,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  
-
   final List<Map<String, String>> DayCardList = const [
     {'day': '1', 'neyong': '5차시 국어 독서 수행평가를 해야겠죠? 30자 채우기'},
     {'day': '5', 'neyong': 'cex'},
@@ -265,7 +263,6 @@ class _HomePageState extends State<HomePage> {
                     height: (MediaQuery.of(context).size.height) / 3 + 20,
                     margin: EdgeInsets.all(3),
                     decoration: BoxDecoration(
-
                       borderRadius: BorderRadius.circular(10),
                       color: Colors.white,
                       boxShadow: const [
@@ -348,58 +345,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        
-        type: BottomNavigationBarType.shifting,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        items: [
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              'assets/images/homen.svg',
-              colorFilter: ColorFilter.mode(const Color.fromARGB(223, 199, 199, 199), BlendMode.srcIn),
-            ),
-            activeIcon: SvgPicture.asset(
-              'assets/images/homen.svg',
-              colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
-            ),
-            label: '홈',
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              'assets/images/bookn.svg',
-              colorFilter: ColorFilter.mode(const Color.fromARGB(223, 199, 199, 199), BlendMode.srcIn),
-            ),
-            activeIcon: SvgPicture.asset(
-              'assets/images/bookn.svg',
-              colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
-            ),
-            label: '책',
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              'assets/images/Union.svg',
-              colorFilter: ColorFilter.mode(const Color.fromARGB(223, 199, 199, 199), BlendMode.srcIn),
-            ),
-            activeIcon: SvgPicture.asset(
-              'assets/images/bookn.svg',
-              colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
-            ),
-            label: '책',
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              'assets/images/Setting.svg',
-              colorFilter: ColorFilter.mode(const Color.fromARGB(223, 199, 199, 199), BlendMode.srcIn),
-            ),
-            activeIcon: SvgPicture.asset(
-              'assets/images/Setting.svg',
-              colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
-            ),
-            label: '설정',
-          ),
-        ],
       ),
     );
   }
