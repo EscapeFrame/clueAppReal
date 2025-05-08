@@ -48,6 +48,7 @@ class Iljeonggongji extends StatelessWidget {
             ),
           ),
           SizedBox(height:10),
+           const Spacer(),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
 
