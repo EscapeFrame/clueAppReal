@@ -27,8 +27,8 @@ class HomepageCard extends StatelessWidget {
     return GestureDetector(
       onTap: _launchURL,
       child: Container(
-        width: 120,
-        height: 150,
+        width: 140,
+        height: 160,
         margin: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),

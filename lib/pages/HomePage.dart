@@ -302,42 +302,44 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 10),
 
-                  Wrap(
-                    spacing: 5,
-                    runSpacing: 5,
-                    alignment: WrapAlignment.start,
-                    children: [
-                      HomepageCard(
-                        imagePath: 'assets/images/bssm.png',
-                        label: '공식홈페이지',
-                        url: 'https://school.busanedu.net/bssm-h/main.do',
-                      ),
-                      HomepageCard(
-                        imagePath: 'assets/images/bsm.png',
-                        label: 'bsm',
-                        url: 'https://school.busanedu.net/bssm-h/main.do',
-                      ),
-                      HomepageCard(
-                        imagePath: 'assets/images/Oring.png',
-                        label: 'Oring',
-                        url: 'https://school.busanedu.net/bssm-h/main.do',
-                      ),
-                      HomepageCard(
-                        imagePath: 'assets/images/bwiki.png',
-                        label: '부마위키',
-                        url: 'https://school.busanedu.net/bssm-h/main.do',
-                      ),
-                      HomepageCard(
-                        imagePath: 'assets/images/dokseoro.png',
-                        label: '독서로',
-                        url: 'https://school.busanedu.net/bssm-h/main.do',
-                      ),
-                      HomepageCard(
-                        imagePath: 'assets/images/kyobo.png',
-                        label: '교보전자도서관',
-                        url: 'https://school.busanedu.net/bssm-h/main.do',
-                      ),
-                    ],
+                  Center(
+                    child: Wrap(
+                      spacing: 5,
+                      runSpacing: 5,
+                      alignment: WrapAlignment.start,
+                      children: [
+                        HomepageCard(
+                          imagePath: 'assets/images/bssm.png',
+                          label: '공식홈페이지',
+                          url: 'https://school.busanedu.net/bssm-h/main.do',
+                        ),
+                        HomepageCard(
+                          imagePath: 'assets/images/bsm.png',
+                          label: 'bsm',
+                          url: 'https://school.busanedu.net/bssm-h/main.do',
+                        ),
+                        HomepageCard(
+                          imagePath: 'assets/images/Oring.png',
+                          label: 'Oring',
+                          url: 'https://school.busanedu.net/bssm-h/main.do',
+                        ),
+                        HomepageCard(
+                          imagePath: 'assets/images/bwiki.png',
+                          label: '부마위키',
+                          url: 'https://school.busanedu.net/bssm-h/main.do',
+                        ),
+                        HomepageCard(
+                          imagePath: 'assets/images/dokseoro.png',
+                          label: '독서로',
+                          url: 'https://school.busanedu.net/bssm-h/main.do',
+                        ),
+                        HomepageCard(
+                          imagePath: 'assets/images/kyobo.png',
+                          label: '교보전자도서관',
+                          url: 'https://school.busanedu.net/bssm-h/main.do',
+                        ),
+                      ],
+                    ),
                   ),
                   SizedBox(height: 30),
                 ],
