@@ -13,12 +13,12 @@ class Haksubsil extends StatelessWidget {
     'class': '2-2',
     'people': '16',
     'teacher': '유근찬',
-    'description': '즐거운 자바 수업을 하고 자바를 마스터하며...',
+    'description': '즐거운 자바 수업을 하고 자바를 마스터하며...ㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣ',
     'subject':'jeongong',
     'progress': 1,
     'total': 6,
     'lessons': [
-      {
+      { 
         'title': '1차시',
         'items': ['자바란 무엇인가?'],
       },
@@ -71,6 +71,7 @@ class Haksubsil extends StatelessWidget {
     ]
   },
 ];
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -124,11 +125,11 @@ class Haksubsil extends StatelessWidget {
                 ],
               ),
             ),
-            // 아래 내용
+
             Expanded(
               child: TabBarView(
                 children: [
-                  //title overflow ...으로 해결하기. 
+
                   Haksubsilbarogaja(noticeList:noticeList),
                   Inmoonhaksubsilbarogaja(noticeList:noticeList),
                   Jeonggonghaksubsilbarogaja(noticeList:noticeList),
