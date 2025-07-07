@@ -12,21 +12,24 @@ class Haksubsilsuap extends StatefulWidget {
 }
 
 class _HaksubsilsuapState extends State<Haksubsilsuap> {
-  late List<Map<String, dynamic>> gwaJE;
+  late List<Map<String, dynamic>> assignments;
 
   @override
   void initState() {
     super.initState();
-    // 전역 데이터에서 가져오기
-    gwaJE = AppData.getGwaJE();
+    final rawAssignments = widget.notice['assignments'];
+    if (rawAssignments is List) {
+      assignments = List<Map<String, dynamic>>.from(rawAssignments);
+    } else {
+      assignments = <Map<String, dynamic>>[];
+    }
   }
 
   void updateSubmissionStatus(int index, bool submitted) {
     setState(() {
-      // 전역 데이터 업데이트
-      AppData.updateSubmissionStatus(index, submitted);
-      // 로컬 상태도 업데이트
-      gwaJE = AppData.getGwaJE();
+      assignments[index]['submitted'] = submitted;
+      assignments[index]['status'] = submitted ? '제출됨' : '미제출';
+      widget.notice['assignments'] = assignments;
     });
   }
 
@@ -107,7 +110,6 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                     Expanded(
                       child: TabBarView(
                         children: [
-                          
                           Container(
                             decoration: BoxDecoration(
                               color: const Color(0xFFF1F3F5),
@@ -118,7 +120,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                 final lesson = widget.notice['lessons'][index];
                                 return Column(
                                   children: [
-                                    SizedBox(height: height * 0.005),
+                                    SizedBox(height: height * 0.006),
                                     Container(
                                       margin: EdgeInsets.symmetric(
                                         horizontal: width * 0.05,
@@ -182,7 +184,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                               color: const Color(0xFFF1F3F5),
                             ),
                             child: Gwajejechul(
-                              dataList: gwaJE,
+                              dataList: assignments,
                               onSubmissionChanged: updateSubmissionStatus,
                             ),
                           ),
