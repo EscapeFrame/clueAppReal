@@ -8,9 +8,10 @@ class Haksubsilbarogaja extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     return Container(
       decoration: const BoxDecoration(color: Colors.white),
-      padding: const EdgeInsets.symmetric(horizontal: 15),
+      padding: EdgeInsets.symmetric(horizontal: width * 0.04),
       child: ListView.builder(
         itemCount: noticeList.length,
         itemBuilder: (context, index) {
@@ -27,9 +28,9 @@ class Haksubsilbarogaja extends StatelessWidget {
                   );
                 },
                 child: Container(
-                  padding: const EdgeInsets.fromLTRB(18, 18, 22, 15),
+                  padding: EdgeInsets.fromLTRB(width * 0.045, width * 0.045, width * 0.055, width * 0.037),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(width * 0.025),
                     border: Border.all(color: Colors.grey, width: 0.5),
                   ),
                   child: Column(
@@ -39,57 +40,56 @@ class Haksubsilbarogaja extends StatelessWidget {
                         children: [
                           Text(
                             notice['title'].toString(),
-                            style: const TextStyle(
-                              fontSize: 18,
+                            style: TextStyle(
+                              fontSize: width * 0.045,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
+                          SizedBox(width: width * 0.02),
+                          
                         ],
                       ),
-                      const SizedBox(height: 3),
+                      SizedBox(height: width * 0.008),
                       Row(
                         children: [
                           Text(
                             notice['language'].toString(),
-                            style: const TextStyle(
-                              fontSize: 17,
+                            style: TextStyle(
+                              fontSize: width * 0.04,
                               color: Colors.grey,
                             ),
                           ),
-                          const SizedBox(width: 3),
-                          const Text('|',
-                              style: TextStyle(
-                                  color: Colors.grey, fontSize: 15)),
-                          const SizedBox(width: 3),
+                          SizedBox(width: width * 0.01),
+                          Text('|', style: TextStyle(color: Colors.grey, fontSize: width * 0.035)),
+                          SizedBox(width: width * 0.01),
                           Text(
                             notice['class'].toString(),
-                            style: const TextStyle(
-                                fontSize: 17, color: Colors.grey),
+                            style: TextStyle(fontSize: width * 0.04, color: Colors.grey),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 3),
+                      SizedBox(height: width * 0.008),
                       Row(
                         children: [
                           const Icon(Icons.people, color: Colors.grey),
                           const SizedBox(width: 10),
-                          const Text('사람'),
+                           Text('사람',style: TextStyle(fontSize: width * 0.04,)),
                           const SizedBox(width: 2),
                           Text(
                             notice['people'].toString(),
-                            style: const TextStyle(fontSize: 16),
+                            style:  TextStyle(fontSize: width * 0.04,),
                           ),
                           const SizedBox(width: 2),
-                          const Text('명'),
+                           Text('명',style: TextStyle(fontSize: width * 0.04,)),
                         ],
                       ),
                       const SizedBox(height: 20),
-                      const Row(
+                       Row(
                         children: [
                           Spacer(),
                           Text(
                             '과제 보기 >',
-                            style: TextStyle(color: Colors.grey, fontSize: 15),
+                            style: TextStyle(color: Colors.grey, fontSize: width * 0.04,),
                           ),
                         ],
                       ),
@@ -97,7 +97,7 @@ class Haksubsilbarogaja extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 15),
+              SizedBox(height: width * 0.02),
             ],
           );
         },

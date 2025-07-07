@@ -74,6 +74,8 @@ class Haksubsil extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
     return DefaultTabController(
       length: 4,
       child: Scaffold(
@@ -82,7 +84,7 @@ class Haksubsil extends StatelessWidget {
             // 상단 제목 및 탭바
             Container(
               color: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+              padding: EdgeInsets.symmetric(horizontal: width * 0.06, vertical: height * 0.015),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -90,46 +92,68 @@ class Haksubsil extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Image.asset('assets/images/logo.png'),
-                      Image.asset('assets/images/jongn.png'),
+                      Image.asset('assets/images/logo.png', width: width * 0.2),
+                      Image.asset('assets/images/jongn.png', width: width * 0.2),
                     ],
                   ),
-                  const SizedBox(height: 15),
-                  const Text(
+                  SizedBox(height: height * 0.0005),
+                  Text(
                     '나의 학습실',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: width * 0.045),
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
+                  SizedBox(height: height * 0.005),
+                  Text(
                     '학습실을 확인하고 관리해주세요!',
-                    style: TextStyle(fontSize: 17),
+                    style: TextStyle(fontSize: width * 0.038),
                   ),
-                  const SizedBox(height: 2),
-                  const TabBar(
+                  SizedBox(height: height * 0.003),
+                  TabBar(
                     labelColor: Colors.black,
                     unselectedLabelColor: Colors.grey,
                     indicatorColor: Colors.lightBlue,
                     indicatorWeight: 3,
                     labelStyle: TextStyle(
-                      fontSize: 15, 
+                      fontSize: width * 0.04,
                       fontWeight: FontWeight.w300,
-                      letterSpacing: 1, 
+                      letterSpacing: 1,
                     ),
                     tabs: [
-                      Tab(text: '전체'),
-                      Tab(text: '인문과목'),
-                      Tab(text: '전공과목'),
-                      Tab(text: '방과후'),
+                      Tab(child: SizedBox(
+                        height: height * 0.04,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('전체', style: TextStyle(fontSize: width * 0.045)),
+                        ),
+                      )),
+                      Tab(child: SizedBox(
+                        height: height * 0.04,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('인문과목', style: TextStyle(fontSize: width * 0.045)),
+                        ),
+                      )),
+                      Tab(child: SizedBox(
+                        height: height * 0.04,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('전공과목', style: TextStyle(fontSize: width * 0.045)),
+                        ),
+                      )),
+                      Tab(child: SizedBox(
+                        height: height * 0.04,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('방과후', style: TextStyle(fontSize: width * 0.045)),
+                        ),
+                      )),
                     ],
                   ),
                 ],
               ),
             ),
-
             Expanded(
               child: TabBarView(
                 children: [
-
                   Haksubsilbarogaja(noticeList:noticeList),
                   Inmoonhaksubsilbarogaja(noticeList:noticeList),
                   Jeonggonghaksubsilbarogaja(noticeList:noticeList),

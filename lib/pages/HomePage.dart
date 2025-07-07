@@ -58,6 +58,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -65,87 +67,84 @@ class _HomePageState extends State<HomePage> {
           children: [
             Container(
               color: const Color(0xFFD6EAFF),
-              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+              padding: EdgeInsets.symmetric(horizontal: width * 0.06, vertical: height * 0.015),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Image.asset('assets/images/logo.png'),
-                      Image.asset('assets/images/jongn.png'),
+                      Image.asset('assets/images/logo.png', width: width * 0.2),
+                      Image.asset('assets/images/jongn.png', width: width * 0.2),
                     ],
                   ),
-                  const SizedBox(height: 15),
-                  const Text(
+                  SizedBox(height: height * 0.0005),
+                  Text(
                     '나의 일과보기',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: width * 0.045),
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
+                  SizedBox(height: height * 0.005),
+                  Text(
                     '빠르게 나의 수업을 확인해 보세요!',
-                    style: TextStyle(fontSize: 17),
+                    style: TextStyle(fontSize: width * 0.038),
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(height: height * 0.025),
                   TimetableStyledPage(),
                 ],
               ),
             ),
-
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-
               children: [
                 Container(
                   color: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 25),
+                  padding: EdgeInsets.symmetric(horizontal: width * 0.06),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(height: 25),
-                      const Text(
+                      SizedBox(height: height * 0.03),
+                      Text(
                         '학습실 바로가기',
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
-                          fontSize: 20,
+                          fontSize: width * 0.045,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: height * 0.005),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             '간편하게 수업에 함께 참여해보세요!',
-                            style: TextStyle(fontSize: 17),
+                            style: TextStyle(fontSize: width * 0.038),
                           ),
                           Row(
                             children: [
                               Image.asset(
                                 'assets/images/leftArrow.png',
-                                width: 30,
-                                height: 30,
+                                width: width * 0.08,
+                                height: width * 0.08,
                                 fit: BoxFit.fill,
                               ),
-                              SizedBox(width: 3),
+                              SizedBox(width: width * 0.01),
                               Image.asset(
                                 'assets/images/rightArrow.png',
-                                width: 30,
-                                height: 30,
+                                width: width * 0.08,
+                                height: width * 0.08,
                                 fit: BoxFit.fill,
                               ),
                             ],
                           ),
                         ],
                       ),
-                      SizedBox(height: 15),
-
+                      SizedBox(height: height * 0.018),
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children:
                               SuapList.map((item) {
                                 return Padding(
-                                  padding: const EdgeInsets.only(right: 15),
+                                  padding: EdgeInsets.only(right: width * 0.03),
                                   child: Suap(
                                     title: item['title']!,
                                     neyong: item['neyong']!,
@@ -155,7 +154,7 @@ class _HomePageState extends State<HomePage> {
                               }).toList(),
                         ),
                       ),
-                      SizedBox(height: 25),
+                      SizedBox(height: height * 0.03),
                     ],
                   ),
                 ),
@@ -163,51 +162,50 @@ class _HomePageState extends State<HomePage> {
             ),
             Container(
               color: const Color(0xFFD6EAFF),
-              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+              padding: EdgeInsets.symmetric(horizontal: width * 0.06, vertical: height * 0.015),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 15),
-                  const Text(
+                  SizedBox(height: height * 0.018),
+                  Text(
                     '미제출 과제',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: width * 0.045),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: height * 0.005),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         '기간 안에 과제를 제출하세요!',
-                        style: TextStyle(fontSize: 17),
+                        style: TextStyle(fontSize: width * 0.038),
                       ),
                       Row(
                         children: [
                           Image.asset(
                             'assets/images/leftArrow.png',
-                            width: 30,
-                            height: 30,
+                            width: width * 0.08,
+                            height: width * 0.08,
                             fit: BoxFit.fill,
                           ),
-                          SizedBox(width: 3),
+                          SizedBox(width: width * 0.01),
                           Image.asset(
                             'assets/images/rightArrow.png',
-                            width: 30,
-                            height: 30,
+                            width: width * 0.08,
+                            height: width * 0.08,
                             fit: BoxFit.fill,
                           ),
                         ],
                       ),
                     ],
                   ),
-
-                  SizedBox(height: 20),
+                  SizedBox(height: height * 0.025),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children:
                           DayCardList.map((item) {
                             return Padding(
-                              padding: const EdgeInsets.only(right: 15),
+                              padding: EdgeInsets.only(right: width * 0.03),
                               child: DayCard(
                                 day: item['day']!,
                                 neyong: item['neyong']!,
@@ -216,54 +214,32 @@ class _HomePageState extends State<HomePage> {
                           }).toList(),
                     ),
                   ),
-                  SizedBox(height: 10),
+                  SizedBox(height: height * 0.012),
                 ],
               ),
             ),
-
             Container(
               color: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 25),
+              padding: EdgeInsets.symmetric(horizontal: width * 0.06),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 30),
-                  const Text(
+                  SizedBox(height: height * 0.04),
+                  Text(
                     '공지/안내',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: width * 0.045),
                   ),
-                  const SizedBox(height: 4),
-
-                  const Text(
+                  SizedBox(height: height * 0.005),
+                  Text(
                     '학교의 소식을 빠르게 알아보세요!',
-                    style: TextStyle(fontSize: 17),
+                    style: TextStyle(fontSize: width * 0.038),
                   ),
-
-                  SizedBox(height: 25),
-
-                  // AnimatedSwitcher(
-                  //   duration: const Duration(milliseconds: 300),
-                  //   transitionBuilder: (
-                  //     Widget child,
-                  //     Animation<double> animation,
-                  //   ) {
-                  //     final offsetAnimation = Tween<Offset>(
-                  //       begin: const Offset(1.0, 0.0), // 오른쪽에서 시작
-                  //       end: Offset.zero,
-                  //     ).animate(animation);
-
-                  //     return SlideTransition(
-                  //       position: offsetAnimation,
-                  //       child: child,
-                  //     );
-                  //   },
-                  //   child: cards[index],
-                  // ),
+                  SizedBox(height: height * 0.03),
                   Container(
-                    height: (MediaQuery.of(context).size.height) / 3 + 20,
-                    margin: EdgeInsets.all(3),
+                    height: (height) / 3 + 20,
+                    margin: EdgeInsets.all(width * 0.008),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(width * 0.025),
                       color: Colors.white,
                       boxShadow: const [
                         BoxShadow(
@@ -273,7 +249,6 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                     ),
-
                     child: PageView(
                       scrollDirection: Axis.horizontal,
                       children: [
@@ -283,29 +258,25 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                   ),
-
-                  // SizedBox(height: 30),
                 ],
               ),
             ),
-
             Container(
               color: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 25),
+              padding: EdgeInsets.symmetric(horizontal: width * 0.06),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 30),
-                  const Text(
+                  SizedBox(height: height * 0.04),
+                  Text(
                     '학교 서비스 바로가기',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: width * 0.045),
                   ),
-                  const SizedBox(height: 10),
-
+                  SizedBox(height: height * 0.012),
                   Center(
                     child: Wrap(
-                      spacing: 5,
-                      runSpacing: 5,
+                      spacing: width * 0.012,
+                      runSpacing: width * 0.012,
                       alignment: WrapAlignment.start,
                       children: [
                         HomepageCard(
@@ -341,7 +312,7 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                   ),
-                  SizedBox(height: 30),
+                  SizedBox(height: height * 0.04),
                 ],
               ),
             ),
