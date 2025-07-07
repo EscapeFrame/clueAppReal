@@ -53,7 +53,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                     Image.asset('assets/images/jongn.png', width: width * 0.2),
                   ],
                 ),
-                SizedBox(height: height * 0.018),
+                SizedBox(height: height * 0.0005),
                 Text(
                   widget.notice['title'].toString(),
                   style: TextStyle(
@@ -107,6 +107,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                     Expanded(
                       child: TabBarView(
                         children: [
+                          
                           Container(
                             decoration: BoxDecoration(
                               color: const Color(0xFFF1F3F5),
@@ -117,7 +118,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                 final lesson = widget.notice['lessons'][index];
                                 return Column(
                                   children: [
-                                    SizedBox(height: height * 0.006),
+                                    SizedBox(height: height * 0.005),
                                     Container(
                                       margin: EdgeInsets.symmetric(
                                         horizontal: width * 0.05,
