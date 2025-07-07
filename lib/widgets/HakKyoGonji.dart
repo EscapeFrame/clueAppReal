@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:clue/config/app_data.dart';
 
 class Hakkyogonji extends StatelessWidget {
   const Hakkyogonji({super.key});
 
-  // url도 달아야됨
-  final List<Map<String, String>> noticeList = const [ 
-    {'title': '2025년도 학사일정 안내', 'date': '25.10.21'}, 
-    {'title': '2025년도 반배정 안내', 'date': '25.10.21'},
-    {'title': '2025년도 학사일정 안내', 'date': '25.10.21'},
-    {'title': '2025년도 반배정 안내', 'date': '25.10.21'},
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final noticeList = AppData.getHakgyoNoticeList();
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 18),

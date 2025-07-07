@@ -1,4 +1,5 @@
 import 'package:clue/widgets/GwaJeJeChul.dart';
+import 'package:clue/config/app_data.dart';
 import 'package:flutter/material.dart';
 
 class Haksubsilsuap extends StatefulWidget {
@@ -12,27 +13,21 @@ class Haksubsilsuap extends StatefulWidget {
 
 class _HaksubsilsuapState extends State<Haksubsilsuap> {
   late List<Map<String, dynamic>> gwaJE;
+
   @override
   void initState() {
     super.initState();
-    gwaJE = [
-      {
-        'title': '자바에 대해서 조사하기',
-        'status': '미제출',
-        'due': '2025.04.15 23:59:59',
-        'timeLeft': '1일 5시간 남음',
-        'file': {'name': '학번-이름.pdf', 'size': '15.0 KB'},
-        'submitted': false,
-      },
-      {
-        'title': '객체지향 특징 정리',
-        'status': '제출완료',
-        'due': '2025.04.10 18:00:00',
-        'timeLeft': '마감됨',
-        'file': {'name': '2201234-홍길동.pdf', 'size': '23.4 KB'},
-        'submitted': true,
-      },
-    ];
+    // 전역 데이터에서 가져오기
+    gwaJE = AppData.getGwaJE();
+  }
+
+  void updateSubmissionStatus(int index, bool submitted) {
+    setState(() {
+      // 전역 데이터 업데이트
+      AppData.updateSubmissionStatus(index, submitted);
+      // 로컬 상태도 업데이트
+      gwaJE = AppData.getGwaJE();
+    });
   }
 
   @override
@@ -54,8 +49,8 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Image.asset('assets/images/logo.png', width: width * 0.13),
-                    Image.asset('assets/images/jongn.png', width: width * 0.13),
+                    Image.asset('assets/images/logo.png', width: width * 0.2),
+                    Image.asset('assets/images/jongn.png', width: width * 0.2),
                   ],
                 ),
                 SizedBox(height: height * 0.018),
@@ -185,7 +180,10 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                             decoration: BoxDecoration(
                               color: const Color(0xFFF1F3F5),
                             ),
-                            child: Gwajejechul(dataList: gwaJE),
+                            child: Gwajejechul(
+                              dataList: gwaJE,
+                              onSubmissionChanged: updateSubmissionStatus,
+                            ),
                           ),
                           Center(
                             child: Text(

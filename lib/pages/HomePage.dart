@@ -7,6 +7,7 @@ import 'package:clue/widgets/Suap.dart';
 import 'package:clue/widgets/TimetableStyledPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:clue/config/app_data.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,37 +17,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final List<Map<String, String>> DayCardList = const [
-    {'day': '1', 'neyong': '5차시 국어 독서 수행평가를 해야겠죠? 30자 채우기'},
-    {'day': '5', 'neyong': 'cex'},
-    {'day': '21', 'neyong': 'ㄴㅇㅁ'},
-    {
-      'day': '10',
-      'neyong': 'ㄷㄱㅈdfdfdfdfdfdfdfdffdfadkdfkjdkfjkdjfkdfadkdfkjdkfjkdjfkdㄷ',
-    },
-    {'day': '16', 'neyong': 'ㄴㅇㅁ'},
-  ];
+  final List<Map<String, String>> DayCardList = AppData.getDayCardList();
 
-  final List<Map<String, dynamic>> SuapList = const [
-    {
-      'title': '자바',
-      'neyong': '자바를자바라',
-      'url':
-          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZE9FVgGXR74Nb0UYG5owg_sgqEzS2rIcZ7Q&s',
-    },
-    {
-      'title': '파이썬',
-      'neyong': '파이썬',
-      'url':
-          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZE9FVgGXR74Nb0UYG5owg_sgqEzS2rIcZ7Q&s',
-    },
-    {
-      'title': '파이썬',
-      'neyong': '파이썬',
-      'url':
-          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZE9FVgGXR74Nb0UYG5owg_sgqEzS2rIcZ7Q&s',
-    },
-  ];
+  final List<Map<String, dynamic>> SuapList = AppData.getSuapList();
 
   final List<Widget> cards = [
     const ServiceGongJi(key: ValueKey('service')),

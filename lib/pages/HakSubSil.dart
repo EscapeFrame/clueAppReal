@@ -3,74 +3,11 @@ import 'package:clue/widgets/HakSubSilBaroGaJa.dart';
 import 'package:clue/widgets/InmoonHakSubSilBaroGaJa.dart';
 import 'package:clue/widgets/JeongGongHakSubSilBaroGaJa.dart';
 import 'package:flutter/material.dart';
+import 'package:clue/config/app_data.dart';
 
 class Haksubsil extends StatelessWidget {
    Haksubsil({super.key});
-  final List<Map<String, dynamic>> noticeList = [
-  {
-    'title': '자바를 자바라!',
-    'language': 'JAVA',
-    'class': '2-2',
-    'people': '16',
-    'teacher': '유근찬',
-    'description': '즐거운 자바 수업을 하고 자바를 마스터하며...ㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣ',
-    'subject':'jeongong',
-    'progress': 1,
-    'total': 6,
-    'lessons': [
-      { 
-        'title': '1차시',
-        'items': ['자바란 무엇인가?'],
-      },
-      {
-        'title': '1차시 자료',
-        'items': ['ver 교과서연결', 'ver PPT', 'ver Code'],
-      },
-    ]
-  },
-  {
-    'title': '상미파이썬!',
-    'language': 'python',
-    'class': '2-3',
-    'people': '14',
-    'teacher': '곽상미',
-    'description': '즐거운 파이선 수업을 하고 자바를 마스터하며...',
-    'subject':'inmoon',
-    'progress': 2,
-    'total': 6,
-    'lessons': [
-      {
-        'title': '1차시',
-        'items': ['자바란 무엇인가?'],
-      },
-      {
-        'title': '1차시 자료',
-        'items': ['ver 교과서연결', 'ver PPT', 'ver Code'],
-      },
-    ]
-  },
-  {
-    'title': '드레이븐!',
-    'language': '국어',
-    'class': '2-3',
-    'people': '14',
-    'teacher': 'ㄴㄴㅌㅌ',
-    'description': '즐거운 파이선 수업을 하고 자바를 마스터하며...',
-    'subject':'banggwahoo',
-    'progress': 2,
-    'total': 6,
-    'lessons': [
-      {
-        'title': '1차시',
-        'items': ['자바란 무엇인가?'],
-      },
-      {
-        'title': '1차시 자료',
-        'items': ['ver 교과서연결', 'ver PPT', 'ver Code'],
-      },
-    ]
-  },
-];
+  final List<Map<String, dynamic>> noticeList = AppData.getNoticeList();
 
   @override
   Widget build(BuildContext context) {

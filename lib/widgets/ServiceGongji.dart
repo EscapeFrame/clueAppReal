@@ -1,19 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:clue/config/app_data.dart';
 
 class ServiceGongJi extends StatelessWidget {
 
   const ServiceGongJi({super.key});
 
-  // url도 달아야됨
-  final List<Map<String, String>> noticeList = const [
-    {'title': 'CLUE 서비스 추가 기능', 'date': '25.10.21'},
-    {'title': '시스템 점검 안내', 'date': '25.10.19'},
-    {'title': '앱 업데이트 공지', 'date': '25.10.15'},
-    {'title': '앱 업데이트 공지', 'date': '25.10.15'},
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final noticeList = AppData.getServiceNoticeList();
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 18),
