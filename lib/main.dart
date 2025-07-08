@@ -102,7 +102,7 @@ class _MainScreenState extends State<MainScreen> {
               'assets/images/Union.svg',
               colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
             ),
-            label: '책',
+            label: '학교공지', 
           ),
           BottomNavigationBarItem(
             backgroundColor: Colors.white,

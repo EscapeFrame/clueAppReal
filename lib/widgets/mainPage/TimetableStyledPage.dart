@@ -38,14 +38,14 @@ class TimetableStyledPage extends StatelessWidget {
         ),
         columnWidths: const {0: FixedColumnWidth(60)},
         children: [
-          // 헤더
+
           TableRow(
             decoration: const BoxDecoration(
               borderRadius: BorderRadius.only(topLeft: Radius.circular(12)),
               color: Color(0xFF91C9F7),
             ),
             children: [
-              const SizedBox(), // 좌측 상단 빈칸
+              const SizedBox(),
               ...days.map(
                 (day) => Container(
                   decoration: BoxDecoration(
