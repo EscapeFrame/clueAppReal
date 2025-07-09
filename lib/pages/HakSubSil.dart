@@ -1,9 +1,9 @@
-import 'package:clue/widgets/BangGwaHooHakSubSilBaroGaJa.dart';
-import 'package:clue/widgets/HakSubSilBaroGaJa.dart';
-import 'package:clue/widgets/InmoonHakSubSilBaroGaJa.dart';
-import 'package:clue/widgets/JeongGongHakSubSilBaroGaJa.dart';
+import 'package:clue/widgets/haksubsilPage/haksubsilTabBar_/BangGwaHooHakSubSilBaroGaJa.dart';
+import 'package:clue/widgets/haksubsilPage/haksubsilTabBar_/HakSubSilBaroGaJa.dart';
+import 'package:clue/widgets/haksubsilPage/haksubsilTabBar_/InmoonHakSubSilBaroGaJa.dart';
+import 'package:clue/widgets/haksubsilPage/haksubsilTabBar_/JeongGongHakSubSilBaroGaJa.dart';
 import 'package:flutter/material.dart';
-import 'package:clue/config/app_data.dart';
+import 'package:clue/config/app_data_.dart';
 
 class Haksubsil extends StatelessWidget {
    Haksubsil({super.key});

@@ -1,26 +1,25 @@
 import 'package:flutter/material.dart';
 
-class Gwajejechul extends StatefulWidget {
+class TeacherGwajeJechul extends StatefulWidget {
   final List<Map<String, dynamic>> dataList;
   final Function(int index, bool submitted)? onSubmissionChanged;
 
-  const Gwajejechul({
+  const TeacherGwajeJechul({
     super.key, 
     required this.dataList,
     this.onSubmissionChanged,
   });
 
   @override
-  State<Gwajejechul> createState() => _GwajejechulState();
+  State<TeacherGwajeJechul> createState() => TeacherGwajeJechulState();
 }
 
-class _GwajejechulState extends State<Gwajejechul> {
+class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
   late List<Map<String, dynamic>> dataList;
 
   @override
   void initState() {
     super.initState();
-    // 원본 데이터를 복사하여 상태 관리
     dataList = List.from(widget.dataList);
   }
 
@@ -71,7 +70,7 @@ class _GwajejechulState extends State<Gwajejechul> {
                     padding: EdgeInsets.symmetric(horizontal: width * 0.025, vertical: height * 0.005),
                     decoration: BoxDecoration(
                       color: data['submitted'] ? Colors.blue[100] : Colors.grey[300],
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(width * 0.05),
                     ),
                     child: Text(
                       data['status'],
@@ -120,21 +119,48 @@ class _GwajejechulState extends State<Gwajejechul> {
                 ),
               ),
               SizedBox(height: height * 0.018),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => toggleSubmissionStatus(index),
-                  icon: Icon(Icons.upload, size: width * 0.045),
-                  label: Text(data['submitted'] ? "제출 취소" : "과제 제출하기", style: TextStyle(fontSize: width * 0.035)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: data['submitted'] ? Colors.grey[300] : const Color(0xFFB9DCFF),
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(width * 0.025),
+              Row(
+                // mainAxisAlignment: MainAxisAlignment.,
+                children: [
+                  Expanded(
+                    
+                    child: SizedBox(
+
+                      child: ElevatedButton.icon(
+                        onPressed: () => toggleSubmissionStatus(index),
+
+                        label: Text('내용수정', style: TextStyle(fontSize: width * 0.035)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:Colors.grey[300],
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(width * 0.025),
+                          ),
+                          padding: EdgeInsets.symmetric(vertical: height * 0.018, ),
+                        ),
+                      ),
                     ),
-                    padding: EdgeInsets.symmetric(vertical: height * 0.018),
                   ),
-                ),
+                  SizedBox(width:width*0.03),
+                  Expanded(
+                    child: SizedBox(
+
+                      child: ElevatedButton.icon(
+                        onPressed: () => toggleSubmissionStatus(index),
+                        
+                        label: Text('확인/채점', style: TextStyle(fontSize: width * 0.035)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:  const Color(0xFFB9DCFF),
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(width * 0.025),
+                          ),
+                          padding: EdgeInsets.symmetric(vertical: height * 0.018,),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

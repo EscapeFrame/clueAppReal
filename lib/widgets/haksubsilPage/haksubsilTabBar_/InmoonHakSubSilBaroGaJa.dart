@@ -1,4 +1,4 @@
-import 'package:clue/widgets/HakSubSilSuap.dart';
+import 'package:clue/widgets/haksubsilPage/HakSubSilSuap.dart';
 import 'package:flutter/material.dart';
 
 class Inmoonhaksubsilbarogaja extends StatelessWidget {

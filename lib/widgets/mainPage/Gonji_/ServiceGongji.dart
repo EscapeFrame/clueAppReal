@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:clue/config/app_data.dart';
+import 'package:clue/config/app_data_.dart';
 
 class ServiceGongJi extends StatelessWidget {
 

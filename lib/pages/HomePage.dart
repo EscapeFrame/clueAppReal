@@ -1,13 +1,13 @@
-import 'package:clue/widgets/DayCard.dart';
-import 'package:clue/widgets/HakKyoGonji.dart';
-import 'package:clue/widgets/HomepageCard.dart';
-import 'package:clue/widgets/IlJeongGongji.dart';
-import 'package:clue/widgets/mainPage/ServiceGongji.dart';
+import 'package:clue/widgets/mainPage/DayCard.dart';
+import 'package:clue/widgets/mainPage/Gonji_/HakKyoGonji.dart';
+import 'package:clue/widgets/mainPage/HomepageCard.dart';
+import 'package:clue/widgets/mainPage/Gonji_/IlJeongGongji.dart';
+import 'package:clue/widgets/mainPage/Gonji_/ServiceGongji.dart';
 import 'package:clue/widgets/mainPage/Suap.dart';
 import 'package:clue/widgets/mainPage/TimetableStyledPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:clue/config/app_data.dart';
+import 'package:clue/config/app_data_.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

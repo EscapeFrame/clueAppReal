@@ -1,5 +1,6 @@
-import 'package:clue/widgets/GwaJeJeChul.dart';
-import 'package:clue/config/app_data.dart';
+import 'package:clue/teacher_page/teacher_gwaJe_Jechul.dart';
+import 'package:clue/widgets/haksubsilPage/GwaJeJeChul.dart';
+import 'package:clue/config/app_data_.dart';
 import 'package:flutter/material.dart';
 
 class Haksubsilsuap extends StatefulWidget {
@@ -188,10 +189,13 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                               onSubmissionChanged: updateSubmissionStatus,
                             ),
                           ),
-                          Center(
-                            child: Text(
-                              '시험 탭',
-                              style: TextStyle(fontSize: width * 0.045),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F3F5),
+                            ),
+                            child: TeacherGwajeJechul(
+                              dataList: assignments,
+                              onSubmissionChanged: updateSubmissionStatus,
                             ),
                           ),
                         ],

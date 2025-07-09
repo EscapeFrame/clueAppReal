@@ -1,3 +1,4 @@
+import 'package:clue/teacher_page/teacher_gwaJe_Jechul.dart';
 import 'package:flutter/material.dart';
 import 'package:clue/pages/HomePage.dart';
 import 'package:clue/pages/HakSubSil.dart';
