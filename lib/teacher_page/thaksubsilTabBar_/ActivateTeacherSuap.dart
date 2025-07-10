@@ -68,7 +68,7 @@ class Activateteachersuap extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          tsuap['subject'].toString(),
+                          tsuap['language'].toString(),
                           style: TextStyle(
                             fontSize: width * 0.04,
                             color: Colors.grey,
@@ -97,14 +97,7 @@ class Activateteachersuap extends StatelessWidget {
                       children: [
                         const Icon(Icons.people, color: Colors.grey),
                         const SizedBox(width: 10),
-                        Text('학생', style: TextStyle(fontSize: width * 0.04)),
-                        const SizedBox(width: 2),
-                        Text(
-                          tsuap['students'].toString(),
-                          style: TextStyle(fontSize: width * 0.04),
-                        ),
-                        const SizedBox(width: 2),
-                        Text('명', style: TextStyle(fontSize: width * 0.04)),
+                        Text('학생 ${tsuap['people']} 명', style: TextStyle(fontSize: width * 0.04)),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -130,7 +123,7 @@ class Activateteachersuap extends StatelessWidget {
                                 '관리',
                                 style: TextStyle(
                                   color: Colors.black,
-                                  fontSize: width * 0.04,
+                                  fontSize: width * 0.037,
                                 ),
                               ),
                             ),
@@ -157,7 +150,7 @@ class Activateteachersuap extends StatelessWidget {
                                 '학습실보기',
                                 style: TextStyle(
                                   color: Colors.black,
-                                  fontSize: width * 0.04,
+                                  fontSize: width * 0.037,
                                 ),
                               ),
                             ),

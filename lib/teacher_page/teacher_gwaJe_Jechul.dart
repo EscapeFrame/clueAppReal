@@ -191,7 +191,7 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                             isEditMode[index] = !isEditMode[index];
                           });
                         },
-                        label: Text('내용수정', style: TextStyle(fontSize: width * 0.035)),
+                        label: Text(!isEditMode[index]?'내용수정':'완료', style: TextStyle(fontSize: width * 0.035)),
                         icon: Icon(Icons.edit),
                         style: ElevatedButton.styleFrom(
                           backgroundColor:Colors.grey[300],
