@@ -36,8 +36,8 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0; 
-  // static String code="teacher";
-  static String code="student";
+  static String code="teacher";
+  // static String code="student";
   final List<Widget> _pages = [
     HomePage(),
     code!='teacher'?Haksubsil():Thaksubsilsuap(),

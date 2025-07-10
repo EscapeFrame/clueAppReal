@@ -73,14 +73,7 @@ class Haksubsilbarogaja extends StatelessWidget {
                         children: [
                           const Icon(Icons.people, color: Colors.grey),
                           const SizedBox(width: 10),
-                           Text('사람',style: TextStyle(fontSize: width * 0.04,)),
-                          const SizedBox(width: 2),
-                          Text(
-                            notice['people'].toString(),
-                            style:  TextStyle(fontSize: width * 0.04,),
-                          ),
-                          const SizedBox(width: 2),
-                           Text('명',style: TextStyle(fontSize: width * 0.04,)),
+                           Text('사람 ${notice['people']} 명',style: TextStyle(fontSize: width * 0.04,)),
                         ],
                       ),
                       const SizedBox(height: 20),
