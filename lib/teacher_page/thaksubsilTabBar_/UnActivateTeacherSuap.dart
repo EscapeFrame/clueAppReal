@@ -1,3 +1,4 @@
+import 'package:clue/teacher_page/tHakSubsilSuapTrue.dart';
 import 'package:clue/widgets/haksubsilPage/HakSubSilSuap.dart';
 import 'package:flutter/material.dart';
 
@@ -131,26 +132,39 @@ class Unactivateteachersuap extends StatelessWidget {
                         ),
                         SizedBox(width: width * 0.025),
                         Expanded(
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 3,
-                              vertical: 4,
-                            ),
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: Color(0xff86C1FF),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: Color(0xff86C1FF),
-                                width: 1.5,
+                          child: GestureDetector(
+                            onTap:
+                                () => {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (_) =>
+                                              Thaksubsilsuaptrue(tsuap: tsuap),
+                                    ),
+                                  ),
+                                },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 3,
+                                vertical: 4,
                               ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                '학습실보기',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: width * 0.037,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: Color(0xff86C1FF),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Color(0xff86C1FF),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '학습실보기',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: width * 0.037,
+                                  ),
                                 ),
                               ),
                             ),

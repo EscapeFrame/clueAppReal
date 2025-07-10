@@ -134,15 +134,19 @@ class Activateteachersuap extends StatelessWidget {
                           ),
                         ),
                         SizedBox(width: width * 0.025),
-                        GestureDetector(
-                          onTap:
-                              () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => Thaksubsilsuaptrue(tsuap: tsuap),
-                                ),
-                              ),
-                          child: Expanded(
+                        Expanded(
+                          child: GestureDetector(
+                            onTap:
+                                () => {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (_) =>
+                                              Thaksubsilsuaptrue(tsuap: tsuap),
+                                    ),
+                                  ),
+                                },
                             child: Container(
                               padding: EdgeInsets.symmetric(
                                 horizontal: 3,

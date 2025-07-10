@@ -20,17 +20,19 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
     super.initState();
     final rawAssignments = widget.tsuap['assignments'];
     if (rawAssignments is List) {
-      assignments = List<Map<String, dynamic>>.from(rawAssignments.map((a) {
-        // file → files 변환
-        if (a['files'] == null) {
-          if (a['file'] != null) {
-            a['files'] = [a['file']];
-          } else {
-            a['files'] = [];
+      assignments = List<Map<String, dynamic>>.from(
+        rawAssignments.map((a) {
+          // file → files 변환
+          if (a['files'] == null) {
+            if (a['file'] != null) {
+              a['files'] = [a['file']];
+            } else {
+              a['files'] = [];
+            }
           }
-        }
-        return a;
-      }));
+          return a;
+        }),
+      );
     } else {
       assignments = <Map<String, dynamic>>[];
     }
@@ -89,7 +91,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
             child: Container(
               decoration: BoxDecoration(color: Colors.white),
               child: DefaultTabController(
-                length: 3,
+                length: 4,
                 child: Column(
                   children: [
                     TabBar(
@@ -112,7 +114,13 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                         ),
                         Tab(
                           child: Text(
-                            '시험',
+                            '사용자',
+                            style: TextStyle(fontSize: width * 0.045),
+                          ),
+                        ),
+                        Tab(
+                          child: Text(
+                            '설정',
                             style: TextStyle(fontSize: width * 0.045),
                           ),
                         ),
@@ -190,15 +198,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                               },
                             ),
                           ),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF1F3F5),
-                            ),
-                            child: Gwajejechul(
-                              dataList: assignments,
-                              onSubmissionChanged: updateSubmissionStatus,
-                            ),
-                          ),
+
                           Container(
                             decoration: BoxDecoration(
                               color: const Color(0xFFF1F3F5),
@@ -208,6 +208,8 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                               onSubmissionChanged: updateSubmissionStatus,
                             ),
                           ),
+                          Container(child: const Placeholder()),
+                          Container(child: const Placeholder()),
                         ],
                       ),
                     ),
