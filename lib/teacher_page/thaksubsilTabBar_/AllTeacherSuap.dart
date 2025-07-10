@@ -53,13 +53,13 @@ class Allteachersuap extends StatelessWidget {
                             horizontal: 8,
                           ),
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5),
+                            borderRadius: BorderRadius.circular(10),
                             color: Color(0xff86C1FF),
                           ),
               
                           child: Text(
                             tsuap['status'] == 'activate' ? '활성화' : '비활성화',
-                            style: TextStyle(fontSize: 12),
+                            style: TextStyle(fontSize: 10),
                           ),
                         ),
                       ],
