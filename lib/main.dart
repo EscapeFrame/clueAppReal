@@ -1,3 +1,4 @@
+import 'package:clue/teacher_page/tHakSubSilSuap.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul.dart';
 import 'package:flutter/material.dart';
 import 'package:clue/pages/HomePage.dart';
@@ -35,10 +36,11 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0; 
-
+  static String code="teacher";
+  // String code="student";
   final List<Widget> _pages = [
     HomePage(),
-    Haksubsil(),
+    code!='teacher'?Haksubsil():Thaksubsilsuap(),
     Education(),
     Settings(),
   ];

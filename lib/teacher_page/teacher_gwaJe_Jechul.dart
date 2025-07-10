@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+
+String formatFileSize(int bytes) {
+  if (bytes >= 1024 * 1024) {
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  } else {
+    return '${(bytes / 1024).toStringAsFixed(1)} KB';
+  }
+}
 
 class TeacherGwajeJechul extends StatefulWidget {
   final List<Map<String, dynamic>> dataList;
   final Function(int index, bool submitted)? onSubmissionChanged;
 
   const TeacherGwajeJechul({
-    super.key, 
+    super.key,
     required this.dataList,
     this.onSubmissionChanged,
   });
@@ -17,21 +26,45 @@ class TeacherGwajeJechul extends StatefulWidget {
 class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
   late List<Map<String, dynamic>> dataList;
 
+  List<bool> isEditMode = [];
+
   @override
   void initState() {
     super.initState();
     dataList = List.from(widget.dataList);
+    isEditMode = List.generate(dataList.length, (index) => false);
+
+    for (var data in dataList) {
+      if (data['files'] == null || data['files'] is! List) {
+        data['files'] = [];
+      }
+      data['files'].removeWhere((f) => f == null);
+    }
   }
 
   void toggleSubmissionStatus(int index) {
     setState(() {
-      dataList[index]['submitted'] = !dataList[index]['submitted'];
-      dataList[index]['status'] = dataList[index]['submitted'] ? '제출됨' : '미제출';
-      
-      // 부모 위젯에 변경사항 알림
-      if (widget.onSubmissionChanged != null) {
-        widget.onSubmissionChanged!(index, dataList[index]['submitted']);
-      }
+
+    });
+  }
+
+
+  Future<void> pickFile(int index) async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    if (result != null && result.files.isNotEmpty) {
+      final file = result.files.first;
+      setState(() {
+        dataList[index]['files'].add({
+          'name': file.name,
+          'size': formatFileSize(file.size),
+        });
+      });
+    }
+  }
+
+  void removeFile(int dataIndex, int fileIndex) {
+    setState(() {
+      dataList[dataIndex]['files'].removeAt(fileIndex);
     });
   }
 
@@ -87,7 +120,7 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                 children: [
                   Icon(Icons.calendar_today, size: width * 0.04, color: Colors.grey),
                   SizedBox(width: width * 0.015),
-                  Text("마감일: ${data['due']}", style: TextStyle(fontSize: width * 0.03)),
+                  Text("마감일:  ${data['due']}", style: TextStyle(fontSize: width * 0.03)),
                 ],
               ),
               SizedBox(height: height * 0.008),
@@ -99,37 +132,67 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                 ],
               ),
               SizedBox(height: height * 0.018),
-              Container(
-                padding: EdgeInsets.all(width * 0.03),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(width * 0.025),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.insert_drive_file_outlined, size: width * 0.05),
-                    SizedBox(width: width * 0.025),
-                    Text(data['file']['name'], style: TextStyle(fontSize: width * 0.03)),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () {},
-                      child: Icon(Icons.close, size: width * 0.045),
+
+              ...List.generate(data['files'].length, (fileIdx) {
+                final file = data['files'][fileIdx];
+                return Container(
+                  margin: EdgeInsets.only(bottom: 6),
+                  padding: EdgeInsets.all(width * 0.03),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(width * 0.025),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.insert_drive_file_outlined, size: width * 0.05),
+                      SizedBox(width: width * 0.025),
+                      SizedBox(
+                        width:width*0.5,
+                        child: Text(file['name'], overflow: TextOverflow.ellipsis,style: TextStyle(fontSize: width * 0.03))
+                        ),
+                      SizedBox(width: width * 0.02),
+                      Text('(${file['size']})', overflow: TextOverflow.ellipsis,style: TextStyle(fontSize: width * 0.025, color: Colors.grey)),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () => removeFile(index, fileIdx),
+                        child: Icon(Icons.close, size: width * 0.045),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              if (isEditMode[index]) ...[
+                SizedBox(height: height * 0.012),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => pickFile(index),
+                    icon: Icon(Icons.attach_file),
+                    label: Text('파일 추가', style: TextStyle(fontSize: width * 0.032)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange[100],
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(width * 0.025),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: height * 0.012, horizontal: width * 0.04),
                     ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
               SizedBox(height: height * 0.018),
               Row(
-                // mainAxisAlignment: MainAxisAlignment.,
                 children: [
                   Expanded(
-                    
                     child: SizedBox(
-
                       child: ElevatedButton.icon(
-                        onPressed: () => toggleSubmissionStatus(index),
-
+                        onPressed: () {
+                          setState(() {
+                            isEditMode[index] = !isEditMode[index];
+                          });
+                        },
                         label: Text('내용수정', style: TextStyle(fontSize: width * 0.035)),
+                        icon: Icon(Icons.edit),
                         style: ElevatedButton.styleFrom(
                           backgroundColor:Colors.grey[300],
                           foregroundColor: Colors.black,
@@ -144,11 +207,10 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                   SizedBox(width:width*0.03),
                   Expanded(
                     child: SizedBox(
-
                       child: ElevatedButton.icon(
                         onPressed: () => toggleSubmissionStatus(index),
-                        
                         label: Text('확인/채점', style: TextStyle(fontSize: width * 0.035)),
+                        icon: Icon(Icons.check),
                         style: ElevatedButton.styleFrom(
                           backgroundColor:  const Color(0xFFB9DCFF),
                           foregroundColor: Colors.black,
@@ -162,6 +224,7 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                   ),
                 ],
               ),
+              
             ],
           ),
         );

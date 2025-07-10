@@ -1,13 +1,12 @@
-import 'package:clue/widgets/haksubsilPage/haksubsilTabBar_/BangGwaHooHakSubSilBaroGaJa.dart';
-import 'package:clue/widgets/haksubsilPage/haksubsilTabBar_/HakSubSilBaroGaJa.dart';
-import 'package:clue/widgets/haksubsilPage/haksubsilTabBar_/InmoonHakSubSilBaroGaJa.dart';
-import 'package:clue/widgets/haksubsilPage/haksubsilTabBar_/JeongGongHakSubSilBaroGaJa.dart';
+import 'package:clue/config/teacher_data.dart';
+import 'package:clue/teacher_page/thaksubsilTabBar_/ActivateTeacherSuap.dart';
+import 'package:clue/teacher_page/thaksubsilTabBar_/AllTeacherSuap.dart';
+import 'package:clue/teacher_page/thaksubsilTabBar_/UnActivateTeacherSuap.dart';
 import 'package:flutter/material.dart';
-import 'package:clue/config/app_data_.dart';
 
-class Haksubsil extends StatelessWidget {
-   Haksubsil({super.key});
-  final List<Map<String, dynamic>> noticeList = AppData.getNoticeList();
+class Thaksubsilsuap extends StatelessWidget {
+   Thaksubsilsuap({super.key});
+  final List<Map<String, dynamic>> teacherHakSubSil = TeacherData.getTeacherHakSubsil();
 
   @override
   Widget build(BuildContext context) {
@@ -65,23 +64,17 @@ class Haksubsil extends StatelessWidget {
                         height: height * 0.04,
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
-                          child: Text('인문과목', style: TextStyle(fontSize: width * 0.045)),
+                          child: Text('활성화', style: TextStyle(fontSize: width * 0.045)),
                         ),
                       )),
                       Tab(child: SizedBox(
                         height: height * 0.04,
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
-                          child: Text('전공과목', style: TextStyle(fontSize: width * 0.045)),
+                          child: Text('비활성화', style: TextStyle(fontSize: width * 0.045)),
                         ),
                       )),
-                      Tab(child: SizedBox(
-                        height: height * 0.04,
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text('방과후', style: TextStyle(fontSize: width * 0.045)),
-                        ),
-                      )),
+                      
                     ],
                   ),
                 ],
@@ -90,10 +83,9 @@ class Haksubsil extends StatelessWidget {
             Expanded(
               child: TabBarView(
                 children: [
-                  Haksubsilbarogaja(noticeList:noticeList),
-                  Inmoonhaksubsilbarogaja(noticeList:noticeList),
-                  Jeonggonghaksubsilbarogaja(noticeList:noticeList),
-                  Banggwahoohaksubsilbarogaja(noticeList:noticeList),
+                  Allteachersuap(teacherHakSubSil:teacherHakSubSil),
+                  Activateteachersuap(teacherHakSubSil:teacherHakSubSil),
+                  Unactivateteachersuap(teacherHakSubSil:teacherHakSubSil),
                 ],
               ),
             ),

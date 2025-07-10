@@ -20,7 +20,17 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
     super.initState();
     final rawAssignments = widget.notice['assignments'];
     if (rawAssignments is List) {
-      assignments = List<Map<String, dynamic>>.from(rawAssignments);
+      assignments = List<Map<String, dynamic>>.from(rawAssignments.map((a) {
+        // file → files 변환
+        if (a['files'] == null) {
+          if (a['file'] != null) {
+            a['files'] = [a['file']];
+          } else {
+            a['files'] = [];
+          }
+        }
+        return a;
+      }));
     } else {
       assignments = <Map<String, dynamic>>[];
     }
