@@ -203,10 +203,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                             decoration: BoxDecoration(
                               color: const Color(0xFFF1F3F5),
                             ),
-                            child: TeacherGwajeJechul(
-                              dataList: assignments,
-                              onSubmissionChanged: updateSubmissionStatus,
-                            ),
+                            child: const Placeholder(),
                           ),
                         ],
                       ),
