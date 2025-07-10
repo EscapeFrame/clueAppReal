@@ -3,22 +3,22 @@ import 'package:clue/widgets/haksubsilPage/GwaJeJeChul.dart';
 import 'package:clue/config/app_data_.dart';
 import 'package:flutter/material.dart';
 
-class Haksubsilsuap extends StatefulWidget {
-  final Map<String, dynamic> notice;
+class Thaksubsilsuaptrue extends StatefulWidget {
+  final Map<String, dynamic> tsuap;
 
-  Haksubsilsuap({super.key, required this.notice});
+  Thaksubsilsuaptrue({super.key, required this.tsuap});
 
   @override
-  State<Haksubsilsuap> createState() => _HaksubsilsuapState();
+  State<Thaksubsilsuaptrue> createState() => _HaksubsilsuapState();
 }
 
-class _HaksubsilsuapState extends State<Haksubsilsuap> {
+class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
   late List<Map<String, dynamic>> assignments;
 
   @override
   void initState() {
     super.initState();
-    final rawAssignments = widget.notice['assignments'];
+    final rawAssignments = widget.tsuap['assignments'];
     if (rawAssignments is List) {
       assignments = List<Map<String, dynamic>>.from(rawAssignments.map((a) {
         // file → files 변환
@@ -40,7 +40,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
     setState(() {
       assignments[index]['submitted'] = submitted;
       assignments[index]['status'] = submitted ? '제출됨' : '미제출';
-      widget.notice['assignments'] = assignments;
+      widget.tsuap['assignments'] = assignments;
     });
   }
 
@@ -69,7 +69,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                 ),
                 SizedBox(height: height * 0.0005),
                 Text(
-                  widget.notice['title'].toString(),
+                  widget.tsuap['title'].toString(),
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: width * 0.05,
@@ -77,7 +77,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                 ),
                 SizedBox(height: height * 0.005),
                 Text(
-                  widget.notice['description'].toString(),
+                  widget.tsuap['description'].toString(),
                   style: TextStyle(fontSize: width * 0.035),
                 ),
                 SizedBox(height: height * 0.025),
@@ -126,9 +126,9 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                               color: const Color(0xFFF1F3F5),
                             ),
                             child: ListView.builder(
-                              itemCount: widget.notice['lessons'].length,
+                              itemCount: widget.tsuap['lessons'].length,
                               itemBuilder: (context, index) {
-                                final lesson = widget.notice['lessons'][index];
+                                final lesson = widget.tsuap['lessons'][index];
                                 return Column(
                                   children: [
                                     SizedBox(height: height * 0.006),
