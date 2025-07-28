@@ -1,10 +1,9 @@
-import 'package:clue/teacher_page/tHakSubSilSuap.dart';
-import 'package:clue/teacher_page/teacher_gwaJe_Jechul.dart';
-import 'package:flutter/material.dart';
-import 'package:clue/pages/HomePage.dart';
-import 'package:clue/pages/HakSubSil.dart';
 import 'package:clue/pages/Education.dart';
+import 'package:clue/pages/HakSubSil.dart';
+import 'package:clue/pages/HomePage.dart';
 import 'package:clue/pages/Settings.dart';
+import 'package:clue/teacher_page/tHakSubSilSuap.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 void main() {
@@ -24,7 +23,7 @@ class MyApp extends StatelessWidget {
       home: const MainScreen(),
       debugShowCheckedModeBanner: false,
     );
-  }
+  } 
 }
 
 class MainScreen extends StatefulWidget {
@@ -36,8 +35,8 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0; 
-  static String code="teacher";  
-  // static String code="student";
+  // static String code="teacher";  
+  static String code="student";
   final List<Widget> _pages = [
     HomePage(),
     code!='teacher'?Haksubsil():Thaksubsilsuap(),

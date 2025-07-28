@@ -18,3 +18,4 @@
 //     ),
 //   ],
 // );
+import 'package:clue/config/app_color.dart';

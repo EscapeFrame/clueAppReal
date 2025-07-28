@@ -40,21 +40,37 @@ class _HomePageState extends State<HomePage> {
           children: [
             Container(
               color: const Color(0xFFD6EAFF),
-              padding: EdgeInsets.symmetric(horizontal: width * 0.06, vertical: height * 0.015),
+              padding: EdgeInsets.symmetric(
+                horizontal: width * 0.06,
+                vertical: height * 0.015,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  SizedBox(height: height * 0.05),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Image.asset('assets/images/logo.png', width: width * 0.2),
-                      Image.asset('assets/images/jongn.png', width: width * 0.2),
+                      SvgPicture.asset(
+                        'assets/images/clueLogo.svg',
+                        width: width * 0.25,
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(right: width * 0.035),
+                        child: SvgPicture.asset(
+                          'assets/images/jong.svg',
+                          width: width * 0.055,
+                        ),
+                      ),
                     ],
                   ),
-                  SizedBox(height: height * 0.0005),
+                  SizedBox(height: height * 0.05),
                   Text(
                     '나의 일과보기',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: width * 0.045),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: width * 0.045,
+                    ),
                   ),
                   SizedBox(height: height * 0.005),
                   Text(
@@ -91,23 +107,23 @@ class _HomePageState extends State<HomePage> {
                             '간편하게 수업에 함께 참여해보세요!',
                             style: TextStyle(fontSize: width * 0.038),
                           ),
-                          Row(
-                            children: [
-                              Image.asset(
-                                'assets/images/leftArrow.png',
-                                width: width * 0.08,
-                                height: width * 0.08,
-                                fit: BoxFit.fill,
-                              ),
-                              SizedBox(width: width * 0.01),
-                              Image.asset(
-                                'assets/images/rightArrow.png',
-                                width: width * 0.08,
-                                height: width * 0.08,
-                                fit: BoxFit.fill,
-                              ),
-                            ],
-                          ),
+                          // Row(
+                          //   children: [
+                          //     Image.asset(
+                          //       'assets/images/leftArrow.png',
+                          //       width: width * 0.08,
+                          //       height: width * 0.08,
+                          //       fit: BoxFit.fill,
+                          //     ),
+                          //     SizedBox(width: width * 0.01),
+                          //     Image.asset(
+                          //       'assets/images/rightArrow.png',
+                          //       width: width * 0.08,
+                          //       height: width * 0.08,
+                          //       fit: BoxFit.fill,
+                          //     ),
+                          //   ],
+                          // ),
                         ],
                       ),
                       SizedBox(height: height * 0.018),
@@ -135,14 +151,20 @@ class _HomePageState extends State<HomePage> {
             ),
             Container(
               color: const Color(0xFFD6EAFF),
-              padding: EdgeInsets.symmetric(horizontal: width * 0.06, vertical: height * 0.015),
+              padding: EdgeInsets.symmetric(
+                horizontal: width * 0.06,
+                vertical: height * 0.015,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: height * 0.018),
                   Text(
                     '미제출 과제',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: width * 0.045),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: width * 0.045,
+                    ),
                   ),
                   SizedBox(height: height * 0.005),
                   Row(
@@ -152,23 +174,23 @@ class _HomePageState extends State<HomePage> {
                         '기간 안에 과제를 제출하세요!',
                         style: TextStyle(fontSize: width * 0.038),
                       ),
-                      Row(
-                        children: [
-                          Image.asset(
-                            'assets/images/leftArrow.png',
-                            width: width * 0.08,
-                            height: width * 0.08,
-                            fit: BoxFit.fill,
-                          ),
-                          SizedBox(width: width * 0.01),
-                          Image.asset(
-                            'assets/images/rightArrow.png',
-                            width: width * 0.08,
-                            height: width * 0.08,
-                            fit: BoxFit.fill,
-                          ),
-                        ],
-                      ),
+                      // Row(
+                      //   children: [
+                      //     Image.asset(
+                      //       'assets/images/leftArrow.png',
+                      //       width: width * 0.08,
+                      //       height: width * 0.08,
+                      //       fit: BoxFit.fill,
+                      //     ),
+                      //     SizedBox(width: width * 0.01),
+                      //     Image.asset(
+                      //       'assets/images/rightArrow.png',
+                      //       width: width * 0.08,
+                      //       height: width * 0.08,
+                      //       fit: BoxFit.fill,
+                      //     ),
+                      //   ],
+                      // ),
                     ],
                   ),
                   SizedBox(height: height * 0.025),
@@ -200,7 +222,10 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(height: height * 0.04),
                   Text(
                     '공지/안내',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: width * 0.045),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: width * 0.045,
+                    ),
                   ),
                   SizedBox(height: height * 0.005),
                   Text(
@@ -234,6 +259,7 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
+            // ... 기존 코드 ...
             Container(
               color: Colors.white,
               padding: EdgeInsets.symmetric(horizontal: width * 0.06),
@@ -243,15 +269,21 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(height: height * 0.04),
                   Text(
                     '학교 서비스 바로가기',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: width * 0.045),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: width * 0.045,
+                    ),
                   ),
                   SizedBox(height: height * 0.012),
-                  Center(
-                    child: Wrap(
-                      spacing: width * 0.012,
-                      runSpacing: width * 0.012,
-                      alignment: WrapAlignment.start,
-                      children: [
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isWide = constraints.maxWidth >= 600;
+                      final crossAxisCount = isWide ? 3 : 2;
+                      final maxCardWidth =
+                          isWide ? 180.0 : 220.0; // 최대 카드 크기 제한
+                      final cardAspectRatio = 1.1; // 카드의 가로:세로 비율
+
+                      final homepageCards = [
                         HomepageCard(
                           imagePath: 'assets/images/bssm.png',
                           label: '공식홈페이지',
@@ -282,8 +314,39 @@ class _HomePageState extends State<HomePage> {
                           label: '교보전자도서관',
                           url: 'https://school.busanedu.net/bssm-h/main.do',
                         ),
-                      ],
-                    ),
+                      ];
+
+                      return Center(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth:
+                                crossAxisCount * maxCardWidth +
+                                (crossAxisCount - 1) * 12,
+                          ),
+                          child: GridView.count(
+                            crossAxisCount: crossAxisCount,
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            mainAxisSpacing: width * 0.012,
+                            crossAxisSpacing: width * 0.012,
+                            childAspectRatio: cardAspectRatio,
+                            children:
+                                homepageCards
+                                    .map(
+                                      (card) => ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          maxWidth: maxCardWidth,
+                                          minWidth: 100,
+                                          minHeight: 100,
+                                        ),
+                                        child: card,
+                                      ),
+                                    )
+                                    .toList(),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   SizedBox(height: height * 0.04),
                 ],

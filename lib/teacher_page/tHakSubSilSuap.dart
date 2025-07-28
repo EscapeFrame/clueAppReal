@@ -3,6 +3,7 @@ import 'package:clue/teacher_page/thaksubsilTabBar_/ActivateTeacherSuap.dart';
 import 'package:clue/teacher_page/thaksubsilTabBar_/AllTeacherSuap.dart';
 import 'package:clue/teacher_page/thaksubsilTabBar_/UnActivateTeacherSuap.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class Thaksubsilsuap extends StatelessWidget {
    Thaksubsilsuap({super.key});
@@ -24,14 +25,18 @@ class Thaksubsilsuap extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  SizedBox(height:height*0.05),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Image.asset('assets/images/logo.png', width: width * 0.2),
-                      Image.asset('assets/images/jongn.png', width: width * 0.2),
+                      SvgPicture.asset('assets/images/clueLogo.svg', width:width*0.25),
+                      Container(
+                        margin: EdgeInsets.only(right: width*0.035),
+                        child: SvgPicture.asset('assets/images/jong.svg', width:width*0.055),
+                      ),
                     ],
                   ),
-                  SizedBox(height: height * 0.0005),
+                  SizedBox(height: height * 0.05),
                   Text(
                     '나의 학습실',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: width * 0.045),

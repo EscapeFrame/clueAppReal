@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'package:open_file/open_file.dart';
 
 String formatFileSize(int bytes) {
   if (bytes >= 1024 * 1024) {
@@ -28,10 +32,30 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
 
   List<bool> isEditMode = [];
 
+  // 예시 데이터 (실제 url 포함)
   @override
   void initState() {
     super.initState();
+    // 예시: 실제 url이 포함된 샘플 데이터 (기존 widget.dataList가 비어있을 경우만 추가)
     dataList = List.from(widget.dataList);
+    if (dataList.isEmpty) {
+      dataList = [
+        {
+          'title': '과제1',
+          'status': '제출',
+          'submitted': true,
+          'due': '2024-06-10',
+          'timeLeft': '2일 남음',
+          'files': [
+            {
+              'name': 'sample.pdf',
+              'size': '150 KB',
+              'url': 'https://file-examples.com/wp-content/uploads/2017/10/file-sample_150kB.pdf',
+            }
+          ]
+        }
+      ];
+    }
     isEditMode = List.generate(dataList.length, (index) => false);
 
     for (var data in dataList) {
@@ -39,6 +63,23 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
         data['files'] = [];
       }
       data['files'].removeWhere((f) => f == null);
+    }
+  }
+
+  // 파일 다운로드 함수 (다운로드 후 자동 열기)
+  Future<void> downloadFile(BuildContext context, String url, String fileName) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final savePath = '${dir.path}/$fileName';
+      await Dio().download(url, savePath);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('다운로드 완료: $fileName')),
+      );
+      await OpenFile.open(savePath); // 다운로드 후 자동으로 파일 열기
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('다운로드 실패: $e')),
+      );
     }
   }
 
@@ -146,10 +187,30 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                     children: [
                       Icon(Icons.insert_drive_file_outlined, size: width * 0.05),
                       SizedBox(width: width * 0.025),
-                      SizedBox(
-                        width:width*0.5,
-                        child: Text(file['name'], overflow: TextOverflow.ellipsis,style: TextStyle(fontSize: width * 0.03))
+                      // 파일명 클릭 시 다운로드
+                      GestureDetector(
+                        onTap: () {
+                          if (file['url'] != null && file['url'].toString().isNotEmpty) {
+                            downloadFile(context, file['url'], file['name']);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('다운로드 URL이 없습니다.')),
+                            );
+                          }
+                        },
+                        child: SizedBox(
+                          width: width * 0.5,
+                          child: Text(
+                            file['name'],
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: width * 0.03,
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
                         ),
+                      ),
                       SizedBox(width: width * 0.02),
                       Text('(${file['size']})', overflow: TextOverflow.ellipsis,style: TextStyle(fontSize: width * 0.025, color: Colors.grey)),
                       const Spacer(),

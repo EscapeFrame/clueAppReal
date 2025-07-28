@@ -42,8 +42,28 @@ class TeacherData {
     },
   ];
 
+  /// 임시 엔드포인트 예시: /api/class
+  static List<Map<String, dynamic>> classRoomList = [
+    {
+      'classRoomId': 1,
+      'name': '자바를 자바라!',
+      'sort': 'JAVA',
+      'target': '1-1',
+      'studentCount': 3,
+      'isActivation': true,
+    },
+    {
+      'classRoomId': 2,
+      'name': '스프링 부트 캠프',
+      'sort': 'SPRING',
+      'target': '2-2',
+      'studentCount': 3,
+      'isActivation': true,
+    },
+  ];
+
   static List<Map<String, dynamic>> getAssignmentList() {
-    return List.from(assignmentList);
+    return List.from(classRoomList);
   }
 
   static List<Map<String, dynamic>> teacherHakSubSil = [

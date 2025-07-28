@@ -26,42 +26,55 @@ class TimetableStyledPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+    final cellWidth = width / 7;
+    final cellHeight = width * 0.13;
+    final cellPadding = width * 0.02;
+    final fontSize = width * 0.025;
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      margin: EdgeInsets.symmetric(horizontal: width * 0.02, vertical: height * 0.015),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(width * 0.05),
         color: Colors.white,
       ),
       child: Table(
         border: TableBorder.symmetric(
-          inside: const BorderSide(color: Colors.grey, width: 0.05),
+          inside: BorderSide(color: Colors.grey, width: width * 0.001),
         ),
-        columnWidths: const {0: FixedColumnWidth(60)},
+        columnWidths: {0: FixedColumnWidth(cellWidth)},
         children: [
-
           TableRow(
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.only(topLeft: Radius.circular(12)),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(width * 0.03)),
               color: Color(0xFF91C9F7),
             ),
             children: [
-              const SizedBox(),
+              SizedBox(
+                height: cellHeight,
+                child: const SizedBox(),
+              ),
               ...days.map(
-                (day) => Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(
-                      topRight: Radius.circular(12),
+                (day) => SizedBox(
+                  height: cellHeight,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(width * 0.03),
+                      ),
+                      color: Color(0xFF91C9F7),
                     ),
-                    color: Color(0xFF91C9F7),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    child: Center(
-                      child: Text(
-                        day,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: cellPadding * 0.7),
+                      child: Center(
+                        child: Text(
+                          day,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                            fontSize: fontSize,
+                          ),
                         ),
                       ),
                     ),
@@ -70,23 +83,29 @@ class TimetableStyledPage extends StatelessWidget {
               ),
             ],
           ),
-          // 시간표 데이터
           for (int i = 0; i < periods.length; i++)
             TableRow(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-
-                  child: Text(
-                    periods[i],
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                SizedBox(
+                  height: cellHeight,
+                  child: Container(
+                    padding: EdgeInsets.all(cellPadding),
+                    child: Center(
+                      child: Text(
+                        periods[i],
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize),
+                      ),
+                    ),
                   ),
                 ),
                 ...timetable[i].map(
-                  (cell) => Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Center(
-                      child: Text(cell, style: TextStyle(fontSize: 10)),
+                  (cell) => SizedBox(
+                    height: cellHeight,
+                    child: Padding(
+                      padding: EdgeInsets.all(cellPadding),
+                      child: Center(
+                        child: Text(cell, style: TextStyle(fontSize: fontSize)),
+                      ),
                     ),
                   ),
                 ),

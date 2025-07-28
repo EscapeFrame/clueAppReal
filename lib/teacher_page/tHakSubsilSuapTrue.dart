@@ -2,6 +2,7 @@ import 'package:clue/teacher_page/teacher_gwaJe_Jechul.dart';
 import 'package:clue/widgets/haksubsilPage/GwaJeJeChul.dart';
 import 'package:clue/config/app_data_.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class Thaksubsilsuaptrue extends StatefulWidget {
   final Map<String, dynamic> tsuap;
@@ -62,14 +63,18 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                SizedBox(height:height*0.05),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Image.asset('assets/images/logo.png', width: width * 0.2),
-                    Image.asset('assets/images/jongn.png', width: width * 0.2),
+                    SvgPicture.asset('assets/images/clueLogo.svg', width:width*0.25),
+                    Container(
+                      margin: EdgeInsets.only(right: width*0.035),
+                      child: SvgPicture.asset('assets/images/jong.svg', width:width*0.055),
+                    ),
                   ],
                 ),
-                SizedBox(height: height * 0.0005),
+                SizedBox(height: height * 0.05),
                 Text(
                   widget.tsuap['title'].toString(),
                   style: TextStyle(

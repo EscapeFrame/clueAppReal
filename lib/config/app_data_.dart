@@ -28,6 +28,76 @@ class AppData {
         {
           'title': '자바에 대해서 조사하기',
           'status': '미제출',
+          'due': '2025-12-31 23:59:59',
+          'timeLeft': '1일 5시간 남음',
+          'file': {'name': '학번-이름.pdf', 'size': '15.0 KB'},
+          'submitted': false,
+          // 추가: 상세설명, 제출 결과물, 할당파일
+          'description': '얘들아 제발 숙제좀 미리미리 내라 너네도 내기 싫지만 나도 검사하기 귀찮다. 그러니까 빨리하고 끝내게 미리미리 제출해라. 0.1초라도 초과하면 나는 다 감점처리한다. 알겠제? 얘들아 제발 숙제좀 미리미리 내라 너네도 내기 싫지만 나도 검사하기 귀찮다.',
+          'results': [
+            '과제1. 수업 내용 요점정리(필수)',
+            '과제2. 간단한 코드 작성(필수)',
+            '과제3. 프로그램 구현(선택)',
+          ],
+          'files': [
+            {'name': '이건 쌤이 할당한거.pdf', 'size': '15.0 KB', 'type': 'teacher'},
+            {'name': '이건 학생이 업로드한거.pdf', 'size': '15.0 KB', 'type': 'student'},
+          ],
+        },
+        {
+          'title': '객체지향 특징 정리',
+          'status': '제출됨',
+          'due': '2025.04.10 18:00:00',
+          'timeLeft': '마감됨',
+          'file': {'name': '2201234-홍길동.pdf', 'size': '23.4 KB'},
+          'submitted': true,
+        },
+        {
+          'title': '자바에 대해서 조사하기',
+          'status': '미제출',
+          'due': '2025.04.15 23:59:59',
+          'timeLeft': '1일 5시간 남음',
+          'file': {'name': '학번-이름.pdf', 'size': '15.0 KB'},
+          'submitted': false,
+        },
+        {
+          'title': '객체지향 특징 정리',
+          'status': '제출됨',
+          'due': '2025.04.10 18:00:00',
+          'timeLeft': '마감됨',
+          'file': {'name': '2201234-홍길동.pdf', 'size': '23.4 KB'},
+          'submitted': true,
+        },
+      ],
+    },
+    {
+      'title': '자바를 자바라!',
+      'language': 'JAVA',
+      'class': '2-2',
+      'people': '16',
+      'teacher': '유근찬',
+      'description': '즐거운 자바 수업을 하고 자바를 마스터하며...ㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣ',
+      'subject':'jeongong',
+      'progress': 1,
+      'total': 6,
+      'lessons': [
+        {
+          'title': '1차시: 자바 소개',
+          'items': ['자바란 무엇인가?', '자바의 역사', 'JDK와 JRE 차이']
+        },
+        {
+          'title': '2차시: 변수와 자료형',
+          'items': ['기본 자료형', '변수 선언과 초기화', '상수와 final']
+        },
+        {
+          'title': '1차시 자료',
+          'items': ['교과서 12~15p', '자바 소개 PPT', '예제 코드.zip']
+        },
+      ],
+      'assignments': [
+        {
+          'title': '자바에 대해서 조사하기',
+          'status': '미제출',
           'due': '2025.04.15 23:59:59',
           'timeLeft': '1일 5시간 남음',
           'file': {'name': '학번-이름.pdf', 'size': '15.0 KB'},
@@ -128,6 +198,26 @@ class AppData {
           'submitted': true,
         },
       ],
+    },
+  ];
+
+  /// 임시 엔드포인트 예시: /api/class
+  static List<Map<String, dynamic>> classRoomList = [
+    {
+      'classRoomId': 1,
+      'name': '자바를 자바라!',
+      'sort': 'JAVA',
+      'target': '1-1',
+      'studentCount': 3,
+      'isActivation': true,
+    },
+    {
+      'classRoomId': 2,
+      'name': '스프링 부트 캠프',
+      'sort': 'SPRING',
+      'target': '2-2',
+      'studentCount': 3,
+      'isActivation': true,
     },
   ];
 

@@ -7,7 +7,13 @@ class ServiceGongJi extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     final noticeList = AppData.getServiceNoticeList();
+    
+    // 반응형 폰트 크기 계산
+    final titleFontSize = (width * 0.05).clamp(8.0, 16.0); // 최소 16, 최대 28
+    final contentFontSize = (width * 0.032).clamp(6.0, 12.0);
+    
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 18),
@@ -25,9 +31,9 @@ class ServiceGongJi extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             '서비스공지',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: titleFontSize),
           ),
           const SizedBox(height: 10),
 
@@ -37,8 +43,8 @@ class ServiceGongJi extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(notice['title']!, style: const TextStyle(fontSize: 13)),
-                  Text(notice['date']!, style: const TextStyle(fontSize: 13)),
+                  Text(notice['title']!, style: TextStyle(fontSize: contentFontSize)),
+                  Text(notice['date']!, style: TextStyle(fontSize: contentFontSize)),
                 ],
               ),
             ),

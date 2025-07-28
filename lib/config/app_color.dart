@@ -8,11 +8,8 @@ class AppColor {
   static Color red = const Color(0xFFD10119);
 
   // 블루
-  static Color blue = const Color(0xff023474);
-
-  static Color talk = const Color(0xffFFC1C8);
-
-  static Color water = const Color(0xff2563EB);
+  static Color blue = const Color(0xff86C1FF);
+  static Color bblue = const Color(0xff578FCA);
 
   // 그레이
   static Color gray = const Color(0xffDDDDDD);

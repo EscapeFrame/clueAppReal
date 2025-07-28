@@ -1,12 +1,13 @@
-import 'package:clue/teacher_page/teacher_gwaJe_Jechul.dart';
 import 'package:clue/widgets/haksubsilPage/GwaJeJeChul.dart';
-import 'package:clue/config/app_data_.dart';
+import 'package:clue/widgets/haksubsilPage/HakSubSilGaJa.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:clue/config/app_color.dart';
 
 class Haksubsilsuap extends StatefulWidget {
   final Map<String, dynamic> notice;
 
-  Haksubsilsuap({super.key, required this.notice});
+  const Haksubsilsuap({super.key, required this.notice});
 
   @override
   State<Haksubsilsuap> createState() => _HaksubsilsuapState();
@@ -14,23 +15,33 @@ class Haksubsilsuap extends StatefulWidget {
 
 class _HaksubsilsuapState extends State<Haksubsilsuap> {
   late List<Map<String, dynamic>> assignments;
+  bool showAssignmentDetail = false;
+  Map<String, dynamic>? selectedAssignment;
+  void closeAssignmentDetail() {
+    setState(() {
+      showAssignmentDetail = false;
+      selectedAssignment = null;
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     final rawAssignments = widget.notice['assignments'];
     if (rawAssignments is List) {
-      assignments = List<Map<String, dynamic>>.from(rawAssignments.map((a) {
-        // file → files 변환
-        if (a['files'] == null) {
-          if (a['file'] != null) {
-            a['files'] = [a['file']];
-          } else {
-            a['files'] = [];
+      assignments = List<Map<String, dynamic>>.from(
+        rawAssignments.map((a) {
+          // file → files 변환
+          if (a['files'] == null) {
+            if (a['file'] != null) {
+              a['files'] = [a['file']];
+            } else {
+              a['files'] = [];
+            }
           }
-        }
-        return a;
-      }));
+          return a;
+        }),
+      );
     } else {
       assignments = <Map<String, dynamic>>[];
     }
@@ -60,14 +71,24 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                SizedBox(height: height * 0.05),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Image.asset('assets/images/logo.png', width: width * 0.2),
-                    Image.asset('assets/images/jongn.png', width: width * 0.2),
+                    SvgPicture.asset(
+                      'assets/images/clueLogo.svg',
+                      width: width * 0.25,
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(right: width * 0.035),
+                      child: SvgPicture.asset(
+                        'assets/images/jong.svg',
+                        width: width * 0.055,
+                      ),
+                    ),
                   ],
                 ),
-                SizedBox(height: height * 0.0005),
+                SizedBox(height: height * 0.05),
                 Text(
                   widget.notice['title'].toString(),
                   style: TextStyle(
@@ -123,7 +144,8 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                         children: [
                           Container(
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF1F3F5),
+                              color: const Color.fromARGB(255, 245, 245, 245),
+                              // color:Colors.white,
                             ),
                             child: ListView.builder(
                               itemCount: widget.notice['lessons'].length,
@@ -138,51 +160,62 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                         vertical: height * 0.003,
                                       ),
                                       decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(10),
+                                          topRight: Radius.circular(10),
+                                        ),
                                         border: Border.all(
                                           width: 0.25,
                                           color: Color(0xffCCCCCC),
                                         ),
                                         color: Colors.white,
                                       ),
-                                      child: ExpansionTile(
-                                        title: Text(
-                                          lesson['title'],
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: width * 0.045,
-                                          ),
+                                      child: Theme(
+                                        data: Theme.of(context).copyWith(
+                                          dividerColor: Colors.transparent,
                                         ),
-                                        children: [
-                                          ...(lesson['items'] as List<dynamic>)
-                                              .map<Widget>(
-                                                (item) => Column(
-                                                  children: [
-                                                    Container(
-                                                      decoration: BoxDecoration(
-                                                        border: Border.all(
-                                                          width: 0.25,
-                                                          color: Color(
-                                                            0xffCCCCCC,
-                                                          ),
+                                        child: ExpansionTile(
+                                          title: Text(
+                                            lesson['title'],
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: width * 0.045,
+                                            ),
+                                          ),
+                                          children: [
+                                            ...(lesson['items'] as List<dynamic>).map<
+                                              Widget
+                                            >(
+                                              (item) => Column(
+                                                children: [
+                                                  Container(
+                                                    decoration: BoxDecoration(
+                                                      color: Color(0xffF5F5F5),
+                                                      // color: const Color.fromARGB(255, 245, 245, 245),
+                                                      border: Border.all(
+                                                        width: 0.25,
+                                                        color: Color(
+                                                          0xffCCCCCC,
                                                         ),
                                                       ),
-                                                      child: ListTile(
-                                                        title: Container(
-                                                          child: Text(
-                                                            item.toString(),
-                                                            style: TextStyle(
-                                                              fontSize:
-                                                                  width * 0.035,
-                                                            ),
+                                                    ),
+                                                    child: ListTile(
+                                                      title: Container(
+                                                        child: Text(
+                                                          item.toString(),
+                                                          style: TextStyle(
+                                                            fontSize:
+                                                                width * 0.035,
                                                           ),
                                                         ),
                                                       ),
                                                     ),
-                                                  ],
-                                                ),
-                                              )
-                                              .toList(),
-                                        ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -192,11 +225,49 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                           ),
                           Container(
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF1F3F5),
+                              color: const Color.fromARGB(255, 245, 245, 245),
                             ),
-                            child: Gwajejechul(
-                              dataList: assignments,
-                              onSubmissionChanged: updateSubmissionStatus,
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              switchInCurve: Curves.easeOut,
+                              switchOutCurve: Curves.easeIn,
+                              transitionBuilder: (
+                                Widget child,
+                                Animation<double> animation,
+                              ) {
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: const Offset(
+                                        0.1,
+                                        0,
+                                      ), // 오른쪽에서 슬라이드 인
+                                      end: Offset.zero,
+                                    ).animate(animation),
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              child:
+                                  showAssignmentDetail
+                                      ? Haksubsilgaja(
+                                        key: const ValueKey('detail'),
+                                        assignment: selectedAssignment!,
+                                        onClose: closeAssignmentDetail,
+                                      )
+                                      : Gwajejechul(
+                                        key: const ValueKey('list'),
+                                        dataList: assignments,
+                                        onSubmissionChanged:
+                                            updateSubmissionStatus,
+                                        onCardClick: (assignment) {
+                                          setState(() {
+                                            selectedAssignment = assignment;
+                                            showAssignmentDetail = true;
+                                          });
+                                        },
+                                      ),
                             ),
                           ),
                           Container(
