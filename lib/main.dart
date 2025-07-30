@@ -100,7 +100,7 @@ class _MainScreenState extends State<MainScreen> {
                 BlendMode.srcIn,
               ),
             ),
-            activeIcon: SvgPicture.asset(
+            activeIcon: SvgPicture.asset( 
               'assets/images/Union.svg',
               colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
             ),
