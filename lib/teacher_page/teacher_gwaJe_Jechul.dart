@@ -1,3 +1,4 @@
+import 'package:clue/teacher_page/teacher_check.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:dio/dio.dart';
@@ -29,14 +30,14 @@ class TeacherGwajeJechul extends StatefulWidget {
 
 class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
   late List<Map<String, dynamic>> dataList;
-
   List<bool> isEditMode = [];
+  bool showTeacherCheck = false; 
 
-  // 예시 데이터 (실제 url 포함)
+
   @override
   void initState() {
     super.initState();
-    // 예시: 실제 url이 포함된 샘플 데이터 (기존 widget.dataList가 비어있을 경우만 추가)
+
     dataList = List.from(widget.dataList);
     if (dataList.isEmpty) {
       dataList = [
@@ -66,7 +67,7 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
     }
   }
 
-  // 파일 다운로드 함수 (다운로드 후 자동 열기)
+
   Future<void> downloadFile(BuildContext context, String url, String fileName) async {
     try {
       final dir = await getApplicationDocumentsDirectory();
@@ -75,7 +76,7 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('다운로드 완료: $fileName')),
       );
-      await OpenFile.open(savePath); // 다운로드 후 자동으로 파일 열기
+      await OpenFile.open(savePath); 
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('다운로드 실패: $e')),
@@ -88,7 +89,6 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
 
     });
   }
-
 
   Future<void> pickFile(int index) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
@@ -113,7 +113,47 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 245, 245, 245),
+      ),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        switchInCurve: Curves.easeOut,
+        switchOutCurve: Curves.easeIn,
+        transitionBuilder: (
+          Widget child,
+          Animation<double> animation,
+        ) {
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.1, 0), // 오른쪽에서 슬라이드 인
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            ),
+          );
+        },
+        child: showTeacherCheck
+            ? TeacherCheck(
+                key: const ValueKey('teacherCheck'),
+                onBack: () {
+                  setState(() {
+                    showTeacherCheck = false;
+                  });
+                },
+              )
+            : _buildAssignmentList(context, width, height),
+      ),
+    );
+  }
+
+  Widget _buildAssignmentList(BuildContext context, double width, double height) {
     return ListView(
+      key: const ValueKey('assignmentList'),
       padding: EdgeInsets.symmetric(vertical: height * 0.01),
       children: dataList.asMap().entries.map((entry) {
         final index = entry.key;
@@ -187,7 +227,7 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                     children: [
                       Icon(Icons.insert_drive_file_outlined, size: width * 0.05),
                       SizedBox(width: width * 0.025),
-                      // 파일명 클릭 시 다운로드
+
                       GestureDetector(
                         onTap: () {
                           if (file['url'] != null && file['url'].toString().isNotEmpty) {
@@ -269,7 +309,11 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                   Expanded(
                     child: SizedBox(
                       child: ElevatedButton.icon(
-                        onPressed: () => toggleSubmissionStatus(index),
+                        onPressed: () {
+                          setState(() {
+                            showTeacherCheck = true;
+                          });
+                        },
                         label: Text('확인/채점', style: TextStyle(fontSize: width * 0.035)),
                         icon: Icon(Icons.check),
                         style: ElevatedButton.styleFrom(

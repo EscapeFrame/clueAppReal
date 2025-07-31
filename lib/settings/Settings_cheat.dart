@@ -1,3 +1,4 @@
+import 'package:clue/config/app_cheat.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -47,14 +48,50 @@ class SettingsCheat extends StatelessWidget {
                       fontSize: width * 0.045,
                     ),
                   ),
-                  
 
+                  SizedBox(height: height * 0.02),
+                  ...AppCheat.cheatData.map(
+                    (item) => Padding(
+                      padding: EdgeInsets.symmetric(vertical: height * 0.008),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            item['name'],
+                            style: TextStyle(fontSize: width * 0.04),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              //채팅 보러가기 함수 넣기
+                            },
+                            child: Row(
+                              children: [
+                                Text(
+                                  '보러가기',
+                                  style: TextStyle(
+                                    color: Colors.blue,
+                                    fontSize: width * 0.035,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.chevron_right,
+                                  color: Colors.blue,
+                                  size: width * 0.045,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
           ],
         ),
       ),
-    );;
+    );
   }
 }

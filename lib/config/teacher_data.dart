@@ -42,7 +42,7 @@ class TeacherData {
     },
   ];
 
-  /// 임시 엔드포인트 예시: /api/class
+
   static List<Map<String, dynamic>> classRoomList = [
     {
       'classRoomId': 1,
@@ -178,5 +178,69 @@ class TeacherData {
 ];
   static List<Map<String, dynamic>> getTeacherHakSubsil() {
     return List.from(teacherHakSubSil);
+  }
+
+  // 학생 제출 데이터 추가
+  static List<Map<String, dynamic>> student_jechul = [
+    {
+      'number': '2202',
+      'name': '공덕현',
+      'submitted': true,
+      'submittedAt': '2025.04.14 15:30:22',
+      'file': '2202_공덕현_자바조사.pdf',
+      'fileSize': '2.3 MB',
+    },
+    {
+      'number': '2203',
+      'name': '김민재',
+      'submitted': false,
+      'submittedAt': null,
+      'file': null,
+      'fileSize': null,
+    },
+    {
+      'number': '2204',
+      'name': '이도',
+      'submitted': true,
+      'submittedAt': '2025.04.14 18:45:10',
+      'file': '2204_이도_자바조사.pdf',
+      'fileSize': '1.8 MB',
+    },
+    {
+      'number': '2205',
+      'name': '박서연',
+      'submitted': false,
+      'submittedAt': null,
+      'file': null,
+      'fileSize': null,
+    },
+    {
+      'number': '2206',
+      'name': '정현우',
+      'submitted': false,
+      'submittedAt': null,
+      'file': null,
+      'fileSize': null,
+    },
+    {
+      'number': '2207',
+      'name': '최지은',
+      'submitted': true,
+      'submittedAt': '2025.04.14 20:12:35',
+      'file': '2207_최지은_자바조사.pdf',
+      'fileSize': '3.1 MB',
+    },
+    {
+      'number': '2208',
+      'name': '강동현',
+      'submitted': true,
+      'submittedAt': '2025.04.14 22:05:18',
+      'file': '2208_강동현_자바조사.pdf',
+      'fileSize': '2.7 MB',
+    },
+  ];
+
+  static List<Map<String, dynamic>> getStudentJechul() {
+    return List.from(student_jechul);
   }
 }
