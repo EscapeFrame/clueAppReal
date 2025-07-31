@@ -8,7 +8,7 @@ apply {
 }
 
 android {
-    namespace = "com.example.clue"
+    namespace = "com.example.realrealrealclue"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -22,7 +22,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.clue"
+        applicationId = "com.example.realrealrealclue"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
