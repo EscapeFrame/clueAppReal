@@ -1,3 +1,5 @@
+import 'package:clue/widgets/educationPage/Eight-NineClass.dart';
+import 'package:clue/widgets/educationPage/Ten-ElevenClass.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -100,7 +102,7 @@ class Education extends StatelessWidget {
                         ),
                       ),
                     ),
-                    SizedBox(height: height * 0.02),
+                    SizedBox(height: height * 0.01),
 
                     TabBar(
                       labelColor: Colors.black,
@@ -108,9 +110,9 @@ class Education extends StatelessWidget {
                       indicatorColor: Colors.lightBlue,
                       indicatorWeight: 3,
                       labelStyle: TextStyle(
-                        fontSize: width * 0.04,
-                        fontWeight: FontWeight.w300,
-                        letterSpacing: 1,
+                        fontSize: width * 0.045,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.5,
                       ),
                       tabs: const [Tab(text: '8~9교시'), Tab(text: '10~11교시')],
                     ),
@@ -121,8 +123,8 @@ class Education extends StatelessWidget {
               Expanded(
                 child: TabBarView(
                   children: [
-                    SingleChildScrollView(child: Placeholder()),
-                    SingleChildScrollView(child: Placeholder()),
+                    SingleChildScrollView(child: EightNineClass()),
+                    SingleChildScrollView(child: TenElevenClass()),
                   ],
                 ),
               ),

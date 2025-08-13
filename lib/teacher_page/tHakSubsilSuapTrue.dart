@@ -1,6 +1,5 @@
+import 'package:clue/teacher_page/tHakSubSilSetting.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul.dart';
-import 'package:clue/widgets/haksubsilPage/GwaJeJeChul.dart';
-import 'package:clue/config/app_data_.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -214,7 +213,16 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                             ),
                           ),
                           Container(child: const Placeholder()),
-                          Container(child: const Placeholder()),
+                          Container(
+                            child: Thaksubsilsetting(
+                              tsuap: widget.tsuap,
+                              onApply: (updated) {
+                                setState(() {
+                                  widget.tsuap.addAll(updated);
+                                });
+                              },
+                            ),
+                          ),
                         ],
                       ),
                     ),
