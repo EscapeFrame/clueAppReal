@@ -261,18 +261,31 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
 
             SizedBox(height: height * 0.03),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Text(
-                    '학습실 활성화',
-                    style: GoogleFonts.roboto(
-                      color: Colors.black,
-                      fontSize: width * 0.048,
-                      fontWeight: FontWeight.w500,
-                    ),
+                SizedBox(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '학습실 활성화',
+                        style: GoogleFonts.roboto(
+                          color: Colors.black,
+                          fontSize: width * 0.048,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        '학습실을 활성화하면 학생들이 접근할 수 있습니다',
+                        style: TextStyle(
+                          fontSize: width * 0.028,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-
                 Transform.scale(
                   scale: width * 0.002,
                   child: Switch(
@@ -280,30 +293,41 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
                     inactiveThumbColor: Colors.white,
                     inactiveTrackColor: const Color(0xffcccccc),
                     value: _isActivated,
-                    activeColor: const Color(0xff86C1FF),
+
                     onChanged: (v) => setState(() => _isActivated = v),
                   ),
                 ),
               ],
             ),
-            Text(
-              '학습실을 활성화하면 학생들이 접근할 수 있습니다',
-              style: TextStyle(fontSize: width * 0.028, color: Colors.black87),
-            ),
+
             SizedBox(height: height * 0.025),
+
             Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Text(
-                    '채팅 허용',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: width * 0.048,
-                      fontWeight: FontWeight.w500,
-                    ),
+                SizedBox(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '채팅 허용',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: width * 0.048,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        '학생들이 학습실 내에서 채팅할 수 있도록 허용합니다',
+                        style: TextStyle(
+                          fontSize: width * 0.028,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-
                 Transform.scale(
                   scale: width * 0.002,
                   child: Switch(
@@ -311,18 +335,55 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
                     inactiveThumbColor: Colors.white,
                     inactiveTrackColor: const Color(0xffcccccc),
                     value: _isChatAllowed,
-                    activeColor: const Color(0xff86C1FF),
+
                     onChanged: (v) => setState(() => _isChatAllowed = v),
                   ),
                 ),
               ],
             ),
-            Text(
-              '학생들이 학습실 내에서 채팅할 수 있도록 허용합니다',
-              style: TextStyle(fontSize: width * 0.028, color: Colors.black87),
+            SizedBox(height: height * 0.07),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '학습실 삭제하기',
+                        style: TextStyle(
+                          fontSize: width * 0.048,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        '학습실을 삭제하면 모든 데이터가 영구적으로 삭제됩니다',
+                        style: TextStyle(
+                          fontSize: width * 0.028,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xffE0E0E0),
+                    foregroundColor: Colors.black,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: width * 0.04,
+                      vertical: height * 0.012,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('삭제하기'),
+                ),
+              ],
             ),
-            SizedBox(height: height*0.07,),
-
+            SizedBox(height: height * 0.04),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
