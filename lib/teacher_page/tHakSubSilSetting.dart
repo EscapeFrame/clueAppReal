@@ -63,10 +63,8 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
   void _updateClassFromParts({String? grade, String? ban}) {
     final String nextGrade = grade ?? _gradeController.text;
     final String nextBan = ban ?? _banController.text;
-    // 미리보기용 조합 (현재 메서드는 적용 버튼을 위한 내부 상태만 보정)
-    // ignore: unused_local_variable
+
     final String _ = [nextGrade, nextBan].where((e) => e.isNotEmpty).join('-');
-    // 내부 미리보기용 동기화만 담당 (실제 저장은 적용 버튼에서 수행)
   }
 
   @override
@@ -268,9 +266,9 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
                   child: Text(
                     '학습실 활성화',
                     style: GoogleFonts.roboto(
-                      color: Colors.black87,
+                      color: Colors.black,
                       fontSize: width * 0.048,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -299,9 +297,9 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
                   child: Text(
                     '채팅 허용',
                     style: TextStyle(
-                      color: Colors.black87,
+                      color: Colors.black,
                       fontSize: width * 0.048,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -323,44 +321,49 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
               '학생들이 학습실 내에서 채팅할 수 있도록 허용합니다',
               style: TextStyle(fontSize: width * 0.028, color: Colors.black87),
             ),
-            // Align(
-            //   alignment: Alignment.centerRight,
-            //   child: ElevatedButton(
-            //     style: ElevatedButton.styleFrom(
-            //       backgroundColor: const Color(0xff86C1FF),
-            //       foregroundColor: Colors.black,
-            //       padding: EdgeInsets.symmetric(
-            //         horizontal: width * 0.04,
-            //         vertical: height * 0.012,
-            //       ),
-            //       shape: RoundedRectangleBorder(
-            //         borderRadius: BorderRadius.circular(8),
-            //       ),
-            //     ),
-            //     onPressed: () {
-            //       final Map<String, dynamic> updated = {
-            //         'title': _titleController.text,
-            //         'language': _languageController.text,
-            //         'description': _descriptionController.text,
-            //         'class': [
-            //           _gradeController.text,
-            //           _banController.text,
-            //         ].where((e) => e.isNotEmpty).join('-'),
-            //         'status': _isActivated ? 'activate' : 'unactivate',
-            //         'chatAllowed': _isChatAllowed,
-            //       };
-            //       widget.onApply(updated);
-            //       ScaffoldMessenger.of(context).showSnackBar(
-            //         SnackBar(
-            //           content: Text('저장되었습니다.'),
-            //           behavior: SnackBarBehavior.floating,
-            //           duration: Duration(seconds: 1),
-            //         ),
-            //       );
-            //     },
-            //     child: Text('적용', style: TextStyle(fontSize: width * 0.04)),
-            //   ),
-            // ),
+            SizedBox(height: height*0.07,),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xff86C1FF),
+                  foregroundColor: Colors.black,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: width * 0.04,
+                    vertical: height * 0.016,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: () {
+                  final Map<String, dynamic> updated = {
+                    'title': _titleController.text,
+                    'language': _languageController.text,
+                    'description': _descriptionController.text,
+                    'class': [
+                      _gradeController.text,
+                      _banController.text,
+                    ].where((e) => e.isNotEmpty).join('-'),
+                    'status': _isActivated ? 'activate' : 'unactivate',
+                    'chatAllowed': _isChatAllowed,
+                  };
+                  widget.onApply(updated);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('저장되었습니다.'),
+                      behavior: SnackBarBehavior.floating,
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                },
+                child: Text(
+                  '변경사항 저장',
+                  style: TextStyle(fontSize: width * 0.04),
+                ),
+              ),
+            ),
           ],
         ),
       ),
