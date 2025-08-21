@@ -3,7 +3,9 @@ import 'package:clue/pages/HakSubSil.dart';
 import 'package:clue/pages/HomePage.dart';
 import 'package:clue/pages/Settings.dart';
 import 'package:clue/teacher_page/tHakSubSilSuap.dart';
+import 'package:clue/widgets/markdown_.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/svg.dart';
 
 void main() {
@@ -37,12 +39,13 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0; 
-  static String code="teacher";  
-  // static String code="student";
+  // static String code="teacher";  
+  static String code="student";
   final List<Widget> _pages = [
     HomePage(),
     code!='teacher'?Haksubsil():Thaksubsilsuap(),
-    Education(),
+    // Education(),
+    Markdown_(),
     Settings(),
   ];
 
