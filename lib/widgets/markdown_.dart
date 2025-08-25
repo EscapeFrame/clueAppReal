@@ -3,13 +3,14 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/svg.dart';
 
 class Markdown_ extends StatelessWidget {
-  Markdown_({super.key});
+  Markdown_({super.key, required this.markdowndata});
+  final String markdowndata;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
-    final markdowndata = '## HelloWorld \n --- \n ## 김한결 \n | ㅎㅇ';
+
     return Scaffold(
       key: _scaffoldKey,
 

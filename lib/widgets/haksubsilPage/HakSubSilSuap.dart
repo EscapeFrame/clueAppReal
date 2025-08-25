@@ -1,8 +1,8 @@
 import 'package:clue/widgets/haksubsilPage/GwaJeJeChul.dart';
 import 'package:clue/widgets/haksubsilPage/HakSubSilGaJa.dart';
+import 'package:clue/widgets/markdown_.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:clue/config/app_color.dart';
 
 class Haksubsilsuap extends StatefulWidget {
   final Map<String, dynamic> notice;
@@ -24,6 +24,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
     });
   }
 
+  String markdowndata = '## HelloWorld \n --- \n ## 김한결 \n | ㅎㅇ';
   @override
   void initState() {
     super.initState();
@@ -188,24 +189,42 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                             >(
                                               (item) => Column(
                                                 children: [
-                                                  Container(
-                                                    decoration: BoxDecoration(
-                                                      color: Color(0xffF5F5F5),
-                                                      // color: const Color.fromARGB(255, 245, 245, 245),
-                                                      border: Border.all(
-                                                        width: 0.25,
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder:
+                                                              (
+                                                                context,
+                                                              ) => Markdown_(
+                                                                markdowndata:
+                                                                    markdowndata,
+                                                              ),
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: Container(
+                                                      decoration: BoxDecoration(
                                                         color: Color(
-                                                          0xffCCCCCC,
+                                                          0xffF5F5F5,
+                                                        ),
+                                                        // color: const Color.fromARGB(255, 245, 245, 245),
+                                                        border: Border.all(
+                                                          width: 0.25,
+                                                          color: Color(
+                                                            0xffCCCCCC,
+                                                          ),
                                                         ),
                                                       ),
-                                                    ),
-                                                    child: ListTile(
-                                                      title: Container(
-                                                        child: Text(
-                                                          item.toString(),
-                                                          style: TextStyle(
-                                                            fontSize:
-                                                                width * 0.035,
+                                                      child: ListTile(
+                                                        title: Container(
+                                                          child: Text(
+                                                            item.toString(),
+                                                            style: TextStyle(
+                                                              fontSize:
+                                                                  width * 0.035,
+                                                            ),
                                                           ),
                                                         ),
                                                       ),

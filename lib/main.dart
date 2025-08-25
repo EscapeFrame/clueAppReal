@@ -3,9 +3,7 @@ import 'package:clue/pages/HakSubSil.dart';
 import 'package:clue/pages/HomePage.dart';
 import 'package:clue/pages/Settings.dart';
 import 'package:clue/teacher_page/tHakSubSilSuap.dart';
-import 'package:clue/widgets/markdown_.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/svg.dart';
 
 void main() {
@@ -45,7 +43,7 @@ class _MainScreenState extends State<MainScreen> {
     HomePage(),
     code!='teacher'?Haksubsil():Thaksubsilsuap(),
     // Education(),
-    Markdown_(),
+    Education(),
     Settings(),
   ];
 
