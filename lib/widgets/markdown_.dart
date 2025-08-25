@@ -15,19 +15,20 @@ class Markdown_ extends StatelessWidget {
       key: _scaffoldKey,
 
       endDrawer: SizedBox(
-        
         width: width * 0.75,
         child: Container(
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          color:Colors.white,
+          color: Colors.white,
 
-          
           child: SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.close),
-                SizedBox(height:height*0.05),
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: Icon(Icons.close),
+                ),
+                SizedBox(height: height * 0.05),
               ],
             ),
           ),
