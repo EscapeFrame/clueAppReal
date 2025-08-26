@@ -21,22 +21,22 @@ class Login extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: width * 0.08),
+          padding: EdgeInsets.symmetric(horizontal: width * 0.045),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SvgPicture.asset(
                 'assets/images/clueLogo.svg',
-                width: width * 0.3,
+                width: width * 0.4,
               ),
-              SizedBox(height: height * 0.08),
+              SizedBox(height: height * 0.056),
               GestureDetector(
                 onTap: () => {
                   
                 },
                 child: Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: width * 0.04,
+                    horizontal: width * 0.05,
                     vertical: height * 0.015,
                   ),
                   decoration: BoxDecoration(
@@ -44,17 +44,19 @@ class Login extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      SvgPicture.asset(
-                        'assets/images/googleicon.svg',
-                        width: width * 0.06,
+                      Image.network(
+                        'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/800px-Google_%22G%22_logo.svg.png',
+                        width: width * 0.07,
                       ),
-                      // SizedBox(width: width * 0.01),
-                      Text('google 계정으로 로그인하기', style: TextStyle(fontSize: width*0.035, color: Color(0xff111111))),
+                      SizedBox(width: width * 0.045),
+                      Text('google 계정으로 로그인하기', style: TextStyle(fontSize: width*0.04, color: Color(0xff111111))),
                     ],
                   ),
                 ),
               ),
+              SizedBox(height: height * 0.15),
             ],
           ),
         ),
