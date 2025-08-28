@@ -1,4 +1,4 @@
-import 'package:clue/login.dart';
+import 'package:clue/pages/Education.dart';
 import 'package:clue/pages/HakSubSil.dart';
 import 'package:clue/pages/HomePage.dart';
 import 'package:clue/pages/Settings.dart';
@@ -37,13 +37,13 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0; 
-  // static String code="teacher";  
+  // static String code="teacher";
   static String code="student";
   final List<Widget> _pages = [
     HomePage(),
     code!='teacher'?Haksubsil():Thaksubsilsuap(),
-    // Education(),
-    Login(),
+    Education(),
+    // Login(),
     // Test(),
     Settings(),
   ];
@@ -130,3 +130,4 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
+

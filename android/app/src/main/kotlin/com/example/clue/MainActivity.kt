@@ -1,4 +1,4 @@
-package com.example.realrealrealclue
+package com.example.clue
 
 import io.flutter.embedding.android.FlutterActivity
 

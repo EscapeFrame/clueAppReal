@@ -1,31 +1,39 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
+import 'api_client.dart';
+import 'auth_storage.dart';
 
 class Login extends StatelessWidget {
   const Login({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    void request() async {
-      final dio = Dio(BaseOptions(baseUrl: "http://10.129.57.64:8080/"));
+  Future<void> _requestDevToken() async {
+    final dio = ApiClient.instance.dio;
 
-      try {
-        final res = await dio.post(
-          "test",
-          data: {"userId": 1, "username": "user1", "role": "TEACHER"},
-          options: Options(),
-        );
+    final res = await dio.post(
+      'test',
+      queryParameters: {'userId': 1, 'username': 'user1', 'role': 'TEACHER'},
+    );
 
-        
-        print("token: ${res.headers.value("Authorization")}");
-      } catch (e) {
-        print("error: $e");
-      }
+    final token = res.headers.value('Authorization'); 
+    if (token == null || token.isEmpty) {
+      debugPrint('⚠️ 토큰 없음');
+      return;
     }
 
+    await AuthStorage.instance.saveAccessToken(token);
+    debugPrint('token: $token');
+
+    final realSavedToken =
+        await AuthStorage.instance.readAccessToken(); 
+    debugPrint('realSavedToken: $realSavedToken');
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
+
     return Scaffold(
       body: Center(
         child: Container(
@@ -40,16 +48,14 @@ class Login extends StatelessWidget {
               SizedBox(height: height * 0.056),
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: () {
-                  request();
-                },
+                onTap: _requestDevToken,
                 child: Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: width * 0.05,
                     vertical: height * 0.028,
                   ),
                   decoration: BoxDecoration(
-                    color: Color(0xffF3F3F3),
+                    color: const Color(0xffF3F3F3),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
@@ -64,7 +70,7 @@ class Login extends StatelessWidget {
                         'google 계정으로 로그인하기',
                         style: TextStyle(
                           fontSize: width * 0.04,
-                          color: Color(0xff111111),
+                          color: const Color(0xff111111),
                         ),
                       ),
                     ],
