@@ -8,14 +8,22 @@ class Login extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     void request() async {
-      final Dio dio=Dio();
+      final dio = Dio(BaseOptions(baseUrl: "http://10.129.57.64:8080/"));
+
       try {
-        var response = await dio.get('');
-        print(response.data);
+        final res = await dio.post(
+          "test",
+          data: {"userId": 1, "username": "user1", "role": "TEACHER"},
+          options: Options(),
+        );
+
+        
+        print("token: ${res.headers.value("Authorization")}");
       } catch (e) {
-        print('Error: $e');
+        print("error: $e");
       }
     }
+
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
@@ -31,8 +39,9 @@ class Login extends StatelessWidget {
               ),
               SizedBox(height: height * 0.056),
               GestureDetector(
-                onTap: () => {
-                  
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  request();
                 },
                 child: Container(
                   padding: EdgeInsets.symmetric(
@@ -51,7 +60,13 @@ class Login extends StatelessWidget {
                         width: width * 0.07,
                       ),
                       SizedBox(width: width * 0.045),
-                      Text('google 계정으로 로그인하기', style: TextStyle(fontSize: width*0.04, color: Color(0xff111111))),
+                      Text(
+                        'google 계정으로 로그인하기',
+                        style: TextStyle(
+                          fontSize: width * 0.04,
+                          color: Color(0xff111111),
+                        ),
+                      ),
                     ],
                   ),
                 ),
