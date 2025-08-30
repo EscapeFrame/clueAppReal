@@ -4,28 +4,35 @@ import 'package:clue/pages/HomePage.dart';
 import 'package:clue/pages/Settings.dart';
 import 'package:clue/teacher_page/tHakSubSilSuap.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_svg/svg.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint('dotenv load failed: $e');
+  }
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key}); 
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Navigation Demo',
-      
+
       theme: ThemeData(
-        scaffoldBackgroundColor: Colors.white, 
+        scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       home: const MainScreen(),
       debugShowCheckedModeBanner: false,
     );
-  } 
+  }
 }
 
 class MainScreen extends StatefulWidget {
@@ -33,15 +40,15 @@ class MainScreen extends StatefulWidget {
 
   @override
   State<MainScreen> createState() => _MainScreenState();
-} 
+}
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0; 
+  int _selectedIndex = 0;
   // static String code="teacher";
-  static String code="student";
+  static String code = "student";
   final List<Widget> _pages = [
     HomePage(),
-    code!='teacher'?Haksubsil():Thaksubsilsuap(),
+    code != 'teacher' ? Haksubsil() : Thaksubsilsuap(),
     Education(),
     // Login(),
     // Test(),
@@ -104,11 +111,11 @@ class _MainScreenState extends State<MainScreen> {
                 BlendMode.srcIn,
               ),
             ),
-            activeIcon: SvgPicture.asset( 
+            activeIcon: SvgPicture.asset(
               'assets/images/Union.svg',
               colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
             ),
-            label: '학교공지', 
+            label: '학교공지',
           ),
           BottomNavigationBarItem(
             backgroundColor: Colors.white,
@@ -130,4 +137,3 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
-

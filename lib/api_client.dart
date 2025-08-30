@@ -1,24 +1,34 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'auth_storage.dart';
 
 class ApiClient {
-  ApiClient._() {
+  // 이 값만 true/false로 바꿔서 URL 전환
+  static const bool useAltBase = true; // true면 BASE_URL_ALT 사용
+
+  ApiClient._internal() {
+    final selectedBase = ((useAltBase
+            ? dotenv.env['BASE_URL_ALT']
+            : dotenv.env['BASE_URL']) ??
+        '')
+        .trim();
+
     _dio = Dio(
       BaseOptions(
-        baseUrl: 'http://10.129.57.64:8080/',
+        baseUrl: selectedBase,
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 10),
       ),
     );
 
+    // JWT 자동 첨부
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           final token = await AuthStorage.instance.readAccessToken();
           if (token != null && token.isNotEmpty) {
-            options.headers['Authorization'] =
-                token; // Bearer ... 그대로 저장했으니 그대로 첨부
+            options.headers['Authorization'] = token; // "Bearer ..." 형태로 저장돼있다면 그대로
           }
           handler.next(options);
         },
@@ -26,7 +36,7 @@ class ApiClient {
     );
   }
 
-  static final ApiClient instance = ApiClient._();
+  static final ApiClient instance = ApiClient._internal();
   late final Dio _dio;
 
   Dio get dio => _dio;

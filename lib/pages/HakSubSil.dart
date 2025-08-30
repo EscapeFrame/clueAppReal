@@ -1,14 +1,22 @@
+import 'package:clue/api_client.dart';
 import 'package:clue/config/app_color.dart';
 import 'package:clue/config/app_data_.dart';
 import 'package:clue/widgets/haksubsilPage/haksubsilTabBar_/BangGwaHooHakSubSilBaroGaJa.dart';
 import 'package:clue/widgets/haksubsilPage/haksubsilTabBar_/HakSubSilBaroGaJa.dart';
 import 'package:clue/widgets/haksubsilPage/haksubsilTabBar_/InmoonHakSubSilBaroGaJa.dart';
 import 'package:clue/widgets/haksubsilPage/haksubsilTabBar_/JeongGongHakSubSilBaroGaJa.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class Haksubsil extends StatelessWidget {
-  Haksubsil({super.key});
+class Haksubsil extends StatefulWidget {
+  const Haksubsil({super.key});
+
+  @override
+  State<Haksubsil> createState() => _HaksubsilState();
+}
+
+class _HaksubsilState extends State<Haksubsil> {
   final List<Map<String, dynamic>> noticeList = AppData.getNoticeList();
 
   void showAddClassDialog(BuildContext context) {
@@ -63,9 +71,7 @@ class Haksubsil extends StatelessWidget {
                 ),
                 SizedBox(height: height * 0.02),
                 GestureDetector(
-                  onTap: () => {
-                    Navigator.pop(context),
-                  },
+                  onTap: () => {Navigator.pop(context)},
                   child: Container(
                     padding: EdgeInsets.symmetric(vertical: 4),
                     decoration: BoxDecoration(
@@ -75,9 +81,7 @@ class Haksubsil extends StatelessWidget {
                     child: Center(child: Text('취소')),
                   ),
                 ),
-                SizedBox(
-                  height:5
-                ),
+                SizedBox(height: 5),
                 Container(
                   padding: EdgeInsets.symmetric(vertical: 4),
                   decoration: BoxDecoration(
@@ -93,6 +97,25 @@ class Haksubsil extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<void> _response() async {
+    try {
+      final api = ApiClient.instance.dio; 
+      final res = await api.get('/api/class'); 
+      debugPrint("유근찬 : ${res.data.toString()}");
+    } on DioException catch (e) { //Dio 패키지에서 http 통신 중 발생하는 예외타입 
+      debugPrint('Error: ${e.response?.statusCode} ${e.response?.data ?? e.message}');
+    } catch (e) {
+      debugPrint('Error: $e');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('진입함');
+    _response();
   }
 
   @override
