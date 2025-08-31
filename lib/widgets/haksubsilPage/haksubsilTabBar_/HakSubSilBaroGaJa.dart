@@ -7,7 +7,7 @@ class Haksubsilbarogaja extends StatelessWidget {
 
   const Haksubsilbarogaja({super.key, required this.noticeList});
 
-  // 클래스룸 상세를 가져와 Map으로 반환
+
   Future<Map<String, dynamic>> classRoomDetailApi(int index) async {
     final api = ApiClient.instance.dio;
     final res = await api.get(
