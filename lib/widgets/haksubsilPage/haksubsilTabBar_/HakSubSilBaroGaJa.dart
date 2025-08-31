@@ -7,14 +7,12 @@ class Haksubsilbarogaja extends StatelessWidget {
 
   const Haksubsilbarogaja({super.key, required this.noticeList});
 
-
   Future<Map<String, dynamic>> classRoomDetailApi(int index) async {
     final api = ApiClient.instance.dio;
     final res = await api.get(
       '/api/class/${noticeList[index]['classRoomId']}/all',
     );
     final data = res.data;
-
 
     return Map<String, dynamic>.from(data);
   }
@@ -33,19 +31,14 @@ class Haksubsilbarogaja extends StatelessWidget {
             children: [
               GestureDetector(
                 onTap: () async {
-                  try {
-                    final detail = await classRoomDetailApi(index);
-                    debugPrint(detail.toString());
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => Haksubsilsuap(notice: detail),
-                      ),
-                    );
-                  } catch (e) {
-                    // 실패 시 간단히 무시하거나 스낵바 출력 가능
-                    // debugPrint('classRoom load error: $e');
-                  }
+                  final detail = await classRoomDetailApi(index);
+
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => Haksubsilsuap(notice: detail),
+                    ),
+                  );
                 },
                 child: Container(
                   padding: EdgeInsets.fromLTRB(

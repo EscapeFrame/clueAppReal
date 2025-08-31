@@ -28,6 +28,8 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
   @override
   void initState() {
     super.initState();
+    debugPrint(widget.notice.toString());
+    // assignments 초기화 및 file → files 변환
     final rawAssignments = widget.notice['assignments'];
     if (rawAssignments is List) {
       assignments = List<Map<String, dynamic>>.from(
@@ -91,7 +93,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                 ),
                 SizedBox(height: height * 0.05),
                 Text(
-                  widget.notice['title'].toString(),
+                  widget.notice['classRoomName'].toString(),
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: width * 0.05,
@@ -102,7 +104,25 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                   widget.notice['description'].toString(),
                   style: TextStyle(fontSize: width * 0.035),
                 ),
-                SizedBox(height: height * 0.025),
+                SizedBox(height: height * 0.01),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.person,
+                      size: width * 0.06,
+                      color: Colors.black54,
+                    ),
+                    SizedBox(width: width * 0.01),
+                    Text(
+                      widget.notice['teacherNames'][0].toString(),
+                      style: TextStyle(
+                        fontSize: width * 0.035,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black45,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -149,12 +169,17 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                               // color:Colors.white,
                             ),
                             child: ListView.builder(
-                              itemCount: widget.notice['lessons'].length,
+                              itemCount:
+                                  ((widget.notice['directoryList'] as List?) ?? const [])
+                                      .length,
                               itemBuilder: (context, index) {
-                                final lesson = widget.notice['lessons'][index];
+                                final lesson =
+                                    ((widget.notice['directoryList'] as List?) ?? const [])[index]
+                                        as Map? ??
+                                    const {};
                                 return Column(
                                   children: [
-                                    SizedBox(height: height * 0.006),
+                                    // SizedBox(height: height * 0.006),
                                     Container(
                                       margin: EdgeInsets.symmetric(
                                         horizontal: width * 0.05,
@@ -177,17 +202,15 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                         ),
                                         child: ExpansionTile(
                                           title: Text(
-                                            lesson['title'],
+                                            lesson['directoryName'].toString(),
                                             style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: width * 0.045,
                                             ),
                                           ),
                                           children: [
-                                            ...(lesson['items'] as List<dynamic>).map<
-                                              Widget
-                                            >(
-                                              (item) => Column(
+                                            ...(((lesson['documentList'] as List?) ?? const []))
+                                                .map<Widget>((item) => Column(
                                                 children: [
                                                   GestureDetector(
                                                     onTap: () {
@@ -231,8 +254,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                                     ),
                                                   ),
                                                 ],
-                                              ),
-                                            ),
+                                              )),
                                           ],
                                         ),
                                       ),

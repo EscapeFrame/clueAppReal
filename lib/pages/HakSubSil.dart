@@ -101,11 +101,12 @@ class _HaksubsilState extends State<Haksubsil> {
   }
 
   Future<void> _response() async {
+    debugPrint('BASE: ${ApiClient.instance.dio.options.baseUrl}');
     try {
       final api = ApiClient.instance.dio;
       final res = await api.get('/api/class');
       final data = res.data;
-
+      
       List<Map<String, dynamic>> list = [];
 
       list =
