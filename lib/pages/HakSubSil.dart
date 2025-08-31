@@ -18,6 +18,7 @@ class Haksubsil extends StatefulWidget {
 
 class _HaksubsilState extends State<Haksubsil> {
   final List<Map<String, dynamic>> noticeList = AppData.getNoticeList();
+  List<Map<String, dynamic>> _classList = [];
 
   void showAddClassDialog(BuildContext context) {
     final TextEditingController codeController = TextEditingController();
@@ -101,11 +102,28 @@ class _HaksubsilState extends State<Haksubsil> {
 
   Future<void> _response() async {
     try {
-      final api = ApiClient.instance.dio; 
-      final res = await api.get('/api/class'); 
-      debugPrint("유근찬 : ${res.data.toString()}");
-    } on DioException catch (e) { //Dio 패키지에서 http 통신 중 발생하는 예외타입 
-      debugPrint('Error: ${e.response?.statusCode} ${e.response?.data ?? e.message}');
+      final api = ApiClient.instance.dio;
+      final res = await api.get('/api/class');
+      final data = res.data;
+
+      List<Map<String, dynamic>> list = [];
+
+      list =
+          data
+              .whereType<Map>()
+              .map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e))
+              .toList();
+
+      setState(() {
+        _classList = list;
+      });
+
+      // debugPrint(res.data.toString());
+    } on DioException catch (e) {
+      //Dio 패키지에서 http 통신 중 발생하는 예외타입
+      debugPrint(
+        'Error: ${e.response?.statusCode} ${e.response?.data ?? e.message}',
+      );
     } catch (e) {
       debugPrint('Error: $e');
     }
@@ -241,10 +259,10 @@ class _HaksubsilState extends State<Haksubsil> {
             Expanded(
               child: TabBarView(
                 children: [
-                  Haksubsilbarogaja(noticeList: noticeList),
-                  Inmoonhaksubsilbarogaja(noticeList: noticeList),
-                  Jeonggonghaksubsilbarogaja(noticeList: noticeList),
-                  Banggwahoohaksubsilbarogaja(noticeList: noticeList),
+                  Haksubsilbarogaja(noticeList: _classList),
+                  Inmoonhaksubsilbarogaja(noticeList: _classList),
+                  Jeonggonghaksubsilbarogaja(noticeList: _classList),
+                  Banggwahoohaksubsilbarogaja(noticeList: _classList),
                 ],
               ),
             ),

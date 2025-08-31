@@ -1,3 +1,4 @@
+import 'package:clue/api_client.dart';
 import 'package:clue/widgets/haksubsilPage/HakSubSilSuap.dart';
 import 'package:flutter/material.dart';
 
@@ -5,6 +6,18 @@ class Haksubsilbarogaja extends StatelessWidget {
   final List<Map<String, dynamic>> noticeList;
 
   const Haksubsilbarogaja({super.key, required this.noticeList});
+
+  // 클래스룸 상세를 가져와 Map으로 반환
+  Future<Map<String, dynamic>> classRoomDetailApi(int index) async {
+    final api = ApiClient.instance.dio;
+    final res = await api.get(
+      '/api/class/${noticeList[index]['classRoomId']}/all',
+    );
+    final data = res.data;
+
+
+    return Map<String, dynamic>.from(data);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,16 +32,28 @@ class Haksubsilbarogaja extends StatelessWidget {
           return Column(
             children: [
               GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => Haksubsilsuap(notice: notice),
-                    ),
-                  );
+                onTap: () async {
+                  try {
+                    final detail = await classRoomDetailApi(index);
+                    debugPrint(detail.toString());
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => Haksubsilsuap(notice: detail),
+                      ),
+                    );
+                  } catch (e) {
+                    // 실패 시 간단히 무시하거나 스낵바 출력 가능
+                    // debugPrint('classRoom load error: $e');
+                  }
                 },
                 child: Container(
-                  padding: EdgeInsets.fromLTRB(width * 0.045, width * 0.045, width * 0.055, width * 0.037),
+                  padding: EdgeInsets.fromLTRB(
+                    width * 0.045,
+                    width * 0.045,
+                    width * 0.055,
+                    width * 0.037,
+                  ),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(width * 0.025),
                     border: Border.all(color: Colors.grey, width: 0.5),
@@ -39,32 +64,40 @@ class Haksubsilbarogaja extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            notice['title'].toString(),
+                            notice['name'].toString(),
                             style: TextStyle(
                               fontSize: width * 0.045,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           SizedBox(width: width * 0.02),
-                          
                         ],
                       ),
                       SizedBox(height: width * 0.008),
                       Row(
                         children: [
                           Text(
-                            notice['language'].toString(),
+                            notice['sort'].toString(),
                             style: TextStyle(
                               fontSize: width * 0.04,
                               color: Colors.grey,
                             ),
                           ),
                           SizedBox(width: width * 0.01),
-                          Text('|', style: TextStyle(color: Colors.grey, fontSize: width * 0.035)),
+                          Text(
+                            '|',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: width * 0.035,
+                            ),
+                          ),
                           SizedBox(width: width * 0.01),
                           Text(
-                            notice['class'].toString(),
-                            style: TextStyle(fontSize: width * 0.04, color: Colors.grey),
+                            notice['target'].toString(),
+                            style: TextStyle(
+                              fontSize: width * 0.04,
+                              color: Colors.grey,
+                            ),
                           ),
                         ],
                       ),
@@ -73,16 +106,22 @@ class Haksubsilbarogaja extends StatelessWidget {
                         children: [
                           const Icon(Icons.people, color: Colors.grey),
                           const SizedBox(width: 10),
-                           Text('사람 ${notice['people']} 명',style: TextStyle(fontSize: width * 0.04,)),
+                          Text(
+                            '사람 ${notice['studentCount']} 명',
+                            style: TextStyle(fontSize: width * 0.04),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 20),
-                       Row(
+                      Row(
                         children: [
                           Spacer(),
                           Text(
                             '과제 보기 >',
-                            style: TextStyle(color: Colors.grey, fontSize: width * 0.04,),
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: width * 0.04,
+                            ),
                           ),
                         ],
                       ),

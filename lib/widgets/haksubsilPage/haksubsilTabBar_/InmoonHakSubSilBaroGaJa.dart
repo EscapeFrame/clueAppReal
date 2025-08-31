@@ -43,7 +43,7 @@ class Inmoonhaksubsilbarogaja extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            notice['title'].toString(),
+                            notice['classRoomId'].toString(),
                             style: TextStyle(
                               fontSize: width * 0.045,
                               fontWeight: FontWeight.w600,
@@ -57,7 +57,7 @@ class Inmoonhaksubsilbarogaja extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            notice['language'].toString(),
+                            notice['sort'].toString(),
                             style: TextStyle(
                               fontSize: width * 0.04,
                               color: Colors.grey,
@@ -67,7 +67,7 @@ class Inmoonhaksubsilbarogaja extends StatelessWidget {
                           Text('|', style: TextStyle(color: Colors.grey, fontSize: width * 0.035)),
                           SizedBox(width: width * 0.01),
                           Text(
-                            notice['class'].toString(),
+                            notice['target'].toString(),
                             style: TextStyle(fontSize: width * 0.04, color: Colors.grey),
                           ),
                         ],
@@ -77,7 +77,7 @@ class Inmoonhaksubsilbarogaja extends StatelessWidget {
                         children: [
                           const Icon(Icons.people, color: Colors.grey),
                           const SizedBox(width: 10),
-                           Text('사람 ${notice['people']} 명',style: TextStyle(fontSize: width * 0.04,)),
+                           Text('사람 ${notice['studentCount']} 명',style: TextStyle(fontSize: width * 0.04,)),
                         ],
                       ),
                       const SizedBox(height: 20),
