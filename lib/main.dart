@@ -1,4 +1,4 @@
-import 'package:clue/pages/Education.dart';
+import 'package:clue/login.dart';
 import 'package:clue/pages/HakSubSil.dart';
 import 'package:clue/pages/HomePage.dart';
 import 'package:clue/pages/Settings.dart';
@@ -49,8 +49,8 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _pages = [
     HomePage(),
     code != 'teacher' ? Haksubsil() : Thaksubsilsuap(),
-    Education(),
-    // Login(),
+    // Education(),
+    Login(),
     // Test(),
     Settings(),
   ];

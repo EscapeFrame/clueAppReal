@@ -8,13 +8,18 @@ class Haksubsilbarogaja extends StatelessWidget {
   const Haksubsilbarogaja({super.key, required this.noticeList});
 
   Future<Map<String, dynamic>> classRoomDetailApi(int index) async {
-    final api = ApiClient.instance.dio;
-    final res = await api.get(
-      '/api/class/${noticeList[index]['classRoomId']}/all',
-    );
-    final data = res.data;
+    try {
+      final api = ApiClient.instance.dio;
+      final res = await api.get(
+        '/api/class/${noticeList[index]['classRoomId']}/all',
+      );
+      final data = res.data;
 
-    return Map<String, dynamic>.from(data);
+      return Map<String, dynamic>.from(data);
+    } catch (e) {
+      debugPrint('in this ***********Error: $e');
+      return {};
+    }
   }
 
   @override
@@ -32,7 +37,7 @@ class Haksubsilbarogaja extends StatelessWidget {
               GestureDetector(
                 onTap: () async {
                   final detail = await classRoomDetailApi(index);
-
+                  // debugPrint("Hello:${detail.toString()}");
                   await Navigator.push(
                     context,
                     MaterialPageRoute(

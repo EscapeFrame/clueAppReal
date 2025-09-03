@@ -1,7 +1,20 @@
+import 'package:clue/api_client.dart';
 import 'package:flutter/material.dart';
 
 class TimetableStyledPage extends StatelessWidget {
   TimetableStyledPage({super.key});
+
+  Future<void> fetchTimetableData() async {
+    final api = ApiClient.instance.dio;
+    try {
+      final response = await api.get(
+        '/api/timetable/weekly?grade=1&classNumber=1',
+      );
+      debugPrint('시간표 데이터: ${response.data}');
+    } catch (e) {
+      debugPrint('시간표 데이터 불러오기 실패: $e');
+    }
+  }
 
   final List<String> days = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
   final List<String> periods = [
@@ -33,85 +46,98 @@ class TimetableStyledPage extends StatelessWidget {
     final cellPadding = width * 0.02;
     final fontSize = width * 0.025;
 
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: width * 0.02, vertical: height * 0.015),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(width * 0.05),
-        color: Colors.white,
-      ),
-      child: Table(
-        border: TableBorder.symmetric(
-          inside: BorderSide(color: Colors.grey, width: width * 0.001),
+    return GestureDetector(
+      onTap: fetchTimetableData,
+      child: Container(
+        margin: EdgeInsets.symmetric(
+          horizontal: width * 0.02,
+          vertical: height * 0.015,
         ),
-        columnWidths: {0: FixedColumnWidth(cellWidth)},
-        children: [
-          TableRow(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.only(topLeft: Radius.circular(width * 0.03)),
-              color: Color(0xFF91C9F7),
-            ),
-            children: [
-              SizedBox(
-                height: cellHeight,
-                child: const SizedBox(),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(width * 0.05),
+          color: Colors.white,
+        ),
+        child: Table(
+          border: TableBorder.symmetric(
+            inside: BorderSide(color: Colors.grey, width: width * 0.001),
+          ),
+          columnWidths: {0: FixedColumnWidth(cellWidth)},
+          children: [
+            TableRow(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(width * 0.03),
+                ),
+                color: Color(0xFF91C9F7),
               ),
-              ...days.map(
-                (day) => SizedBox(
-                  height: cellHeight,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(width * 0.03),
+              children: [
+                SizedBox(height: cellHeight, child: const SizedBox()),
+                ...days.map(
+                  (day) => SizedBox(
+                    height: cellHeight,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.only(
+                          topRight: Radius.circular(width * 0.03),
+                        ),
+                        color: Color(0xFF91C9F7),
                       ),
-                      color: Color(0xFF91C9F7),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: cellPadding * 0.7),
-                      child: Center(
-                        child: Text(
-                          day,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                            fontSize: fontSize,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical: cellPadding * 0.7,
+                        ),
+                        child: Center(
+                          child: Text(
+                            day,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                              fontSize: fontSize,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          for (int i = 0; i < periods.length; i++)
-            TableRow(
-              children: [
-                SizedBox(
-                  height: cellHeight,
-                  child: Container(
-                    padding: EdgeInsets.all(cellPadding),
-                    child: Center(
-                      child: Text(
-                        periods[i],
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize),
-                      ),
-                    ),
-                  ),
-                ),
-                ...timetable[i].map(
-                  (cell) => SizedBox(
-                    height: cellHeight,
-                    child: Padding(
-                      padding: EdgeInsets.all(cellPadding),
-                      child: Center(
-                        child: Text(cell, style: TextStyle(fontSize: fontSize)),
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
-        ],
+            for (int i = 0; i < periods.length; i++)
+              TableRow(
+                children: [
+                  SizedBox(
+                    height: cellHeight,
+                    child: Container(
+                      padding: EdgeInsets.all(cellPadding),
+                      child: Center(
+                        child: Text(
+                          periods[i],
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: fontSize,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  ...timetable[i].map(
+                    (cell) => SizedBox(
+                      height: cellHeight,
+                      child: Padding(
+                        padding: EdgeInsets.all(cellPadding),
+                        child: Center(
+                          child: Text(
+                            cell,
+                            style: TextStyle(fontSize: fontSize),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }

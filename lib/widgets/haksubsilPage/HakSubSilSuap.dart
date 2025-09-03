@@ -1,3 +1,4 @@
+import 'package:clue/api_client.dart';
 import 'package:clue/widgets/haksubsilPage/GwaJeJeChul.dart';
 import 'package:clue/widgets/haksubsilPage/HakSubSilGaJa.dart';
 import 'package:clue/widgets/markdown_.dart';
@@ -24,11 +25,38 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
     });
   }
 
+  Future<void> gwaJeJeChul() async {
+    try {
+      final assignmentsApi = ApiClient.instance.dio;
+      int i = 11;
+
+      final assignmentsRes = await assignmentsApi.get(
+        '/api/assignments/$i/all',
+      );
+      final data = assignmentsRes.data;
+      if (mounted && data is List) {
+        //mounted는 StatefulWidget이 아직 화면에 붙어 있는지 여부를 나타내는 플래그
+        final list = List<Map<String, dynamic>>.from(data);
+
+        setState(() {
+          assignments = list;
+        }); // 서버 응답이 오면 assignments를 갱신
+      }
+
+      debugPrint("수업:${assignments.toString()}");
+    } catch (e) {
+      debugPrint('assignments load error: $e');
+    }
+  }
+
   String markdowndata = '## HelloWorld \n --- \n ## 김한결 \n | ㅎㅇ';
   @override
   void initState() {
     super.initState();
-    debugPrint(widget.notice.toString());
+
+    gwaJeJeChul();
+
+    // debugPrint(widget.notice.toString());
     // assignments 초기화 및 file → files 변환
     final rawAssignments = widget.notice['assignments'];
     if (rawAssignments is List) {
@@ -62,6 +90,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
+
     return Scaffold(
       body: Column(
         children: [
@@ -75,6 +104,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: height * 0.05),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -170,11 +200,14 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                             ),
                             child: ListView.builder(
                               itemCount:
-                                  ((widget.notice['directoryList'] as List?) ?? const [])
+                                  ((widget.notice['directoryList'] as List?) ??
+                                          const [])
                                       .length,
                               itemBuilder: (context, index) {
                                 final lesson =
-                                    ((widget.notice['directoryList'] as List?) ?? const [])[index]
+                                    ((widget.notice['directoryList']
+                                                as List?) ??
+                                            const [])[index]
                                         as Map? ??
                                     const {};
                                 return Column(
@@ -209,52 +242,57 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                             ),
                                           ),
                                           children: [
-                                            ...(((lesson['documentList'] as List?) ?? const []))
-                                                .map<Widget>((item) => Column(
-                                                children: [
-                                                  GestureDetector(
-                                                    onTap: () {
-                                                      Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                          builder:
-                                                              (
-                                                                context,
-                                                              ) => Markdown_(
-                                                                markdowndata:
-                                                                    markdowndata,
+                                            ...(((lesson['documentList']
+                                                        as List?) ??
+                                                    const []))
+                                                .map<Widget>(
+                                                  (item) => Column(
+                                                    children: [
+                                                      GestureDetector(
+                                                        onTap: () {
+                                                          Navigator.push(
+                                                            context,
+                                                            MaterialPageRoute(
+                                                              builder:
+                                                                  (
+                                                                    context,
+                                                                  ) => Markdown_(
+                                                                    markdowndata:
+                                                                        markdowndata,
+                                                                  ),
+                                                            ),
+                                                          );
+                                                        },
+                                                        child: Container(
+                                                          decoration: BoxDecoration(
+                                                            color: Color(
+                                                              0xffF5F5F5,
+                                                            ),
+                                                            // color: const Color.fromARGB(255, 245, 245, 245),
+                                                            border: Border.all(
+                                                              width: 0.25,
+                                                              color: Color(
+                                                                0xffCCCCCC,
                                                               ),
-                                                        ),
-                                                      );
-                                                    },
-                                                    child: Container(
-                                                      decoration: BoxDecoration(
-                                                        color: Color(
-                                                          0xffF5F5F5,
-                                                        ),
-                                                        // color: const Color.fromARGB(255, 245, 245, 245),
-                                                        border: Border.all(
-                                                          width: 0.25,
-                                                          color: Color(
-                                                            0xffCCCCCC,
+                                                            ),
                                                           ),
-                                                        ),
-                                                      ),
-                                                      child: ListTile(
-                                                        title: Container(
-                                                          child: Text(
-                                                            item.toString(),
-                                                            style: TextStyle(
-                                                              fontSize:
-                                                                  width * 0.035,
+                                                          child: ListTile(
+                                                            title: Container(
+                                                              child: Text(
+                                                                item.toString(),
+                                                                style: TextStyle(
+                                                                  fontSize:
+                                                                      width *
+                                                                      0.035,
+                                                                ),
+                                                              ),
                                                             ),
                                                           ),
                                                         ),
                                                       ),
-                                                    ),
+                                                    ],
                                                   ),
-                                                ],
-                                              )),
+                                                ),
                                           ],
                                         ),
                                       ),

@@ -1,5 +1,4 @@
 import 'package:clue/teacher_page/tHakSubsilSuapTrue.dart';
-import 'package:clue/widgets/haksubsilPage/HakSubSilSuap.dart';
 import 'package:flutter/material.dart';
 
 class Allteachersuap extends StatelessWidget {

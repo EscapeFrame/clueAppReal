@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -8,25 +9,45 @@ class Login extends StatelessWidget {
   const Login({super.key});
 
   Future<void> _requestDevToken() async {
-    final dio = ApiClient.instance.dio;
+    try {
 
-    final res = await dio.post(
-      'test',
-      queryParameters: {'userId': 1, 'username': 'user1', 'role': 'TEACHER'},
-    );
+      final base = ApiClient.instance.dio.options.baseUrl;
+      final dio = Dio(BaseOptions(baseUrl: base));
 
-    final token = res.headers.value('Authorization'); 
-    if (token == null || token.isEmpty) {
-      debugPrint('⚠️ 토큰 없음');
-      return;
+      final res = await dio.post(
+        '/test',
+        queryParameters: {
+          'userId': 1,
+          'username': 'user1',
+          'role': 'TEACHER',
+        },
+        options: Options(validateStatus: (_) => true),
+      );
+
+      // if (res.statusCode != 200) {
+      //   debugPrint('DevToken fail: ${res.statusCode}');
+      //   debugPrint('URL: ${res.requestOptions.uri}');
+      //   debugPrint('Resp: ${res.data}');
+      //   return;
+      // }
+
+      String? token = res.headers.value('Authorization');
+      
+      if (token == null || token.isEmpty) {
+        debugPrint('⚠️ 토큰 없음. headers=${res.headers.map} body=${res.data}');
+        return;
+      }
+
+      await AuthStorage.instance.saveAccessToken(token);
+      final realSavedToken = await AuthStorage.instance.readAccessToken();
+      debugPrint('token saved: $realSavedToken');
+    } on DioException catch (e) {
+      debugPrint('DevToken request failed: ${e.response?.statusCode} ${e.message}');
+      debugPrint('URL: ${e.requestOptions.uri}');
+      debugPrint('Resp: ${e.response?.data}');
+    } catch (e) {
+      debugPrint('DevToken error: $e');
     }
-
-    await AuthStorage.instance.saveAccessToken(token);
-    debugPrint('token: $token');
-
-    final realSavedToken =
-        await AuthStorage.instance.readAccessToken(); 
-    debugPrint('realSavedToken: $realSavedToken');
   }
 
   @override

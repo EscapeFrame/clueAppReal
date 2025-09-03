@@ -119,11 +119,11 @@ class _HaksubsilState extends State<Haksubsil> {
         _classList = list;
       });
 
-      // debugPrint(res.data.toString());
+      debugPrint(res.data.toString());
     } on DioException catch (e) {
       //Dio 패키지에서 http 통신 중 발생하는 예외타입
       debugPrint(
-        'Error: ${e.response?.statusCode} ${e.response?.data ?? e.message}',
+        'EEError: ${e.response?.statusCode} ${e.response?.data ?? e.message}',
       );
     } catch (e) {
       debugPrint('Error: $e');

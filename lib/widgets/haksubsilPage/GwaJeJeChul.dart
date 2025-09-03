@@ -1,4 +1,3 @@
-import 'package:clue/widgets/haksubsilPage/HakSubSilGaJa.dart';
 import 'package:flutter/material.dart';
 
 class Gwajejechul extends StatefulWidget {
@@ -24,6 +23,7 @@ class _GwajejechulState extends State<Gwajejechul> {
     super.initState();
     // 원본 데이터를 복사하여 상태 관리
     dataList = List.from(widget.dataList);
+    debugPrint("과제:${dataList.toString()}");
   }
 
   void toggleSubmissionStatus(int index) {
