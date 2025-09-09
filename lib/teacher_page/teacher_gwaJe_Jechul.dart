@@ -1,4 +1,5 @@
 import 'package:clue/api_client.dart';
+import 'package:clue/teacher_page/tHakSubSilGaJa.dart';
 import 'package:clue/teacher_page/teacher_check.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
@@ -34,6 +35,15 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
   late List<Map<String, dynamic>> dataList;
   List<bool> isEditMode = [];
   bool showTeacherCheck = false;
+  bool showAssignmentDetail = false;
+  Map<String, dynamic>? selectedAssignment;
+
+  void _closeAssignmentDetail() {
+    setState(() {
+      showAssignmentDetail = false;
+      selectedAssignment = null;
+    });
+  }
 
   String _formatDate(DateTime? dt) =>
       dt == null ? '' : dt.toIso8601String().split('T').first;
@@ -163,15 +173,15 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                           timePickerTheme: TimePickerThemeData(
                             backgroundColor: Colors.white,
                             // 시/분 필드 배경: 선택/포커스 시 회색, 기본은 흰색
-                            hourMinuteColor: MaterialStateColor.resolveWith((states) {
-                              if (states.contains(MaterialState.selected) || states.contains(MaterialState.focused)) {
+                            hourMinuteColor: WidgetStateColor.resolveWith((states) {
+                              if (states.contains(WidgetState.selected) || states.contains(WidgetState.focused)) {
                                 return const Color(0xFFE0E0E0); // grey
                               }
                               return Colors.white;
                             }),
                             // AM/PM 선택 배경: 선택 시 #86C1FF, 기본은 흰색
-                            dayPeriodColor: MaterialStateColor.resolveWith((states) {
-                              if (states.contains(MaterialState.selected)) {
+                            dayPeriodColor: WidgetStateColor.resolveWith((states) {
+                              if (states.contains(WidgetState.selected)) {
                                 return const Color(0xff86C1FF);
                               }
                               return Colors.white;
@@ -262,14 +272,14 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                           ),
                           timePickerTheme: TimePickerThemeData(
                             backgroundColor: Colors.white,
-                            hourMinuteColor: MaterialStateColor.resolveWith((states) {
-                              if (states.contains(MaterialState.selected) || states.contains(MaterialState.focused)) {
+                            hourMinuteColor: WidgetStateColor.resolveWith((states) {
+                              if (states.contains(WidgetState.selected) || states.contains(WidgetState.focused)) {
                                 return const Color(0xFFE0E0E0); // grey
                               }
                               return Colors.white;
                             }),
-                            dayPeriodColor: MaterialStateColor.resolveWith((states) {
-                              if (states.contains(MaterialState.selected)) {
+                            dayPeriodColor: WidgetStateColor.resolveWith((states) {
+                              if (states.contains(WidgetState.selected)) {
                                 return const Color(0xff86C1FF);
                               }
                               return Colors.white;
@@ -509,6 +519,9 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                                                       '')
                                                   : '',
                                           'title': title,
+                                          'content': content,
+                                          'startDate': start,
+                                          'endDate': end,
                                           'status': '미제출',
                                           'submitted': false,
                                           'due': end,
@@ -543,6 +556,9 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                                                     '')
                                                 : '',
                                         'title': title,
+                                        'content': content,
+                                        'startDate': start,
+                                        'endDate': end,
                                         'status': '미제출',
                                         'submitted': false,
                                         'due': end,
@@ -706,14 +722,14 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                           ),
                           timePickerTheme: TimePickerThemeData(
                             backgroundColor: Colors.white,
-                            hourMinuteColor: MaterialStateColor.resolveWith((states) {
-                              if (states.contains(MaterialState.selected) || states.contains(MaterialState.focused)) {
+                            hourMinuteColor: WidgetStateColor.resolveWith((states) {
+                              if (states.contains(WidgetState.selected) || states.contains(WidgetState.focused)) {
                                 return const Color(0xFFE0E0E0);
                               }
                               return Colors.white;
                             }),
-                            dayPeriodColor: MaterialStateColor.resolveWith((states) {
-                              if (states.contains(MaterialState.selected)) {
+                            dayPeriodColor: WidgetStateColor.resolveWith((states) {
+                              if (states.contains(WidgetState.selected)) {
                                 return const Color(0xff86C1FF);
                               }
                               return Colors.white;
@@ -802,14 +818,14 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                           ),
                           timePickerTheme: TimePickerThemeData(
                             backgroundColor: Colors.white,
-                            hourMinuteColor: MaterialStateColor.resolveWith((states) {
-                              if (states.contains(MaterialState.selected) || states.contains(MaterialState.focused)) {
+                            hourMinuteColor: WidgetStateColor.resolveWith((states) {
+                              if (states.contains(WidgetState.selected) || states.contains(WidgetState.focused)) {
                                 return const Color(0xFFE0E0E0);
                               }
                               return Colors.white;
                             }),
-                            dayPeriodColor: MaterialStateColor.resolveWith((states) {
-                              if (states.contains(MaterialState.selected)) {
+                            dayPeriodColor: WidgetStateColor.resolveWith((states) {
+                              if (states.contains(WidgetState.selected)) {
                                 return const Color(0xff86C1FF);
                               }
                               return Colors.white;
@@ -1004,7 +1020,7 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                                   try {
                                     final dio = ApiClient.instance.dio;
                                     final res = await dio.patch('/api/assignments/$id', data: body);
-                                    final status = res.statusCode ?? 500;
+                                    final status = res.statusCode;
                                     debugPrint('[Assign Edit] status:$status data:${res.data}');
 
                                     // 즉시 반영: 로컬 아이템 업데이트
@@ -1012,6 +1028,9 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                                     if (idx != -1) {
                                       setState(() {
                                         dataList[idx]['title'] = title;
+                                        dataList[idx]['content'] = content;
+                                        dataList[idx]['startDate'] = start;
+                                        dataList[idx]['endDate'] = end;
                                         dataList[idx]['due'] = (endDate != null) ? _formatDate(endDate) : end;
                                         dataList[idx]['timeLeft'] = _formatTimeLeftFrom(endDate);
                                       });
@@ -1062,7 +1081,8 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
     DateTime? parseDate(String? s) {
       if (s == null || s.isEmpty) return null;
       try {
-        return DateTime.parse(s);
+        // 서버가 'YYYY-MM-DD HH:MM' 형식으로 줄 수 있어 공백을 'T'로 보정
+        return DateTime.parse(s.replaceAll(' ', 'T'));
       } catch (_) {
         return null;
       }
@@ -1084,7 +1104,10 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
 
     return raw.whereType<Map>().map<Map<String, dynamic>>((e) {
       final m = Map<String, dynamic>.from(e);
-      final end = parseDate(m['endDate']?.toString());
+      // 원본 필드(케이스 혼재 대비)
+      final rawStart = (m['startDate'] ?? m['start_date'])?.toString();
+      final rawEnd = (m['endDate'] ?? m['end_date'])?.toString();
+      final end = parseDate(rawEnd);
       final attachments =
           (m['AssignmentAttachments'] is List)
               ? (m['AssignmentAttachments'] as List)
@@ -1104,6 +1127,10 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
       return {
         'assignmentId': m['assignmentId'],
         'title': (m['title'] ?? '').toString(),
+        // 수정 시트에서 원본을 띄우기 위해 보존
+        'content': (m['content'] ?? '').toString(),
+        'startDate': rawStart ?? '',
+        'endDate': rawEnd ?? '',
         'status': '미제출',
         'submitted': false,
         'due': formatDue(end),
@@ -1206,13 +1233,15 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
     final height = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _openCreateAssignmentSheet();
-        },
-        backgroundColor: const Color(0xff86C1FF),
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: showAssignmentDetail
+          ? null
+          : FloatingActionButton(
+              onPressed: () {
+                _openCreateAssignmentSheet();
+              },
+              backgroundColor: const Color(0xff86C1FF),
+              child: const Icon(Icons.add),
+            ),
       body: Container(
         decoration: BoxDecoration(
           color: const Color.fromARGB(255, 245, 245, 245),
@@ -1233,16 +1262,21 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
               ),
             );
           },
-          child:
-              showTeacherCheck
+          child: showAssignmentDetail
+              ? Thaksubsilgaja(
+                  key: const ValueKey('assignmentDetail'),
+                  assignment: selectedAssignment!,
+                  onClose: _closeAssignmentDetail,
+                )
+              : showTeacherCheck
                   ? TeacherCheck(
-                    key: const ValueKey('teacherCheck'),
-                    onBack: () {
-                      setState(() {
-                        showTeacherCheck = false;
-                      });
-                    },
-                  )
+                      key: const ValueKey('teacherCheck'),
+                      onBack: () {
+                        setState(() {
+                          showTeacherCheck = false;
+                        });
+                      },
+                    )
                   : _buildAssignmentList(context, width, height),
         ),
       ),
@@ -1261,246 +1295,270 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
           dataList.asMap().entries.map((entry) {
             final index = entry.key;
             final data = entry.value;
-            return Container(
-              margin: EdgeInsets.symmetric(
-                horizontal: width * 0.04,
-                vertical: height * 0.012,
-              ),
-              padding: EdgeInsets.all(width * 0.04),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(width * 0.04),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: width * 0.02,
-                    offset: Offset(0, width * 0.01),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          data['title'],
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: width * 0.045,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: width * 0.02),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: width * 0.025,
-                          vertical: height * 0.005,
-                        ),
-                        decoration: BoxDecoration(
-                          color:
-                              data['submitted']
-                                  ? Colors.blue[100]
-                                  : Colors.grey[300],
-                          borderRadius: BorderRadius.circular(width * 0.05),
-                        ),
-                        child: Text(
-                          data['status'],
-                          style: TextStyle(
-                            fontSize: width * 0.03,
-                            color:
-                                data['submitted'] ? Colors.blue : Colors.black,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: height * 0.012),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today,
-                        size: width * 0.04,
-                        color: Colors.grey,
-                      ),
-                      SizedBox(width: width * 0.015),
-                      Text(
-                        "마감일:  ${data['due']}",
-                        style: TextStyle(fontSize: width * 0.03),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: height * 0.008),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        size: width * 0.04,
-                        color: Colors.blue,
-                      ),
-                      SizedBox(width: width * 0.015),
-                      Text(
-                        data['timeLeft'],
-                        style: TextStyle(
-                          fontSize: width * 0.03,
-                          color: Colors.blue,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: height * 0.018),
-
-                  ...List.generate(data['files'].length, (fileIdx) {
-                    final file = data['files'][fileIdx];
-                    return Container(
-                      margin: EdgeInsets.only(bottom: 6),
-                      padding: EdgeInsets.all(width * 0.03),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F5F5),
-                        borderRadius: BorderRadius.circular(width * 0.025),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.insert_drive_file_outlined,
-                            size: width * 0.05,
-                          ),
-                          SizedBox(width: width * 0.025),
-
-                          GestureDetector(
-                            onTap: () {
-                              if (file['url'] != null &&
-                                  file['url'].toString().isNotEmpty) {
-                                downloadFile(
-                                  context,
-                                  file['url'],
-                                  file['name'],
-                                );
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('다운로드 URL이 없습니다.')),
-                                );
-                              }
-                            },
-                            child: SizedBox(
-                              width: width * 0.5,
-                              child: Text(
-                                file['name'],
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: width * 0.03,
-                                  color: Colors.blue,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: width * 0.02),
-                          Text(
-                            '(${file['size']})',
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: width * 0.025,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          const Spacer(),
-                          GestureDetector(
-                            onTap: () => removeFile(index, fileIdx),
-                            child: Icon(Icons.close, size: width * 0.045),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                  if (isEditMode[index]) ...[
-                    SizedBox(height: height * 0.012),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () => pickFile(index),
-                        icon: Icon(Icons.attach_file),
-                        label: Text(
-                          '파일 추가',
-                          style: TextStyle(fontSize: width * 0.032),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange[100],
-                          foregroundColor: Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(width * 0.025),
-                          ),
-                          padding: EdgeInsets.symmetric(
-                            vertical: height * 0.012,
-                            horizontal: width * 0.04,
-                          ),
-                        ),
-                      ),
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  final mapped = Map<String, dynamic>.from(data);
+                  if (!(mapped.containsKey('file')) &&
+                      mapped['files'] is List &&
+                      (mapped['files'] as List).isNotEmpty) {
+                    mapped['file'] = (mapped['files'] as List).first;
+                  } else if (!mapped.containsKey('file')) {
+                    mapped['file'] = {'name': ''};
+                  }
+                  // Ensure assignmentId is present for detail/upload actions
+                  if (mapped['assignmentId'] == null) {
+                    final dynamic altId = mapped['id'] ?? mapped['assignment_id'];
+                    if (altId != null) {
+                      final parsed = int.tryParse(altId.toString());
+                      mapped['assignmentId'] = parsed ?? altId;
+                    }
+                  }
+                  selectedAssignment = mapped;
+                  showAssignmentDetail = true;
+                });
+              },
+              child: Container(
+                margin: EdgeInsets.symmetric(
+                  horizontal: width * 0.04,
+                  vertical: height * 0.012,
+                ),
+                padding: EdgeInsets.all(width * 0.04),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(width * 0.04),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: width * 0.02,
+                      offset: Offset(0, width * 0.01),
                     ),
                   ],
-                  SizedBox(height: height * 0.018),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SizedBox(
-                          child: ElevatedButton.icon(
-                            onPressed: () => _openEditAssignmentSheet(dataList[index]),
-                            label: Text(
-                              '내용수정',
-                              style: TextStyle(fontSize: width * 0.035),
-                            ),
-                            icon: Icon(Icons.edit),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey[300],
-                              foregroundColor: Colors.black,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  width * 0.025,
-                                ),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                vertical: height * 0.018,
-                              ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            data['title'],
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: width * 0.045,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                      ),
-                      SizedBox(width: width * 0.03),
-                      Expanded(
-                        child: SizedBox(
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              setState(() {
-                                showTeacherCheck = true;
-                              });
-                            },
-                            label: Text(
-                              '확인/채점',
-                              style: TextStyle(fontSize: width * 0.035),
+                        SizedBox(width: width * 0.02),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: width * 0.025,
+                            vertical: height * 0.005,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                data['submitted']
+                                    ? Colors.blue[100]
+                                    : Colors.grey[300],
+                            borderRadius: BorderRadius.circular(width * 0.05),
+                          ),
+                          child: Text(
+                            data['status'],
+                            style: TextStyle(
+                              fontSize: width * 0.03,
+                              color:
+                                  data['submitted'] ? Colors.blue : Colors.black,
                             ),
-                            icon: Icon(Icons.check),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFB9DCFF),
-                              foregroundColor: Colors.black,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  width * 0.025,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: height * 0.012),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today,
+                          size: width * 0.04,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(width: width * 0.015),
+                        Text(
+                          "마감일:  ${data['due']}",
+                          style: TextStyle(fontSize: width * 0.03),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: height * 0.008),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          size: width * 0.04,
+                          color: Colors.blue,
+                        ),
+                        SizedBox(width: width * 0.015),
+                        Text(
+                          data['timeLeft'],
+                          style: TextStyle(
+                            fontSize: width * 0.03,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: height * 0.018),
+              
+                    ...List.generate(data['files'].length, (fileIdx) {
+                      final file = data['files'][fileIdx];
+                      return Container(
+                        margin: EdgeInsets.only(bottom: 6),
+                        padding: EdgeInsets.all(width * 0.03),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F5F5),
+                          borderRadius: BorderRadius.circular(width * 0.025),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.insert_drive_file_outlined,
+                              size: width * 0.05,
+                            ),
+                            SizedBox(width: width * 0.025),
+              
+                            GestureDetector(
+                              onTap: () {
+                                if (file['url'] != null &&
+                                    file['url'].toString().isNotEmpty) {
+                                  downloadFile(
+                                    context,
+                                    file['url'],
+                                    file['name'],
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('다운로드 URL이 없습니다.')),
+                                  );
+                                }
+                              },
+                              child: SizedBox(
+                                width: width * 0.5,
+                                child: Text(
+                                  file['name'],
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: width * 0.03,
+                                    color: Colors.blue,
+                                    decoration: TextDecoration.underline,
+                                  ),
                                 ),
                               ),
-                              padding: EdgeInsets.symmetric(
-                                vertical: height * 0.018,
+                            ),
+                            SizedBox(width: width * 0.02),
+                            Text(
+                              '(${file['size']})',
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: width * 0.025,
+                                color: Colors.grey,
                               ),
+                            ),
+                            const Spacer(),
+                            GestureDetector(
+                              onTap: () => removeFile(index, fileIdx),
+                              child: Icon(Icons.close, size: width * 0.045),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                    if (isEditMode[index]) ...[
+                      SizedBox(height: height * 0.012),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () => pickFile(index),
+                          icon: Icon(Icons.attach_file),
+                          label: Text(
+                            '파일 추가',
+                            style: TextStyle(fontSize: width * 0.032),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange[100],
+                            foregroundColor: Colors.black,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(width * 0.025),
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              vertical: height * 0.012,
+                              horizontal: width * 0.04,
                             ),
                           ),
                         ),
                       ),
                     ],
-                  ),
-                ],
+                    SizedBox(height: height * 0.018),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            child: ElevatedButton.icon(
+                              onPressed: () => _openEditAssignmentSheet(dataList[index]),
+                              label: Text(
+                                '내용수정',
+                                style: TextStyle(fontSize: width * 0.035),
+                              ),
+                              icon: Icon(Icons.edit),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey[300],
+                                foregroundColor: Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    width * 0.025,
+                                  ),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                  vertical: height * 0.018,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: width * 0.03),
+                        Expanded(
+                          child: SizedBox(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                setState(() {
+                                  showTeacherCheck = true;
+                                });
+                              },
+                              label: Text(
+                                '확인/채점',
+                                style: TextStyle(fontSize: width * 0.035),
+                              ),
+                              icon: Icon(Icons.check),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFB9DCFF),
+                                foregroundColor: Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    width * 0.025,
+                                  ),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                  vertical: height * 0.018,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             );
           }).toList(),
