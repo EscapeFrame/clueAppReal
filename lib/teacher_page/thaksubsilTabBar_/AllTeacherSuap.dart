@@ -3,8 +3,13 @@ import 'package:flutter/material.dart';
 
 class Allteachersuap extends StatelessWidget {
   final List<Map<String, dynamic>> teacherHakSubSil;
+  final Future<void> Function()? onRefresh;
 
-  const Allteachersuap({super.key, required this.teacherHakSubSil});
+  const Allteachersuap({
+    super.key,
+    required this.teacherHakSubSil,
+    this.onRefresh,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -36,14 +41,18 @@ class Allteachersuap extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          tsuap['title'].toString(),
-                          style: TextStyle(
-                            fontSize: width * 0.045,
-                            fontWeight: FontWeight.w600,
+                        Expanded(
+                          child: Text(
+                            tsuap['name'].toString(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: width * 0.045,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                        Spacer(),
+                        SizedBox(width: width * 0.02),
                         Container(
                           padding: EdgeInsets.symmetric(
                             vertical: 4,
@@ -55,7 +64,7 @@ class Allteachersuap extends StatelessWidget {
                           ),
 
                           child: Text(
-                            tsuap['status'] == 'activate' ? '활성화' : '비활성화',
+                            tsuap['activation'] ? '활성화' : '비활성화',
                             style: TextStyle(fontSize: 10),
                           ),
                         ),
@@ -65,7 +74,7 @@ class Allteachersuap extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          tsuap['language'].toString(),
+                          tsuap['sort'].toString(),
                           style: TextStyle(
                             fontSize: width * 0.04,
                             color: Colors.grey,
@@ -81,7 +90,7 @@ class Allteachersuap extends StatelessWidget {
                         ),
                         SizedBox(width: width * 0.01),
                         Text(
-                          tsuap['class'].toString(),
+                          tsuap['target'].toString(),
                           style: TextStyle(
                             fontSize: width * 0.04,
                             color: Colors.grey,
@@ -95,7 +104,7 @@ class Allteachersuap extends StatelessWidget {
                         const Icon(Icons.people, color: Colors.grey),
                         const SizedBox(width: 10),
                         Text(
-                          '학생 ${tsuap['people']} 명',
+                          '학생 ${tsuap['studentCount']} 명',
                           style: TextStyle(fontSize: width * 0.04),
                         ),
                       ],
@@ -132,17 +141,17 @@ class Allteachersuap extends StatelessWidget {
                         SizedBox(width: width * 0.025),
                         Expanded(
                           child: GestureDetector(
-                            onTap:
-                                () => {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (_) =>
-                                              Thaksubsilsuaptrue(tsuap: tsuap),
-                                    ),
-                                  ),
-                                },
+                            onTap: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => Thaksubsilsuaptrue(tsuap: tsuap),
+                                ),
+                              );
+                              if (onRefresh != null) {
+                                await onRefresh!();
+                              }
+                            },
                             child: Container(
                               padding: EdgeInsets.symmetric(
                                 horizontal: 3,

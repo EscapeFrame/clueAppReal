@@ -15,6 +15,22 @@ class Gwajejechul extends StatefulWidget {
   State<Gwajejechul> createState() => _GwajejechulState();
 }
 
+String _calculateTimeLeft(String endDateStr) { //남은 과제 제출 시간 계산
+  try {
+    final end = DateTime.parse(endDateStr);
+    final now = DateTime.now();
+    final diff = end.difference(now);
+
+    if (diff.isNegative) {
+      return "마감됨";
+    } else {
+      return "${diff.inDays}일 ${diff.inHours % 24}시간 남음";
+    }
+  } catch (e) {
+    return "알 수 없음";
+  }
+}
+
 class _GwajejechulState extends State<Gwajejechul> {
   late List<Map<String, dynamic>> dataList;
 
@@ -22,14 +38,31 @@ class _GwajejechulState extends State<Gwajejechul> {
   void initState() {
     super.initState();
     // 원본 데이터를 복사하여 상태 관리
-    dataList = List.from(widget.dataList);
-    debugPrint("과제:${dataList.toString()}");
+    debugPrint("과제:${widget.dataList.toString()}");
+    dataList =
+        widget.dataList.map((data) {
+          return {
+            "assignmentId": data["assignmentId"],
+            "title": data["title"],
+            "content": data["content"],
+            "startDate": data["startDate"],
+            "endDate": data["endDate"],
+            "userName": data["userName"],
+            "due": data["endDate"], 
+            "timeLeft": _calculateTimeLeft(data["endDate"]),
+            // 추가해야 될 데이터들
+            "submitted": false,
+            "status": "미제출",
+            "file": {"name": "첨부 파일 없음"}, 
+          };
+        }).toList();
+    debugPrint("과제리스트:${dataList.toString()}");
   }
-
+  String isSubmitted="미제출";
   void toggleSubmissionStatus(int index) {
     setState(() {
       dataList[index]['submitted'] = !dataList[index]['submitted'];
-      dataList[index]['status'] = dataList[index]['submitted'] ? '제출됨' : '미제출';
+      isSubmitted = dataList[index]['submitted'] ? '제출됨' : '미제출';
 
       // 부모 위젯에 변경사항 알림
       if (widget.onSubmissionChanged != null) {
@@ -101,7 +134,7 @@ class _GwajejechulState extends State<Gwajejechul> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            data['status'],
+                            isSubmitted,
                             style: TextStyle(
                               fontSize: width * 0.03,
                               color: Colors.black,
@@ -120,7 +153,7 @@ class _GwajejechulState extends State<Gwajejechul> {
                         ),
                         SizedBox(width: width * 0.015),
                         Text(
-                          "마감일: ${data['due']}",
+                          "마감일: ${data['due'].substring(0, 10)+'  '+data['due'].substring(11, 16)}",
                           style: TextStyle(fontSize: width * 0.03),
                         ),
                       ],

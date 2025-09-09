@@ -4,8 +4,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'auth_storage.dart';
 
 class ApiClient {
-  // 이 값만 true/false로 바꿔서 URL 전환
-  static const bool useAltBase = true; // true면 BASE_URL_ALT 사용
+
+  static const bool useAltBase = false; // true면 BASE_URL_ALT 사용
 
   ApiClient._internal() {
     final selectedBase = ((useAltBase

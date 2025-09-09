@@ -1,17 +1,21 @@
 import 'package:clue/teacher_page/tHakSubsilSuapTrue.dart';
-import 'package:clue/widgets/haksubsilPage/HakSubSilSuap.dart';
 import 'package:flutter/material.dart';
 
 class Unactivateteachersuap extends StatelessWidget {
   final List<Map<String, dynamic>> teacherHakSubSil;
+  final Future<void> Function()? onRefresh;
 
-  const Unactivateteachersuap({super.key, required this.teacherHakSubSil});
+  const Unactivateteachersuap({
+    super.key,
+    required this.teacherHakSubSil,
+    this.onRefresh,
+  });
 
   @override
   Widget build(BuildContext context) {
     final filteredList =
         teacherHakSubSil
-            .where((tsuap) => tsuap['status'] == 'unactivate')
+            .where((tsuap) => tsuap['activation']==false)
             .toList();
     final width = MediaQuery.of(context).size.width;
 
@@ -40,14 +44,18 @@ class Unactivateteachersuap extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          tsuap['title'].toString(),
-                          style: TextStyle(
-                            fontSize: width * 0.045,
-                            fontWeight: FontWeight.w600,
+                        Expanded(
+                          child: Text(
+                            tsuap['name'].toString(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: width * 0.045,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                        Spacer(),
+                        SizedBox(width: width * 0.02),
                         Container(
                           padding: EdgeInsets.symmetric(
                             vertical: 4,
@@ -59,7 +67,7 @@ class Unactivateteachersuap extends StatelessWidget {
                           ),
               
                           child: Text(
-                            tsuap['status'] == 'activate' ? '활성화' : '비활성화',
+                            tsuap['activation'] ? '활성화' : '비활성화',
                             style: TextStyle(fontSize: 10),
                           ),
                         ),
@@ -69,7 +77,7 @@ class Unactivateteachersuap extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          tsuap['language'].toString(),
+                          tsuap['sort'].toString(),
                           style: TextStyle(
                             fontSize: width * 0.04,
                             color: Colors.grey,
@@ -85,7 +93,7 @@ class Unactivateteachersuap extends StatelessWidget {
                         ),
                         SizedBox(width: width * 0.01),
                         Text(
-                          tsuap['class'].toString(),
+                          tsuap['target'].toString(),
                           style: TextStyle(
                             fontSize: width * 0.04,
                             color: Colors.grey,
@@ -98,7 +106,7 @@ class Unactivateteachersuap extends StatelessWidget {
                       children: [
                         const Icon(Icons.people, color: Colors.grey),
                         const SizedBox(width: 10),
-                        Text('학생 ${tsuap['people']} 명', style: TextStyle(fontSize: width * 0.04)),
+                        Text('학생 ${tsuap['studentCount']} 명', style: TextStyle(fontSize: width * 0.04)),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -133,17 +141,17 @@ class Unactivateteachersuap extends StatelessWidget {
                         SizedBox(width: width * 0.025),
                         Expanded(
                           child: GestureDetector(
-                            onTap:
-                                () => {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (_) =>
-                                              Thaksubsilsuaptrue(tsuap: tsuap),
-                                    ),
-                                  ),
-                                },
+                            onTap: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => Thaksubsilsuaptrue(tsuap: tsuap),
+                                ),
+                              );
+                              if (onRefresh != null) {
+                                await onRefresh!();
+                              }
+                            },
                             child: Container(
                               padding: EdgeInsets.symmetric(
                                 horizontal: 3,

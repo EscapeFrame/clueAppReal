@@ -14,7 +14,8 @@ class Haksubsilbarogaja extends StatelessWidget {
         '/api/class/${noticeList[index]['classRoomId']}/all',
       );
       final data = res.data;
-
+      debugPrint('in this ***********$data');
+      
       return Map<String, dynamic>.from(data);
     } catch (e) {
       debugPrint('in this ***********Error: $e');
@@ -37,7 +38,9 @@ class Haksubsilbarogaja extends StatelessWidget {
               GestureDetector(
                 onTap: () async {
                   final detail = await classRoomDetailApi(index);
-                  // debugPrint("Hello:${detail.toString()}");
+                  // 추가: path param 용 문자열 ID 생성해 전달
+                  final idStr = (detail['classRoomId'] ?? notice['classRoomId']).toString();
+                  detail['classRoomIdStr'] = idStr;
                   await Navigator.push(
                     context,
                     MaterialPageRoute(

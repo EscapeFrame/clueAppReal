@@ -1,3 +1,6 @@
+//학습실 채팅 허용 주석 나중에 해제하기. 잊지 말자 
+import 'package:clue/api_client.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -27,26 +30,27 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
   @override
   void initState() {
     super.initState();
-    final String classValue = (widget.tsuap['class'] ?? '').toString();
-    final List<String> classParts = classValue.split('-');
+    debugPrint('[Thaksubsilsetting] initState with tsuap: ${widget.tsuap}');
+    final String targetValue = (widget.tsuap['target'] ?? '').toString();
+    final List<String> targetParts = targetValue.split('-');
 
     _titleController = TextEditingController(
-      text: widget.tsuap['title']?.toString() ?? '',
+      text: (widget.tsuap['name'] ?? widget.tsuap['title'] ?? '').toString(),
     );
     _languageController = TextEditingController(
-      text: widget.tsuap['language']?.toString() ?? '',
+      text: (widget.tsuap['sort'] ?? '').toString(),
     );
     _descriptionController = TextEditingController(
-      text: widget.tsuap['description']?.toString() ?? '',
+      text: (widget.tsuap['description'] ?? '').toString(),
     );
     _gradeController = TextEditingController(
-      text: classParts.isNotEmpty ? classParts.first : '',
+      text: targetParts.isNotEmpty ? targetParts.first : '',
     );
     _banController = TextEditingController(
-      text: classParts.length > 1 ? classParts[1] : '',
+      text: targetParts.length > 1 ? targetParts[1] : '',
     );
 
-    _isActivated = (widget.tsuap['status']?.toString() == 'activate');
+    _isActivated = (widget.tsuap['activation'] == true) || (widget.tsuap['isActivation'] == true);
     _isChatAllowed = (widget.tsuap['chatAllowed'] == true);
   }
 
@@ -98,149 +102,85 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
               style: TextStyle(fontSize: width * 0.03, color: Colors.black54),
             ),
             SizedBox(height: height * 0.025),
-            Text('학습실 이름', style: TextStyle(fontSize: width * 0.042)),
-            SizedBox(height: height * 0.013),
-            Container(
-              height: height * 0.045,
-              decoration: BoxDecoration(
-                boxShadow: null,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Color(0xffCCCCCC)),
-              ),
-              child: TextField(
-                controller: _titleController,
-                textAlignVertical: TextAlignVertical.center,
-                maxLines: 1,
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: width * 0.03,
-                    vertical: vPad,
-                  ),
+            TextFormField(
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: '학습실 이름',
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xff578FCA)),
                 ),
-                style: TextStyle(fontSize: inputFontSize),
               ),
+              style: TextStyle(fontSize: inputFontSize),
             ),
             SizedBox(height: height * 0.02),
-            Text('과목', style: TextStyle(fontSize: width * 0.042)),
-            SizedBox(height: height * 0.013),
-            Container(
-              height: height * 0.045,
-              decoration: BoxDecoration(
-                boxShadow: null,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Color(0xffCCCCCC)),
-              ),
-              child: TextField(
-                controller: _languageController,
-                textAlignVertical: TextAlignVertical.center,
-                maxLines: 1,
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: width * 0.03,
-                    vertical: vPad,
-                  ),
+            TextFormField(
+              controller: _languageController,
+              decoration: const InputDecoration(
+                labelText: '분류(sort)',
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xff578FCA)),
                 ),
-                style: TextStyle(fontSize: inputFontSize),
               ),
+              style: TextStyle(fontSize: inputFontSize),
             ),
             SizedBox(height: height * 0.02),
-            Text('설명', style: TextStyle(fontSize: width * 0.042)),
-            SizedBox(height: height * 0.013),
-            Container(
-              height: height * 0.12,
-              decoration: BoxDecoration(
-                boxShadow: null,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Color(0xffCCCCCC)),
-              ),
-              child: TextField(
-                controller: _descriptionController,
-                minLines: 3,
-                maxLines: 4,
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: width * 0.03,
-                    vertical: height * 0.01,
-                  ),
+            TextFormField(
+              controller: _descriptionController,
+              minLines: 3,
+              maxLines: 4,
+              decoration: const InputDecoration(
+                labelText: '설명',
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xff578FCA)),
                 ),
-                style: TextStyle(fontSize: width * 0.038),
               ),
+              style: TextStyle(fontSize: width * 0.038),
             ),
             SizedBox(height: height * 0.02),
             Row(
               children: [
                 Expanded(
-                  child: Container(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('학년', style: TextStyle(fontSize: width * 0.042)),
-                        SizedBox(height: height * 0.013),
-                        Container(
-                          height: height * 0.045,
-                          decoration: BoxDecoration(
-                            boxShadow: null,
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: Color(0xffCCCCCC)),
-                          ),
-                          child: TextField(
-                            controller: _gradeController,
-                            textAlignVertical: TextAlignVertical.center,
-                            maxLines: 1,
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              isDense: true,
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: width * 0.03,
-                                vertical: vPad,
-                              ),
-                            ),
-                            style: TextStyle(fontSize: inputFontSize),
-                            onChanged: (v) => _updateClassFromParts(grade: v),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextFormField(
+                        controller: _gradeController,
+                        decoration: const InputDecoration(
+                          labelText: '학년',
+                          border: OutlineInputBorder(),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Color(0xff578FCA)),
                           ),
                         ),
-                      ],
-                    ),
+                        keyboardType: TextInputType.text,
+                        style: TextStyle(fontSize: inputFontSize),
+                        onChanged: (v) => _updateClassFromParts(grade: v),
+                      ),
+                    ],
                   ),
                 ),
                 SizedBox(width: width * 0.02),
                 Expanded(
-                  child: Container(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('반', style: TextStyle(fontSize: width * 0.042)),
-                        SizedBox(height: height * 0.013),
-                        Container(
-                          height: height * 0.045,
-                          decoration: BoxDecoration(
-                            boxShadow: null,
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: Color(0xffCCCCCC)),
-                          ),
-                          child: TextField(
-                            controller: _banController,
-                            textAlignVertical: TextAlignVertical.center,
-                            maxLines: 1,
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              isDense: true,
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: width * 0.03,
-                                vertical: vPad,
-                              ),
-                            ),
-                            style: TextStyle(fontSize: inputFontSize),
-                            onChanged: (v) => _updateClassFromParts(ban: v),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextFormField(
+                        controller: _banController,
+                        decoration: const InputDecoration(
+                          labelText: '반',
+                          border: OutlineInputBorder(),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Color(0xff578FCA)),
                           ),
                         ),
-                      ],
-                    ),
+                        keyboardType: TextInputType.text,
+                        style: TextStyle(fontSize: inputFontSize),
+                        onChanged: (v) => _updateClassFromParts(ban: v),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -302,46 +242,46 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
 
             SizedBox(height: height * 0.025),
 
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SizedBox(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '채팅 허용',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: width * 0.048,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        '학생들이 학습실 내에서 채팅할 수 있도록 허용합니다',
-                        style: TextStyle(
-                          fontSize: width * 0.028,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Transform.scale(
-                  scale: width * 0.002,
-                  child: Switch(
-                    activeTrackColor: const Color(0xff578FCA),
-                    inactiveThumbColor: Colors.white,
-                    inactiveTrackColor: const Color(0xffcccccc),
-                    value: _isChatAllowed,
+            // Row(
+            //   crossAxisAlignment: CrossAxisAlignment.end,
+            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //   children: [
+            //     SizedBox(
+            //       child: Column(
+            //         crossAxisAlignment: CrossAxisAlignment.start,
+            //         children: [
+            //           Text(
+            //             '채팅 허용',
+            //             style: TextStyle(
+            //               color: Colors.black,
+            //               fontSize: width * 0.048,
+            //               fontWeight: FontWeight.w500,
+            //             ),
+            //           ),
+            //           Text(
+            //             '학생들이 학습실 내에서 채팅할 수 있도록 허용합니다',
+            //             style: TextStyle(
+            //               fontSize: width * 0.028,
+            //               color: Colors.black87,
+            //             ),
+            //           ),
+            //         ],
+            //       ),
+            //     ),
+            //     Transform.scale(
+            //       scale: width * 0.002,
+            //       child: Switch(
+            //         activeTrackColor: const Color(0xff578FCA),
+            //         inactiveThumbColor: Colors.white,
+            //         inactiveTrackColor: const Color(0xffcccccc),
+            //         value: _isChatAllowed,
 
-                    onChanged: (v) => setState(() => _isChatAllowed = v),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: height * 0.07),
+            //         onChanged: (v) => setState(() => _isChatAllowed = v),
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            SizedBox(height: height * 0.015),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -398,26 +338,83 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                onPressed: () {
-                  final Map<String, dynamic> updated = {
-                    'title': _titleController.text,
-                    'language': _languageController.text,
-                    'description': _descriptionController.text,
-                    'class': [
-                      _gradeController.text,
-                      _banController.text,
-                    ].where((e) => e.isNotEmpty).join('-'),
-                    'status': _isActivated ? 'activate' : 'unactivate',
-                    'chatAllowed': _isChatAllowed,
+                onPressed: () async {
+                  final name = _titleController.text.trim();
+                  final sort = _languageController.text.trim();
+                  final description = _descriptionController.text.trim();
+                  final target = [
+                    _gradeController.text.trim(),
+                    _banController.text.trim(),
+                  ].where((e) => e.isNotEmpty).join('-');
+
+                  final body = {
+                    'name': name,
+                    'description': description,
+                    'sort': sort,
+                    'target': target,
+                    'isActivation': _isActivated,
                   };
-                  widget.onApply(updated);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('저장되었습니다.'),
-                      behavior: SnackBarBehavior.floating,
-                      duration: Duration(seconds: 1),
-                    ),
-                  );
+
+                  try {
+                    final api = ApiClient.instance.dio;
+                    final id = (widget.tsuap['classRoomId'] ?? '').toString();
+                    if (id.isEmpty) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('학습실 ID를 찾을 수 없습니다.'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                      return;
+                    }
+                    final res = await api.patch('/api/class/$id', data: body);
+                    if (res.statusCode == 200 || res.statusCode == 204) {
+                      widget.onApply({
+                        'name': name,
+                        'description': description,
+                        'sort': sort,
+                        'target': target,
+                        'activation': _isActivated,
+                      });
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('저장되었습니다.'),
+                          behavior: SnackBarBehavior.floating,
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                    } else {
+                      if (!mounted) return;
+                      debugPrint('[Thaksubsilsetting] Save failed: ${res.statusCode} ${res.data}');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('저장 실패: ${res.statusCode}'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  } on DioException catch (e) {
+                    if (!mounted) return;
+                    final code = e.response?.statusCode;
+                    final msg = e.response?.data?.toString() ?? e.message ?? 'unknown error';
+                    debugPrint('[Thaksubsilsetting] DioException: $code $msg');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('오류: $code $msg'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  } catch (e) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('오류: $e'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
                 },
                 child: Text(
                   '변경사항 저장',

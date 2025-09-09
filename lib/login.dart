@@ -17,7 +17,7 @@ class Login extends StatelessWidget {
       final res = await dio.post(
         '/test',
         queryParameters: {
-          'userId': 1,
+          'userId': '15c2c50f-6efd-4262-9bf0-d1d831ae316f',
           'username': 'user1',
           'role': 'TEACHER',
         },

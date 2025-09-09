@@ -37,7 +37,9 @@ class Jeonggonghaksubsilbarogaja extends StatelessWidget {
                 onTap: () async {
                   try {
                     final detail = await classRoomDetailApi(index);
-                    debugPrint(detail.toString());
+                    // 추가: path param 용 문자열 ID 생성해 전달
+                    final idStr = (detail['classRoomId'] ?? notice['classRoomId']).toString();
+                    detail['classRoomIdStr'] = idStr;
                     Navigator.push(
                       context,
                       MaterialPageRoute(

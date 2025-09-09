@@ -2,6 +2,7 @@ import 'package:clue/api_client.dart';
 import 'package:clue/widgets/haksubsilPage/GwaJeJeChul.dart';
 import 'package:clue/widgets/haksubsilPage/HakSubSilGaJa.dart';
 import 'package:clue/widgets/markdown_.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -28,26 +29,28 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
   Future<void> gwaJeJeChul() async {
     try {
       final assignmentsApi = ApiClient.instance.dio;
-      int i = 11;
+      // Tab 화면에서 전달한 classRoomIdStr 우선, 없으면 classRoomId를 문자열로 사용
+      final String? idStr =
+          (widget.notice['classRoomIdStr'] ?? widget.notice['classRoomId'])
+              ?.toString();
+      
 
-      final assignmentsRes = await assignmentsApi.get(
-        '/api/assignments/$i/all',
+      final submissionsRes = await assignmentsApi.get(
+        '/api/submissions/assignment/',
       );
-      final data = assignmentsRes.data;
-      if (mounted && data is List) {
-        //mounted는 StatefulWidget이 아직 화면에 붙어 있는지 여부를 나타내는 플래그
-        final list = List<Map<String, dynamic>>.from(data);
-
-        setState(() {
-          assignments = list;
-        }); // 서버 응답이 오면 assignments를 갱신
-      }
-
-      debugPrint("수업:${assignments.toString()}");
+      final submissionData = submissionsRes.data;
+      debugPrint("제출:${submissionData.toString()}");
+    } on DioException catch (e) {
+      debugPrint('status : ${e.response?.statusCode}');
+      debugPrint('data   : ${e.response?.data}');
+      debugPrint('headers: ${e.response?.headers}');
+      debugPrint('msg    : ${e.message}');
     } catch (e) {
       debugPrint('assignments load error: $e');
     }
   }
+
+  // 제출 목록 즉시 조회 로직은 제거 (원상복구)
 
   String markdowndata = '## HelloWorld \n --- \n ## 김한결 \n | ㅎㅇ';
   @override
