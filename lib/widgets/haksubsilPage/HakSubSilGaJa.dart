@@ -1,3 +1,4 @@
+import 'package:clue/api_client.dart';
 import 'package:clue/config/app_color.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
@@ -213,6 +214,9 @@ void showAddClassDialog(
 }
 
 class _HaksubsilgajaState extends State<Haksubsilgaja> {
+  bool loading = true;
+  String? error;
+  Map<String, dynamic>? detail;
   List<PlatformFile> uploadedFiles = [];
 
   // assignment의 files에서 파일을 삭제하는 함수 추가
@@ -236,10 +240,76 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     });
   }
 
+  String? _assignmentIdStr() {
+    final cand = [
+      widget.assignment['assignmentId'],
+      widget.assignment['id'],
+      widget.assignment['assignment_id'],
+    ];
+    for (final v in cand) {
+      final s = v?.toString();
+      if (s != null && s.isNotEmpty) return s;
+    }
+    return null;
+  }
+
+  String _fmtSize(int bytes) {
+    if (bytes >= 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    return '${(bytes / 1024).toStringAsFixed(1)} KB';
+  }
+
+  Future<void> _loadDetail(String id) async {
+    try {
+      final dio = ApiClient.instance.dio;
+      final res = await dio.get('/api/assignments/$id');
+      if (!mounted) return;
+      if (res.statusCode == 200 && res.data is Map) {
+        setState(() {
+          detail = Map<String, dynamic>.from(res.data as Map);
+          loading = false;
+        });
+      } else {
+        setState(() {
+          error = '상세 조회 실패(${res.statusCode})';
+          loading = false;
+        });
+      }
+      debugPrint('과제 상세: ${res.data}');
+    } on DioException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        error = '상세 오류: ${e.message}';
+        loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        error = '상세 예외: $e';
+        loading = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final idStr = _assignmentIdStr();
+    if (idStr != null) {
+      _loadDetail(idStr);
+    } else {
+      loading = false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
+    if (loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
@@ -284,7 +354,8 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
               ),
               SizedBox(height: 10),
               Text(
-                widget.assignment['title'],
+                (detail?['title'] ?? widget.assignment['title'] ?? '')
+                    .toString(),
                 style: TextStyle(
                   fontSize: width * 0.045,
                   fontWeight: FontWeight.bold,
@@ -300,7 +371,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                   ),
                   SizedBox(width: width * 0.015),
                   Text(
-                    "마감일: ${widget.assignment['due']}",
+                    "마감일: ${(detail?['endDate'] ?? widget.assignment['due'] ?? '').toString().split('T').first}",
                     style: TextStyle(fontSize: width * 0.03),
                   ),
                 ],
@@ -323,20 +394,117 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                   ),
                 ],
               ),
+              SizedBox(height: height * 0.03),
+
               SizedBox(height: height * 0.015),
-              Text(
-                '상세설명',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: width * 0.045,
+
+              // 첨부파일 (AssignmentAttachments)
+              if ((detail?['AssignmentAttachments'] as List?)?.isNotEmpty ==
+                  true) ...[
+                Text(
+                  '첨부파일',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: width * 0.045,
+                  ),
                 ),
-              ),
-              SizedBox(height: height * 0.01),
-              Text(
-                '${widget.assignment['description']}',
-                style: TextStyle(fontSize: width * 0.04, height: 1.6),
-              ),
-              SizedBox(height: height * 0.015),
+                SizedBox(height: height * 0.009),
+                ...List<Map<String, dynamic>>.from(
+                  (detail?['AssignmentAttachments'] as List).map(
+                    (e) => Map<String, dynamic>.from(e as Map),
+                  ),
+                ).map((att) {
+                  final name = (att['originalFileName'] ?? '').toString();
+                  final size =
+                      att['size'] is int
+                          ? att['size'] as int
+                          : int.tryParse('${att['size'] ?? 0}') ?? 0;
+                  return Container(
+                    margin: EdgeInsets.only(bottom: 6),
+                    padding: EdgeInsets.all(width * 0.03),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(width * 0.025),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.insert_drive_file_outlined),
+                        SizedBox(width: width * 0.025),
+                        Expanded(
+                          child: Text(
+                            name,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: width * 0.03),
+                          ),
+                        ),
+                        SizedBox(width: width * 0.02),
+                        Text(
+                          '(${_fmtSize(size)})',
+                          style: TextStyle(
+                            fontSize: width * 0.025,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+                SizedBox(height: height * 0.015),
+              ]
+              // 첨부파일 (xAssignmentResponseDtos) – AssignmentAttachments가 비어있을 때 대체 표시
+              else if ((detail?['xAssignmentResponseDtos'] as List?)
+                      ?.isNotEmpty ==
+                  true) ...[
+                Text(
+                  '할당된 파일',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: width * 0.045,
+                  ),
+                ),
+                SizedBox(height: height * 0.009),
+                ...List<Map<String, dynamic>>.from(
+                  (detail?['xAssignmentResponseDtos'] as List).map(
+                    (e) => Map<String, dynamic>.from(e as Map),
+                  ),
+                ).map((att) {
+                  final name = (att['originalFileName'] ?? '').toString();
+                  final size =
+                      att['size'] is int
+                          ? att['size'] as int
+                          : int.tryParse('${att['size'] ?? 0}') ?? 0;
+                  return Container(
+                    margin: EdgeInsets.only(bottom: 6),
+                    padding: EdgeInsets.all(width * 0.03),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(width * 0.025),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.insert_drive_file_outlined),
+                        SizedBox(width: width * 0.025),
+                        Expanded(
+                          child: Text(
+                            name,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: width * 0.03),
+                          ),
+                        ),
+                        SizedBox(width: width * 0.02),
+                        Text(
+                          '(${_fmtSize(size)})',
+                          style: TextStyle(
+                            fontSize: width * 0.025,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+                SizedBox(height: height * 0.015),
+              ],
 
               SizedBox(height: height * 0.007),
               widget.assignment['results'] != null
@@ -364,34 +532,8 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                     ],
                   )
                   : SizedBox(width: width * 0.00001),
-              SizedBox(height: height * 0.015),
-              Text(
-                '할당파일',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: width * 0.045,
-                ),
-              ),
-              SizedBox(height: height * 0.009),
 
-              Container(
-                padding: EdgeInsets.all(width * 0.03),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(width * 0.025),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.insert_drive_file_outlined, size: width * 0.05),
-                    SizedBox(width: width * 0.025),
-                    Text(
-                      widget.assignment['file']['name'],
-                      style: TextStyle(fontSize: width * 0.03),
-                    ),
-                    const Spacer(),
-                  ],
-                ),
-              ),
+             
 
               SizedBox(height: height * 0.015),
               // 업로드된 파일들 표시
@@ -446,8 +588,21 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                   );
                 }),
               ],
+              SizedBox(height: height * 0.03),
+              Text(
+                '상세설명',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: width * 0.045,
+                ),
+              ),
+              SizedBox(height: height * 0.01),
+              Text(
+                (detail?['content'] ?? widget.assignment['description'] ?? '')
+                    .toString(),
+                style: TextStyle(fontSize: width * 0.04, height: 1.6),
+              ),
               SizedBox(height: height * 0.05),
-
               Container(
                 decoration: BoxDecoration(
                   border: Border.all(color: Color(0xffCCCCCC), width: 0.7),
@@ -497,6 +652,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                   ),
                 ),
               ),
+              SizedBox(height: height * 0.05),
             ],
           ),
         ),

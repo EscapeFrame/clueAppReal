@@ -7,8 +7,15 @@ class TimetableStyledPage extends StatelessWidget {
   Future<void> fetchTimetableData() async {
     final api = ApiClient.instance.dio;
     try {
-      final response = await api.get('/api/timetable/weekly');
+      final response = await api.get(
+        '/api/timetable/weekly',
+        queryParameters: {'grade': '1', 'classNumber': '1'},
+      );
       debugPrint('시간표 데이터: ${response.data}');
+    } on Exception catch (e) {
+      debugPrint('시간표 데이터 불러오기 실패: $e.statusCode');
+      debugPrint('시간표 데이터 불러오기 실패: $e.msg');
+      debugPrint('시간표 데이터 불러오기 실패: $e.error');
     } catch (e) {
       debugPrint('시간표 데이터 불러오기 실패: $e');
     }

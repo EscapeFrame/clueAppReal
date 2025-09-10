@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:clue/api_client.dart';
 import 'package:clue/config/app_color.dart';
 import 'package:dio/dio.dart';
@@ -214,6 +216,7 @@ void showAddClassDialog(
 }
 
 Future<Map<String, dynamic>?> assignmentsDetailApi(String assignmentId) async {
+
   try {
     final api = ApiClient.instance.dio;
     final res = await api.get('/api/assignments/$assignmentId');
@@ -233,6 +236,7 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
   bool loading = true;
   String? error;
   Map<String, dynamic>? detail;
+  final Set<String> _deletingAttachmentIds = <String>{};
 
   DateTime? _parseDate(String? s) {
     if (s == null || s.isEmpty) return null;
@@ -308,7 +312,7 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
       debugPrint('assignmentId가 없어 상세 조회를 건너뜀: ${widget.assignment}');
       loading = false;
     }
-    _showFile();
+    // _showFile();
   }
 
   List<PlatformFile> uploadedFiles = [];
@@ -334,19 +338,57 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
     });
   }
 
-  Future<void> _showFile() async {
+  Future<void> _deleteAttachment(String attachmentId) async {
+    debugPrint('삭제할 attachmentId: $attachmentId');
     try {
-      final api = ApiClient.instance.dio;
-      final idStr = _assignmentIdStr();
-      final res = await api.get('/api/assignments/$idStr/attachment');
-      debugPrint('파일 정보: ${res.data}');
+      final dio = ApiClient.instance.dio;
+      final res = await dio.delete(
+        '/api/assignments/attachment/$attachmentId',
+
+      );
+      if (!mounted) return;
+      if (res.statusCode == 200 || res.statusCode == 204) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('첨부 삭제 완료')),
+        );
+        final idStr = _assignmentIdStr();
+        if (idStr != null) {
+          await _loadDetail(idStr);
+        }
+      } else {
+        final msg = res.data?.toString() ?? '서버 응답 없음';
+        debugPrint('삭제 실패${res.statusCode}: $msg');
+      }
     } on DioException catch (e) {
-      debugPrint('파일 정보 가져오기 중 오류 발생: ${e.response?.data}');
-      debugPrint('e.statusCode : ${e.response?.statusCode}');
+      if (!mounted) return;
+      debugPrint('삭제오류:삭제 오류: ${e.message}');
     } catch (e) {
-      debugPrint('파일 정보 가져오기 중 오류 발생: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('삭제 예외: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _deletingAttachmentIds.remove(attachmentId);
+        });
+      }
     }
   }
+  //통신 안됨
+  // Future<void> _showFile() async {
+  //   try {
+  //     final api = ApiClient.instance.dio;
+  //     final idStr = _assignmentIdStr();
+  //     final res = await api.get('/api/assignments/$idStr/attachment');
+  //     debugPrint('파일 정보: ${res.data}');
+  //   } on DioException catch (e) {
+  //     debugPrint('파일 정보 가져오기 중 오류 발생: ${e.response?.data}');
+  //     debugPrint('e.statusCode : ${e.response?.statusCode}');
+  //   } catch (e) {
+  //     debugPrint('파일 정보 가져오기 중 오류 발생: $e');
+  //   }
+  // }
 
   Future<void> uploadFile(PlatformFile file) async {
     final idStr = _assignmentIdStr();
@@ -380,6 +422,56 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
     }
   }
 
+  Future<void> _downloadAttachment(String attachmentId, String fallbackName) async {
+    debugPrint('attachmentId: $attachmentId');
+    try {
+      final dio = ApiClient.instance.dio;
+      final res = await dio.get(
+        '/api/assignments/$attachmentId/download',
+        options: Options(
+          responseType: ResponseType.bytes,
+          followRedirects: false,
+          validateStatus: (s) => s != null && s < 500,
+        ),
+      );
+      if (res.statusCode == 200) {
+        final bytes = res.data as List<int>;
+        // 파일명 추출 (Content-Disposition)
+        String fileName = fallbackName;
+        final cd = res.headers.value('content-disposition');
+        // if (cd != null) {
+        //   final m = RegExp(r"filename\*=UTF-8''([^;]+)|filename=\"?([^\";]+)\"?").firstMatch(cd);
+        //   final n = m?.group(1) ?? m?.group(2);
+        //   if (n != null && n.isNotEmpty) fileName = Uri.decodeFull(n);
+        // }
+        final dir = await getApplicationDocumentsDirectory();
+        final savePath = '${dir.path}/$fileName';
+        final file = File(savePath);
+        await file.writeAsBytes(bytes);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('다운로드 완료: $fileName')),
+        );
+        await OpenFile.open(savePath);
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('다운로드 실패(${res.statusCode})')),
+        );
+      }
+    } on DioException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('다운로드 오류: ${e.message}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('다운로드 예외: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -398,22 +490,28 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
     final due = _formatDue(end);
     final timeLeft = _formatTimeLeft(end);
 
-    final List<Map<String, dynamic>> serverAttachments =
-        ((detail?['xAssignmentResponseDtos'] as List?) ?? const [])
-            .whereType<Map>()
-            .map((e) => Map<String, dynamic>.from(e))
-            .map(
-              (m) => {
-                'name': (m['originalFileName'] ?? '').toString(),
-                'sizeText': _fmtSize(
-                  m['size'] is int
-                      ? (m['size'] as int)
-                      : int.tryParse('${m['size'] ?? 0}') ?? 0,
-                ),
-                'contentType': (m['contentType'] ?? m['type'] ?? '').toString(),
-              },
-            )
-            .toList();
+    // 첨부 소스: AssignmentAttachments 우선, 없으면 xAssignmentResponseDtos 사용
+    List<Map<String, dynamic>> _mapAttList(List src) => src
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .map((m) => {
+              'name': (m['originalFileName'] ?? '').toString(),
+              'sizeText': _fmtSize(
+                m['size'] is int
+                    ? (m['size'] as int)
+                    : int.tryParse('${m['size'] ?? 0}') ?? 0,
+              ),
+              'contentType': (m['contentType'] ?? m['type'] ?? '').toString(),
+              'attachmentId': (m['attachmentId'] ?? m['id'] ?? m['value'] ?? '').toString(),
+            })
+        .toList();
+
+    final List<Map<String, dynamic>> serverAttachments = (() {
+      final a = (detail?['AssignmentAttachments'] as List?) ?? const [];
+      if (a.isNotEmpty) return _mapAttList(a);
+      final b = (detail?['xAssignmentResponseDtos'] as List?) ?? const [];
+      return _mapAttList(b);
+    })();
 
     return Scaffold(
       body:
@@ -542,10 +640,20 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
                                 const Icon(Icons.insert_drive_file_outlined),
                                 SizedBox(width: width * 0.025),
                                 Expanded(
-                                  child: Text(
-                                    f['name'] ?? '',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(fontSize: width * 0.03),
+                                  child: GestureDetector(
+                                    onTap: () => _downloadAttachment(
+                                      (f['attachmentId'] ?? '').toString(),
+                                      (f['name'] ?? '').toString(),
+                                    ),
+                                    child: Text(
+                                      f['name'] ?? '',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: width * 0.03,
+                                        color: Colors.blue,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
                                   ),
                                 ),
                                 SizedBox(width: width * 0.02),
@@ -556,6 +664,17 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
                                     color: Colors.grey,
                                   ),
                                 ),
+                                SizedBox(width: width * 0.02),
+                                (_deletingAttachmentIds.contains(f['attachmentId']))
+                                    ? SizedBox(
+                                        width: width * 0.045,
+                                        height: width * 0.045,
+                                        child: const CircularProgressIndicator(strokeWidth: 2),
+                                      )
+                                    : GestureDetector(
+                                        onTap: () => _deleteAttachment(f['attachmentId'].toString()),
+                                        child: Icon(Icons.close, size: width * 0.045),
+                                      ),
                               ],
                             ),
                           ),
@@ -575,8 +694,6 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
                         content,
                         style: TextStyle(fontSize: width * 0.04, height: 1.6),
                       ),
-
-
 
                       widget.assignment['results'] != null
                           ? Column(
@@ -699,7 +816,7 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           onPressed: () {
-                            showAddClassDialog(context, uploadFile);
+                            widget.onClose;
                           },
                           // icon: Icon(Icons.upload, size: width * 0.045),
                           label: Text(
@@ -720,6 +837,7 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
                           ),
                         ),
                       ),
+                      SizedBox(height: height * 0.02),
                     ],
                   ),
                 ),

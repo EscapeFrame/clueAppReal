@@ -110,11 +110,15 @@ class _GwajejechulState extends State<Gwajejechul> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          data['title'],
-                          style: TextStyle(
-                            fontSize: width * 0.045,
-                            fontWeight: FontWeight.bold,
+                        Expanded(
+                          child: Text(
+                            data['title'] ?? '',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: width * 0.045,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                         Container(

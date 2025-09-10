@@ -26,31 +26,33 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
     });
   }
 
-  Future<void> gwaJeJeChul() async {
+  Future<List<Map<String,dynamic>>> gwaJeJeChul() async {
     try {
       final assignmentsApi = ApiClient.instance.dio;
-      // Tab 화면에서 전달한 classRoomIdStr 우선, 없으면 classRoomId를 문자열로 사용
       final String? idStr =
           (widget.notice['classRoomIdStr'] ?? widget.notice['classRoomId'])
               ?.toString();
       
 
       final submissionsRes = await assignmentsApi.get(
-        '/api/submissions/assignment/',
+        '/api/assignments/$idStr/all',
       );
       final submissionData = submissionsRes.data;
       debugPrint("제출:${submissionData.toString()}");
+      return List<Map<String, dynamic>>.from(submissionData);
     } on DioException catch (e) {
       debugPrint('status : ${e.response?.statusCode}');
       debugPrint('data   : ${e.response?.data}');
       debugPrint('headers: ${e.response?.headers}');
       debugPrint('msg    : ${e.message}');
+      return [];
     } catch (e) {
       debugPrint('assignments load error: $e');
+      return [];
     }
   }
 
-  // 제출 목록 즉시 조회 로직은 제거 (원상복구)
+  
 
   String markdowndata = '## HelloWorld \n --- \n ## 김한결 \n | ㅎㅇ';
   @override
@@ -239,6 +241,8 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                         child: ExpansionTile(
                                           title: Text(
                                             lesson['directoryName'].toString(),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: width * 0.045,
@@ -334,22 +338,30 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                               child:
                                   showAssignmentDetail
                                       ? Haksubsilgaja(
-                                        key: const ValueKey('detail'),
-                                        assignment: selectedAssignment!,
-                                        onClose: closeAssignmentDetail,
-                                      )
-                                      : Gwajejechul(
-                                        key: const ValueKey('list'),
-                                        dataList: assignments,
-                                        onSubmissionChanged:
-                                            updateSubmissionStatus,
-                                        onCardClick: (assignment) {
-                                          setState(() {
-                                            selectedAssignment = assignment;
-                                            showAssignmentDetail = true;
-                                          });
-                                        },
-                                      ),
+                                          key: const ValueKey('detail'),
+                                          assignment: selectedAssignment!,
+                                          onClose: closeAssignmentDetail,
+                                        )
+                                      : FutureBuilder<List<Map<String, dynamic>>>(
+                                          future: gwaJeJeChul(),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.connectionState != ConnectionState.done) {
+                                              return const Center(child: CircularProgressIndicator());
+                                            }
+                                            final list = snapshot.data ?? const <Map<String, dynamic>>[];
+                                            return Gwajejechul(
+                                              key: const ValueKey('list'),
+                                              dataList: list,
+                                              onSubmissionChanged: updateSubmissionStatus,
+                                              onCardClick: (assignment) {
+                                                setState(() {
+                                                  selectedAssignment = assignment;
+                                                  showAssignmentDetail = true;
+                                                });
+                                              },
+                                            );
+                                          },
+                                        ),
                             ),
                           ),
                           Container(
