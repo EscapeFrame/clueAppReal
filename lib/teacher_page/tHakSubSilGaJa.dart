@@ -270,6 +270,13 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
     return null;
   }
 
+  String _fmtSize(int bytes) {
+    if (bytes >= 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    return '${(bytes / 1024).toStringAsFixed(1)} KB';
+  }
+
   Future<void> _loadDetail(String idPath) async {
     setState(() {
       loading = true;
@@ -301,6 +308,7 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
       debugPrint('assignmentId가 없어 상세 조회를 건너뜀: ${widget.assignment}');
       loading = false;
     }
+    _showFile();
   }
 
   List<PlatformFile> uploadedFiles = [];
@@ -326,7 +334,21 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
     });
   }
 
-  Future<void> _uploadFile(PlatformFile file) async {
+  Future<void> _showFile() async {
+    try {
+      final api = ApiClient.instance.dio;
+      final idStr = _assignmentIdStr();
+      final res = await api.get('/api/assignments/$idStr/attachment');
+      debugPrint('파일 정보: ${res.data}');
+    } on DioException catch (e) {
+      debugPrint('파일 정보 가져오기 중 오류 발생: ${e.response?.data}');
+      debugPrint('e.statusCode : ${e.response?.statusCode}');
+    } catch (e) {
+      debugPrint('파일 정보 가져오기 중 오류 발생: $e');
+    }
+  }
+
+  Future<void> uploadFile(PlatformFile file) async {
     final idStr = _assignmentIdStr();
     try {
       final mf = await MultipartFile.fromFile(file.path!, filename: file.name);
@@ -341,6 +363,10 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('업로드 완료')));
+      // 업로드 후 상세를 다시 가져와 첨부 리스트를 즉시 갱신
+      if (idStr != null) {
+        await _loadDetail(idStr);
+      }
     } on DioException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -371,6 +397,23 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
     final end = _parseDate(endDateStr);
     final due = _formatDue(end);
     final timeLeft = _formatTimeLeft(end);
+
+    final List<Map<String, dynamic>> serverAttachments =
+        ((detail?['xAssignmentResponseDtos'] as List?) ?? const [])
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .map(
+              (m) => {
+                'name': (m['originalFileName'] ?? '').toString(),
+                'sizeText': _fmtSize(
+                  m['size'] is int
+                      ? (m['size'] as int)
+                      : int.tryParse('${m['size'] ?? 0}') ?? 0,
+                ),
+                'contentType': (m['contentType'] ?? m['type'] ?? '').toString(),
+              },
+            )
+            .toList();
 
     return Scaffold(
       body:
@@ -474,6 +517,52 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
                         ],
                       ),
                       SizedBox(height: height * 0.015),
+                      // 서버 첨부 파일 표시
+                      if (serverAttachments.isNotEmpty) ...[
+                        Text(
+                          '첨부파일',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: width * 0.045,
+                          ),
+                        ),
+                        SizedBox(height: height * 0.009),
+                        ...serverAttachments.map(
+                          (f) => Container(
+                            margin: const EdgeInsets.only(bottom: 6),
+                            padding: EdgeInsets.all(width * 0.03),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF5F5F5),
+                              borderRadius: BorderRadius.circular(
+                                width * 0.025,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.insert_drive_file_outlined),
+                                SizedBox(width: width * 0.025),
+                                Expanded(
+                                  child: Text(
+                                    f['name'] ?? '',
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: width * 0.03),
+                                  ),
+                                ),
+                                SizedBox(width: width * 0.02),
+                                Text(
+                                  '(${f['sizeText']})',
+                                  style: TextStyle(
+                                    fontSize: width * 0.025,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: height * 0.015),
+                      ],
+
                       Text(
                         '상세설명',
                         style: TextStyle(
@@ -486,9 +575,9 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
                         content,
                         style: TextStyle(fontSize: width * 0.04, height: 1.6),
                       ),
-                      SizedBox(height: height * 0.015),
 
-                      SizedBox(height: height * 0.007),
+
+
                       widget.assignment['results'] != null
                           ? Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -516,60 +605,60 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
                           : SizedBox(width: width * 0.00001),
                       SizedBox(height: height * 0.015),
 
-                      // 업로드된 파일들 표시
-                      if (uploadedFiles.isNotEmpty) ...[
-                        SizedBox(height: height * 0.015),
-                        Text(
-                          '할당 파일',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: width * 0.045,
-                          ),
-                        ),
-                        SizedBox(height: height * 0.009),
-                        ...List.generate(uploadedFiles.length, (index) {
-                          final file = uploadedFiles[index];
-                          return Container(
-                            margin: EdgeInsets.only(bottom: 6),
-                            padding: EdgeInsets.all(width * 0.03),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF5F5F5),
-                              borderRadius: BorderRadius.circular(
-                                width * 0.025,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.insert_drive_file_outlined,
-                                  size: width * 0.05,
-                                ),
-                                SizedBox(width: width * 0.025),
-                                Expanded(
-                                  child: Text(
-                                    file.name,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(fontSize: width * 0.03),
-                                  ),
-                                ),
-                                SizedBox(width: width * 0.02),
-                                Text(
-                                  '(${(file.size / 1024).toStringAsFixed(1)} KB)',
-                                  style: TextStyle(
-                                    fontSize: width * 0.025,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                SizedBox(width: width * 0.02),
-                                GestureDetector(
-                                  onTap: () => removeUploadedFile(index),
-                                  child: Icon(Icons.close, size: width * 0.045),
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
-                      ],
+                      // // 업로드된 파일들 표시
+                      // if (uploadedFiles.isNotEmpty) ...[
+                      //   SizedBox(height: height * 0.015),
+                      //   Text(
+                      //     '할당 파일',
+                      //     style: TextStyle(
+                      //       fontWeight: FontWeight.bold,
+                      //       fontSize: width * 0.045,
+                      //     ),
+                      //   ),
+                      //   SizedBox(height: height * 0.009),
+                      //   ...List.generate(uploadedFiles.length, (index) {
+                      //     final file = uploadedFiles[index];
+                      //     return Container(
+                      //       margin: EdgeInsets.only(bottom: 6),
+                      //       padding: EdgeInsets.all(width * 0.03),
+                      //       decoration: BoxDecoration(
+                      //         color: const Color(0xFFF5F5F5),
+                      //         borderRadius: BorderRadius.circular(
+                      //           width * 0.025,
+                      //         ),
+                      //       ),
+                      //       child: Row(
+                      //         children: [
+                      //           Icon(
+                      //             Icons.insert_drive_file_outlined,
+                      //             size: width * 0.05,
+                      //           ),
+                      //           SizedBox(width: width * 0.025),
+                      //           Expanded(
+                      //             child: Text(
+                      //               file.name,
+                      //               overflow: TextOverflow.ellipsis,
+                      //               style: TextStyle(fontSize: width * 0.03),
+                      //             ),
+                      //           ),
+                      //           SizedBox(width: width * 0.02),
+                      //           Text(
+                      //             '(${(file.size / 1024).toStringAsFixed(1)} KB)',
+                      //             style: TextStyle(
+                      //               fontSize: width * 0.025,
+                      //               color: Colors.grey,
+                      //             ),
+                      //           ),
+                      //           SizedBox(width: width * 0.02),
+                      //           GestureDetector(
+                      //             onTap: () => removeUploadedFile(index),
+                      //             child: Icon(Icons.close, size: width * 0.045),
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     );
+                      //   }),
+                      // ],
                       SizedBox(height: height * 0.05),
                       Container(
                         decoration: BoxDecoration(
@@ -583,7 +672,7 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: () {
-                              showAddClassDialog(context, _uploadFile);
+                              showAddClassDialog(context, uploadFile);
                             },
                             style: ElevatedButton.styleFrom(
                               elevation: 0,
@@ -610,7 +699,7 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           onPressed: () {
-                            showAddClassDialog(context, _uploadFile);
+                            showAddClassDialog(context, uploadFile);
                           },
                           // icon: Icon(Icons.upload, size: width * 0.045),
                           label: Text(
