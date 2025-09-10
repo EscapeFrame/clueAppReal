@@ -213,7 +213,7 @@ void showAddClassDialog(
   );
 }
 
-Future<Map<String, dynamic>?> assignmentsDetailApi(int assignmentId) async {
+Future<Map<String, dynamic>?> assignmentsDetailApi(String assignmentId) async {
   try {
     final api = ApiClient.instance.dio;
     final res = await api.get('/api/assignments/$assignmentId');
@@ -256,7 +256,7 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
     return '$m분 남음';
   }
 
-  int? _assignmentId() {
+  String? _assignmentIdStr() {
     final cands = [
       detail?['assignmentId'],
       widget.assignment['assignmentId'],
@@ -264,20 +264,18 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
       widget.assignment['assignment_id'],
     ];
     for (final v in cands) {
-      if (v is int) return v;
       final s = v?.toString();
-      final p = int.tryParse(s ?? '');
-      if (p != null) return p;
+      if (s != null && s.isNotEmpty) return s;
     }
     return null;
   }
 
-  Future<void> _loadDetail(int id) async {
+  Future<void> _loadDetail(String idPath) async {
     setState(() {
       loading = true;
       error = null;
     });
-    final data = await assignmentsDetailApi(id);
+    final data = await assignmentsDetailApi(idPath);
     if (!mounted) return;
     if (data != null) {
       setState(() {
@@ -295,12 +293,10 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
   @override
   void initState() {
     super.initState();
-    // 페이지 진입 시 과제 상세 조회 호출
-    final dynamic idRaw = widget.assignment['assignmentId'];
-    final int? id =
-        idRaw is int ? idRaw : int.tryParse(idRaw?.toString() ?? '');
-    if (id != null) {
-      _loadDetail(id);
+    // 페이지 진입 시 과제 상세 조회 호출 (문자열 ID 허용)
+    final idStr = _assignmentIdStr();
+    if (idStr != null) {
+      _loadDetail(idStr);
     } else {
       debugPrint('assignmentId가 없어 상세 조회를 건너뜀: ${widget.assignment}');
       loading = false;
@@ -331,19 +327,30 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
   }
 
   Future<void> _uploadFile(PlatformFile file) async {
-    final id = _assignmentId();
-    if (id == null) {
+    final idStr = _assignmentIdStr();
+    if (idStr == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('과제 ID가 없어 업로드할 수 없습니다.')),
       );
       return;
     }
     try {
-      final mf = file.path != null
+      final hasPath = file.path != null && file.path!.isNotEmpty;
+      final hasBytes = file.bytes != null && file.bytes!.isNotEmpty;
+      if (!hasPath && !hasBytes) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('선택한 파일 데이터가 비어 있습니다.')),
+        );
+        return;
+      }
+      final mf = hasPath
           ? await MultipartFile.fromFile(file.path!, filename: file.name)
-          : MultipartFile.fromBytes(file.bytes ?? [], filename: file.name);
+          : MultipartFile.fromBytes(file.bytes!, filename: file.name);
       final form = FormData.fromMap({'file': mf});
-      await ApiClient.instance.dio.post('/api/assignments/$id/file', data: form);
+      await ApiClient.instance.dio.post(
+        '/api/assignments/$idStr/file',
+        data: form,
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('업로드 완료')),
