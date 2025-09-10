@@ -328,43 +328,29 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
 
   Future<void> _uploadFile(PlatformFile file) async {
     final idStr = _assignmentIdStr();
-    if (idStr == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('과제 ID가 없어 업로드할 수 없습니다.')),
-      );
-      return;
-    }
     try {
-      final hasPath = file.path != null && file.path!.isNotEmpty;
-      final hasBytes = file.bytes != null && file.bytes!.isNotEmpty;
-      if (!hasPath && !hasBytes) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('선택한 파일 데이터가 비어 있습니다.')),
-        );
-        return;
-      }
-      final mf = hasPath
-          ? await MultipartFile.fromFile(file.path!, filename: file.name)
-          : MultipartFile.fromBytes(file.bytes!, filename: file.name);
-      final form = FormData.fromMap({'file': mf});
+      final mf = await MultipartFile.fromFile(file.path!, filename: file.name);
+      //파일 가져오기
+
+      final form = FormData.fromMap({'files': mf});
       await ApiClient.instance.dio.post(
         '/api/assignments/$idStr/file',
         data: form,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('업로드 완료')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('업로드 완료')));
     } on DioException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('업로드 실패: ${e.message}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('업로드 실패: ${e.message}')));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('업로드 예외: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('업로드 예외: $e')));
     }
   }
 
