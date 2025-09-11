@@ -1,13 +1,15 @@
+import 'package:clue/api_client.dart';
+import 'package:clue/config/app_data_.dart';
 import 'package:clue/widgets/mainPage/DayCard.dart';
 import 'package:clue/widgets/mainPage/Gonji_/HakKyoGonji.dart';
-import 'package:clue/widgets/mainPage/HomepageCard.dart';
 import 'package:clue/widgets/mainPage/Gonji_/IlJeongGongji.dart';
 import 'package:clue/widgets/mainPage/Gonji_/ServiceGongji.dart';
+import 'package:clue/widgets/mainPage/HomepageCard.dart';
 import 'package:clue/widgets/mainPage/Suap.dart';
 import 'package:clue/widgets/mainPage/TimetableStyledPage.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:clue/config/app_data_.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,6 +23,9 @@ class _HomePageState extends State<HomePage> {
 
   final List<Map<String, dynamic>> SuapList = AppData.getSuapList();
 
+  // 서버에서 불러온 미제출 과제 목록
+  List<Map<String, dynamic>> _noJeChulList = [];
+
   final List<Widget> cards = [
     const ServiceGongJi(key: ValueKey('service')),
     const Hakkyogonji(key: ValueKey('hakgyo')),
@@ -28,6 +33,65 @@ class _HomePageState extends State<HomePage> {
   ];
 
   int index = 0;
+
+  DateTime? _parseDate(String? s) {
+    if (s == null || s.isEmpty) return null;
+    try {
+      return DateTime.parse(s.replaceAll(' ', 'T'));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  int _calcDaysDiff(String sStart, String sEnd) {
+    final start = _parseDate(sStart);
+    final end = _parseDate(sEnd);
+    if (start == null || end == null) return 0;
+    return end.difference(start).inDays.abs();
+  }
+
+  Future<void> noJeChulGwaJe() async {
+    final dio = ApiClient.instance.dio;
+    try {
+      final response = await dio.get('/api/assignments/me');
+      final data = response.data;
+      // 기대 타입: List<Map<String, dynamic>>
+      if (data is List) {
+        final list = data
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+        // 남은 기간(= end - start) 짧은 순으로 정렬
+        list.sort((a, b) {
+          final da = _calcDaysDiff(
+            (a['startDate'] ?? '').toString(),
+            (a['endDate'] ?? '').toString(),
+          );
+          final db = _calcDaysDiff(
+            (b['startDate'] ?? '').toString(),
+            (b['endDate'] ?? '').toString(),
+          );
+          return da.compareTo(db);
+        });
+        setState(() {
+          _noJeChulList = list;
+        });
+      }
+      debugPrint("gwajejechul데이터?????${data.toString()}");
+    } on DioException catch (e) {
+      debugPrint('DioException: ${e.message}');
+      debugPrint('DioException: ${e.response}');
+    } catch (e) {
+      debugPrint('Error: $e');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    noJeChulGwaJe();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -174,39 +238,42 @@ class _HomePageState extends State<HomePage> {
                         '기간 안에 과제를 제출하세요!',
                         style: TextStyle(fontSize: width * 0.038),
                       ),
-                      // Row(
-                      //   children: [
-                      //     Image.asset(
-                      //       'assets/images/leftArrow.png',
-                      //       width: width * 0.08,
-                      //       height: width * 0.08,
-                      //       fit: BoxFit.fill,
-                      //     ),
-                      //     SizedBox(width: width * 0.01),
-                      //     Image.asset(
-                      //       'assets/images/rightArrow.png',
-                      //       width: width * 0.08,
-                      //       height: width * 0.08,
-                      //       fit: BoxFit.fill,
-                      //     ),
-                      //   ],
-                      // ),
+                     
                     ],
                   ),
                   SizedBox(height: height * 0.025),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children:
-                          DayCardList.map((item) {
-                            return Padding(
-                              padding: EdgeInsets.only(right: width * 0.03),
-                              child: DayCard(
-                                day: item['day']!,
-                                neyong: item['neyong']!,
-                              ),
-                            );
-                          }).toList(),
+                      children: (_noJeChulList.isNotEmpty
+                              ? _noJeChulList.map((m) {
+                                  final String title =
+                                      (m['title'] ?? '').toString();
+                                  final String sStart =
+                                      (m['startDate'] ?? '').toString();
+                                  final String sEnd =
+                                      (m['endDate'] ?? '').toString();
+                                  int dayDiff = _calcDaysDiff(sStart, sEnd);
+                                  if (dayDiff < 0) dayDiff = 0;
+                                  return Padding(
+                                    padding: EdgeInsets.only(
+                                      right: width * 0.03,
+                                    ),
+                                    child: DayCard(
+                                      day: dayDiff.toString(),
+                                      neyong: title,
+                                    ),
+                                  );
+                                })
+                              : DayCardList.map((item) => Padding(
+                                    padding:
+                                        EdgeInsets.only(right: width * 0.03),
+                                    child: DayCard(
+                                      day: item['day']!,
+                                      neyong: item['neyong']!,
+                                    ),
+                                  )))
+                          .toList(),
                     ),
                   ),
                   SizedBox(height: height * 0.012),

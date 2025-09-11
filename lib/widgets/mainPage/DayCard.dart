@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class DayCard extends StatelessWidget {
+  
+
   final String day;
   final String neyong;
 
@@ -10,7 +12,7 @@ class DayCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
-    
+
     // 반응형 크기 계산
     final cardWidth = width * 0.65; // 화면 너비의 75%
     final cardHeight = height * 0.205; // 화면 높이의 20%
@@ -21,9 +23,9 @@ class DayCard extends StatelessWidget {
     final borderRadius = width * 0.025;
     final shadowBlur = width * 0.025;
     final shadowOffset = width * 0.01;
-    
+
     final int dayValue = int.parse(day);
-    
+
     return Container(
       width: cardWidth,
       height: cardHeight,
@@ -38,7 +40,10 @@ class DayCard extends StatelessWidget {
           ),
         ],
       ),
-      padding: EdgeInsets.symmetric(horizontal: cardPadding, vertical: height * 0.022),
+      padding: EdgeInsets.symmetric(
+        horizontal: cardPadding,
+        vertical: height * 0.022,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

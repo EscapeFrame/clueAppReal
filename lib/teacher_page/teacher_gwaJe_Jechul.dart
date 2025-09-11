@@ -53,6 +53,7 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
     String p2(int v) => v.toString().padLeft(2, '0');
     return '${dt.year}-${p2(dt.month)}-${p2(dt.day)} ${p2(dt.hour)}:${p2(dt.minute)}';
   }
+
   // API 전송용 포맷: YYYY-MM-DD HH:MM (초/타임존 제외)
   String _formatApiDateTime(DateTime? dt) {
     if (dt == null) return '';
@@ -66,7 +67,7 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
     // ISO-8601 without milliseconds/timezone, e.g. 2025-09-07T14:30:00
     return '${dt.year}-${p2(dt.month)}-${p2(dt.day)}T${p2(dt.hour)}:${p2(dt.minute)}:00';
   }
-  
+
   String _formatTimeLeftFrom(DateTime? end) {
     if (end == null) return '-';
     final diff = end.difference(DateTime.now());
@@ -150,9 +151,10 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                   );
                   if (picked != null) {
                     // Pick time after date
-                    final initialTime = startDate != null
-                        ? TimeOfDay.fromDateTime(startDate!)
-                        : TimeOfDay.now();
+                    final initialTime =
+                        startDate != null
+                            ? TimeOfDay.fromDateTime(startDate!)
+                            : TimeOfDay.now();
                     final t = await showTimePicker(
                       context: context,
                       initialTime: initialTime,
@@ -173,14 +175,19 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                           timePickerTheme: TimePickerThemeData(
                             backgroundColor: Colors.white,
                             // 시/분 필드 배경: 선택/포커스 시 회색, 기본은 흰색
-                            hourMinuteColor: WidgetStateColor.resolveWith((states) {
-                              if (states.contains(WidgetState.selected) || states.contains(WidgetState.focused)) {
+                            hourMinuteColor: WidgetStateColor.resolveWith((
+                              states,
+                            ) {
+                              if (states.contains(WidgetState.selected) ||
+                                  states.contains(WidgetState.focused)) {
                                 return const Color(0xFFE0E0E0); // grey
                               }
                               return Colors.white;
                             }),
                             // AM/PM 선택 배경: 선택 시 #86C1FF, 기본은 흰색
-                            dayPeriodColor: WidgetStateColor.resolveWith((states) {
+                            dayPeriodColor: WidgetStateColor.resolveWith((
+                              states,
+                            ) {
                               if (states.contains(WidgetState.selected)) {
                                 return const Color(0xff86C1FF);
                               }
@@ -250,9 +257,10 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                   );
                   if (picked != null) {
                     // Pick time after date (default to 23:59 if canceled)
-                    final initialTime = endDate != null
-                        ? TimeOfDay.fromDateTime(endDate!)
-                        : const TimeOfDay(hour: 23, minute: 59);
+                    final initialTime =
+                        endDate != null
+                            ? TimeOfDay.fromDateTime(endDate!)
+                            : const TimeOfDay(hour: 23, minute: 59);
                     final t = await showTimePicker(
                       context: context,
                       initialTime: initialTime,
@@ -272,13 +280,18 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                           ),
                           timePickerTheme: TimePickerThemeData(
                             backgroundColor: Colors.white,
-                            hourMinuteColor: WidgetStateColor.resolveWith((states) {
-                              if (states.contains(WidgetState.selected) || states.contains(WidgetState.focused)) {
+                            hourMinuteColor: WidgetStateColor.resolveWith((
+                              states,
+                            ) {
+                              if (states.contains(WidgetState.selected) ||
+                                  states.contains(WidgetState.focused)) {
                                 return const Color(0xFFE0E0E0); // grey
                               }
                               return Colors.white;
                             }),
-                            dayPeriodColor: WidgetStateColor.resolveWith((states) {
+                            dayPeriodColor: WidgetStateColor.resolveWith((
+                              states,
+                            ) {
                               if (states.contains(WidgetState.selected)) {
                                 return const Color(0xff86C1FF);
                               }
@@ -479,14 +492,22 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                                   }
                                   if (start.isEmpty) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('시작 날짜/시간을 선택해 주세요.')),
+                                      const SnackBar(
+                                        content: Text('시작 날짜/시간을 선택해 주세요.'),
+                                      ),
                                     );
                                     return;
                                   }
                                   // Optional: start <= end check
-                                  if (startDate != null && endDate != null && startDate!.isAfter(endDate!)) {
+                                  if (startDate != null &&
+                                      endDate != null &&
+                                      startDate!.isAfter(endDate!)) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('시작 시각은 마감 시각보다 이전이어야 합니다.')),
+                                      const SnackBar(
+                                        content: Text(
+                                          '시작 시각은 마감 시각보다 이전이어야 합니다.',
+                                        ),
+                                      ),
                                     );
                                     return;
                                   }
@@ -498,7 +519,9 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                                     'start_date': start,
                                     'end_date': end,
                                   };
-                                  debugPrint('[Assign] POST /api/assignments body: ${body['start_date']} ~ ${body['end_date']}');
+                                  debugPrint(
+                                    '[Assign] POST /api/assignments body: ${body['start_date']} ~ ${body['end_date']}',
+                                  );
 
                                   try {
                                     final dio = ApiClient.instance.dio;
@@ -615,8 +638,12 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
   }
 
   Future<void> _openEditAssignmentSheet(Map<String, dynamic> assignment) async {
-    final titleController = TextEditingController(text: (assignment['title'] ?? '').toString());
-    final contentController = TextEditingController(text: (assignment['content'] ?? '').toString());
+    final titleController = TextEditingController(
+      text: (assignment['title'] ?? '').toString(),
+    );
+    final contentController = TextEditingController(
+      text: (assignment['content'] ?? '').toString(),
+    );
     DateTime? startDate;
     DateTime? endDate;
 
@@ -629,9 +656,12 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
         return null;
       }
     }
+
     startDate = tryParse(assignment['startDate']?.toString());
     // fallback: some list uses 'due' as YYYY-MM-DD only
-    endDate = tryParse(assignment['endDate']?.toString()) ?? tryParse(assignment['due']?.toString());
+    endDate =
+        tryParse(assignment['endDate']?.toString()) ??
+        tryParse(assignment['due']?.toString());
     // start_date가 없더라도 화면에는 비워둔 채로 노출하고,
     // 전송 시에만 end_date로 대체할 것이므로 별도 표시 제어는 하지 않음.
 
@@ -700,9 +730,10 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                     },
                   );
                   if (picked != null) {
-                    final initialTime = startDate != null
-                        ? TimeOfDay.fromDateTime(startDate!)
-                        : TimeOfDay.now();
+                    final initialTime =
+                        startDate != null
+                            ? TimeOfDay.fromDateTime(startDate!)
+                            : TimeOfDay.now();
                     final t = await showTimePicker(
                       context: context,
                       initialTime: initialTime,
@@ -722,13 +753,18 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                           ),
                           timePickerTheme: TimePickerThemeData(
                             backgroundColor: Colors.white,
-                            hourMinuteColor: WidgetStateColor.resolveWith((states) {
-                              if (states.contains(WidgetState.selected) || states.contains(WidgetState.focused)) {
+                            hourMinuteColor: WidgetStateColor.resolveWith((
+                              states,
+                            ) {
+                              if (states.contains(WidgetState.selected) ||
+                                  states.contains(WidgetState.focused)) {
                                 return const Color(0xFFE0E0E0);
                               }
                               return Colors.white;
                             }),
-                            dayPeriodColor: WidgetStateColor.resolveWith((states) {
+                            dayPeriodColor: WidgetStateColor.resolveWith((
+                              states,
+                            ) {
                               if (states.contains(WidgetState.selected)) {
                                 return const Color(0xff86C1FF);
                               }
@@ -796,9 +832,10 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                     },
                   );
                   if (picked != null) {
-                    final initialTime = endDate != null
-                        ? TimeOfDay.fromDateTime(endDate!)
-                        : const TimeOfDay(hour: 23, minute: 59);
+                    final initialTime =
+                        endDate != null
+                            ? TimeOfDay.fromDateTime(endDate!)
+                            : const TimeOfDay(hour: 23, minute: 59);
                     final t = await showTimePicker(
                       context: context,
                       initialTime: initialTime,
@@ -818,13 +855,18 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                           ),
                           timePickerTheme: TimePickerThemeData(
                             backgroundColor: Colors.white,
-                            hourMinuteColor: WidgetStateColor.resolveWith((states) {
-                              if (states.contains(WidgetState.selected) || states.contains(WidgetState.focused)) {
+                            hourMinuteColor: WidgetStateColor.resolveWith((
+                              states,
+                            ) {
+                              if (states.contains(WidgetState.selected) ||
+                                  states.contains(WidgetState.focused)) {
                                 return const Color(0xFFE0E0E0);
                               }
                               return Colors.white;
                             }),
-                            dayPeriodColor: WidgetStateColor.resolveWith((states) {
+                            dayPeriodColor: WidgetStateColor.resolveWith((
+                              states,
+                            ) {
                               if (states.contains(WidgetState.selected)) {
                                 return const Color(0xff86C1FF);
                               }
@@ -913,19 +955,28 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                             Expanded(
                               child: InkWell(
                                 onTap: pickStartDate,
-                                splashColor: const Color(0xff578FCA).withOpacity(0.2),
-                                highlightColor: const Color(0xff578FCA).withOpacity(0.1),
+                                splashColor: const Color(
+                                  0xff578FCA,
+                                ).withOpacity(0.2),
+                                highlightColor: const Color(
+                                  0xff578FCA,
+                                ).withOpacity(0.1),
                                 overlayColor: WidgetStateProperty.resolveWith(
-                                  (states) => const Color(0xff578FCA).withOpacity(
-                                    states.contains(WidgetState.pressed) ? 0.2 : 0.1,
-                                  ),
+                                  (states) =>
+                                      const Color(0xff578FCA).withOpacity(
+                                        states.contains(WidgetState.pressed)
+                                            ? 0.2
+                                            : 0.1,
+                                      ),
                                 ),
                                 child: InputDecorator(
                                   decoration: const InputDecoration(
                                     labelText: 'start (날짜/시간)',
                                     border: OutlineInputBorder(),
                                     focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(color: Color(0xff578FCA)),
+                                      borderSide: BorderSide(
+                                        color: Color(0xff578FCA),
+                                      ),
                                     ),
                                   ),
                                   child: Text(
@@ -941,19 +992,28 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                             Expanded(
                               child: InkWell(
                                 onTap: pickEndDate,
-                                splashColor: const Color(0xff578FCA).withOpacity(0.2),
-                                highlightColor: const Color(0xff578FCA).withOpacity(0.1),
+                                splashColor: const Color(
+                                  0xff578FCA,
+                                ).withOpacity(0.2),
+                                highlightColor: const Color(
+                                  0xff578FCA,
+                                ).withOpacity(0.1),
                                 overlayColor: WidgetStateProperty.resolveWith(
-                                  (states) => const Color(0xff578FCA).withOpacity(
-                                    states.contains(WidgetState.pressed) ? 0.2 : 0.1,
-                                  ),
+                                  (states) =>
+                                      const Color(0xff578FCA).withOpacity(
+                                        states.contains(WidgetState.pressed)
+                                            ? 0.2
+                                            : 0.1,
+                                      ),
                                 ),
                                 child: InputDecorator(
                                   decoration: const InputDecoration(
                                     labelText: 'end (날짜/시간)',
                                     border: OutlineInputBorder(),
                                     focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(color: Color(0xff578FCA)),
+                                      borderSide: BorderSide(
+                                        color: Color(0xff578FCA),
+                                      ),
                                     ),
                                   ),
                                   child: Text(
@@ -973,7 +1033,10 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                             Expanded(
                               child: OutlinedButton(
                                 onPressed: () => Navigator.of(ctx).pop(),
-                                child: const Text('취소', style: TextStyle(color: Colors.black)),
+                                child: const Text(
+                                  '취소',
+                                  style: TextStyle(color: Colors.black),
+                                ),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -984,27 +1047,46 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                                   foregroundColor: Colors.black,
                                 ),
                                 onPressed: () async {
-                                  final id = (assignment['assignmentId'] ?? '').toString();
+                                  final id =
+                                      (assignment['assignmentId'] ?? '')
+                                          .toString();
                                   final title = titleController.text.trim();
                                   final content = contentController.text.trim();
                                   final end = _formatApiDateTime(endDate);
-                                  final start = startDate == null ? end : _formatApiDateTime(startDate);
+                                  final start =
+                                      startDate == null
+                                          ? end
+                                          : _formatApiDateTime(startDate);
 
                                   if (id.isEmpty) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('과제 ID를 찾을 수 없습니다.')),
+                                      const SnackBar(
+                                        content: Text('과제 ID를 찾을 수 없습니다.'),
+                                      ),
                                     );
                                     return;
                                   }
-                                  if (title.isEmpty || end.isEmpty || start.isEmpty) {
+                                  if (title.isEmpty ||
+                                      end.isEmpty ||
+                                      start.isEmpty) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('제목, 시작/마감 날짜·시간을 입력해 주세요.')),
+                                      const SnackBar(
+                                        content: Text(
+                                          '제목, 시작/마감 날짜·시간을 입력해 주세요.',
+                                        ),
+                                      ),
                                     );
                                     return;
                                   }
-                                  if (startDate != null && endDate != null && startDate!.isAfter(endDate!)) {
+                                  if (startDate != null &&
+                                      endDate != null &&
+                                      startDate!.isAfter(endDate!)) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('시작 시각은 마감 시각보다 이전이어야 합니다.')),
+                                      const SnackBar(
+                                        content: Text(
+                                          '시작 시각은 마감 시각보다 이전이어야 합니다.',
+                                        ),
+                                      ),
                                     );
                                     return;
                                   }
@@ -1015,24 +1097,40 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                                     'start_date': start,
                                     'end_date': end,
                                   };
-                                  debugPrint('[Assign Edit] PATCH /api/assignments/$id body: $body');
+                                  debugPrint(
+                                    '[Assign Edit] PATCH /api/assignments/$id body: $body',
+                                  );
 
                                   try {
                                     final dio = ApiClient.instance.dio;
-                                    final res = await dio.patch('/api/assignments/$id', data: body);
+                                    final res = await dio.patch(
+                                      '/api/assignments/$id',
+                                      data: body,
+                                    );
                                     final status = res.statusCode;
-                                    debugPrint('[Assign Edit] status:$status data:${res.data}');
+                                    debugPrint(
+                                      '[Assign Edit] status:$status data:${res.data}',
+                                    );
 
                                     // 즉시 반영: 로컬 아이템 업데이트
-                                    final idx = dataList.indexWhere((e) => (e['assignmentId']?.toString() ?? '') == id);
+                                    final idx = dataList.indexWhere(
+                                      (e) =>
+                                          (e['assignmentId']?.toString() ??
+                                              '') ==
+                                          id,
+                                    );
                                     if (idx != -1) {
                                       setState(() {
                                         dataList[idx]['title'] = title;
                                         dataList[idx]['content'] = content;
                                         dataList[idx]['startDate'] = start;
                                         dataList[idx]['endDate'] = end;
-                                        dataList[idx]['due'] = (endDate != null) ? _formatDate(endDate) : end;
-                                        dataList[idx]['timeLeft'] = _formatTimeLeftFrom(endDate);
+                                        dataList[idx]['due'] =
+                                            (endDate != null)
+                                                ? _formatDate(endDate)
+                                                : end;
+                                        dataList[idx]['timeLeft'] =
+                                            _formatTimeLeftFrom(endDate);
                                       });
                                     }
 
@@ -1042,13 +1140,21 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                                     if (!mounted) return;
                                     Navigator.of(ctx).pop();
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('과제를 수정했어요.')),
+                                      const SnackBar(
+                                        content: Text('과제를 수정했어요.'),
+                                      ),
                                     );
                                   } on DioException catch (e) {
-                                    debugPrint('[Assign Edit] DioException status:${e.response?.statusCode} msg:${e.message} data:${e.response?.data}');
+                                    debugPrint(
+                                      '[Assign Edit] DioException status:${e.response?.statusCode} msg:${e.message} data:${e.response?.data}',
+                                    );
                                     if (!mounted) return;
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('수정 실패: ${e.response?.statusCode ?? ''}')),
+                                      SnackBar(
+                                        content: Text(
+                                          '수정 실패: ${e.response?.statusCode ?? ''}',
+                                        ),
+                                      ),
                                     );
                                   } catch (e) {
                                     debugPrint('[Assign Edit] error: $e');
@@ -1233,15 +1339,16 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
     final height = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      floatingActionButton: showAssignmentDetail
-          ? null
-          : FloatingActionButton(
-              onPressed: () {
-                _openCreateAssignmentSheet();
-              },
-              backgroundColor: const Color(0xff86C1FF),
-              child: const Icon(Icons.add),
-            ),
+      floatingActionButton:
+          showAssignmentDetail
+              ? null
+              : FloatingActionButton(
+                onPressed: () {
+                  _openCreateAssignmentSheet();
+                },
+                backgroundColor: const Color(0xff86C1FF),
+                child: const Icon(Icons.add),
+              ),
       body: Container(
         decoration: BoxDecoration(
           color: const Color.fromARGB(255, 245, 245, 245),
@@ -1262,21 +1369,22 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
               ),
             );
           },
-          child: showAssignmentDetail
-              ? Thaksubsilgaja(
-                  key: const ValueKey('assignmentDetail'),
-                  assignment: selectedAssignment!,
-                  onClose: _closeAssignmentDetail,
-                )
-              : showTeacherCheck
+          child:
+              showAssignmentDetail
+                  ? Thaksubsilgaja(
+                    key: const ValueKey('assignmentDetail'),
+                    assignment: selectedAssignment!,
+                    onClose: _closeAssignmentDetail,
+                  )
+                  : showTeacherCheck
                   ? TeacherCheck(
-                      key: const ValueKey('teacherCheck'),
-                      onBack: () {
-                        setState(() {
-                          showTeacherCheck = false;
-                        });
-                      },
-                    )
+                    key: const ValueKey('teacherCheck'),
+                    onBack: () {
+                      setState(() {
+                        showTeacherCheck = false;
+                      });
+                    },
+                  )
                   : _buildAssignmentList(context, width, height),
         ),
       ),
@@ -1308,7 +1416,8 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                   }
                   // Ensure assignmentId is present for detail/upload actions
                   if (mapped['assignmentId'] == null) {
-                    final dynamic altId = mapped['id'] ?? mapped['assignment_id'];
+                    final dynamic altId =
+                        mapped['id'] ?? mapped['assignment_id'];
                     if (altId != null) {
                       final parsed = int.tryParse(altId.toString());
                       mapped['assignmentId'] = parsed ?? altId;
@@ -1353,27 +1462,6 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                           ),
                         ),
                         SizedBox(width: width * 0.02),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: width * 0.025,
-                            vertical: height * 0.005,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                data['submitted']
-                                    ? Colors.blue[100]
-                                    : Colors.grey[300],
-                            borderRadius: BorderRadius.circular(width * 0.05),
-                          ),
-                          child: Text(
-                            data['status'],
-                            style: TextStyle(
-                              fontSize: width * 0.03,
-                              color:
-                                  data['submitted'] ? Colors.blue : Colors.black,
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                     SizedBox(height: height * 0.012),
@@ -1410,7 +1498,7 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                       ],
                     ),
                     SizedBox(height: height * 0.018),
-              
+
                     ...List.generate(data['files'].length, (fileIdx) {
                       final file = data['files'][fileIdx];
                       return Container(
@@ -1427,7 +1515,7 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                               size: width * 0.05,
                             ),
                             SizedBox(width: width * 0.025),
-              
+
                             GestureDetector(
                               onTap: () {
                                 if (file['url'] != null &&
@@ -1489,7 +1577,9 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                             backgroundColor: Colors.orange[100],
                             foregroundColor: Colors.black,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(width * 0.025),
+                              borderRadius: BorderRadius.circular(
+                                width * 0.025,
+                              ),
                             ),
                             padding: EdgeInsets.symmetric(
                               vertical: height * 0.012,
@@ -1505,7 +1595,9 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                         Expanded(
                           child: SizedBox(
                             child: ElevatedButton.icon(
-                              onPressed: () => _openEditAssignmentSheet(dataList[index]),
+                              onPressed:
+                                  () =>
+                                      _openEditAssignmentSheet(dataList[index]),
                               label: Text(
                                 '내용수정',
                                 style: TextStyle(fontSize: width * 0.035),

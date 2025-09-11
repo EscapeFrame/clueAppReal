@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Haksubsilgaja extends StatefulWidget {
   final Map<String, dynamic> assignment;
@@ -55,6 +56,32 @@ Future<PlatformFile?> pickFile() async {
   } else {
     print('사용자가 파일 선택을 취소함');
     return null;
+  }
+}
+
+Future<void> gwaJeJeChul(String submissionIdStr) async {
+  debugPrint("idStr: $submissionIdStr");
+  try {
+    final api = ApiClient.instance.dio;
+    final data = api.patch('/api/submissions/$submissionIdStr/submit');
+    debugPrint('과제 제출 응답: $data');
+  } on DioException catch (e) {
+    debugPrint('과제 제출 오류: ${e.message}');
+  } catch (e) {
+    debugPrint('과제 제출 오류: $e');
+  }
+}
+
+Future<void> gwaJeJeChulCancel(String submissionIdStr) async {
+  debugPrint("idStr: $submissionIdStr");
+  try {
+    final api = ApiClient.instance.dio;
+    final data = api.patch('/api/submissions/$submissionIdStr/cancel');
+    debugPrint('과제 제출 응답: $data');
+  } on DioException catch (e) {
+    debugPrint('과제 제출 오류: ${e.message}');
+  } catch (e) {
+    debugPrint('과제 제출 오류: $e');
   }
 }
 
@@ -214,10 +241,19 @@ void showAddClassDialog(
 }
 
 class _HaksubsilgajaState extends State<Haksubsilgaja> {
+  bool isClick =false;
+  void justChange() {
+    setState(() {
+      isClick = !isClick;
+    });
+  }
+
   bool loading = true;
   String? error;
   Map<String, dynamic>? detail;
   List<PlatformFile> uploadedFiles = [];
+  final GlobalKey _uploadButtonKey = GlobalKey();
+  final List<String> uploadedUrls = [];
 
   // assignment의 files에서 파일을 삭제하는 함수 추가
   void removeFile(int fileIndex) {
@@ -237,6 +273,18 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
   void removeUploadedFile(int index) {
     setState(() {
       uploadedFiles.removeAt(index);
+    });
+  }
+
+  void addUploadedUrl(String url) {
+    setState(() {
+      uploadedUrls.add(url);
+    });
+  }
+
+  void removeUploadedUrl(int index) {
+    setState(() {
+      uploadedUrls.removeAt(index);
     });
   }
 
@@ -310,6 +358,51 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     if (loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+
+    // 첨부 소스 정규화: AssignmentAttachments 우선, 없으면 xAssignmentResponseDtos 사용
+    String fmtSizeLocal(int bytes) {
+      if (bytes >= 1024 * 1024)
+        return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    }
+
+    List<Map<String, dynamic>> mapAttList(List src) =>
+        src.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).map((m) {
+          final typeVal = (m['type'] ?? '').toString().toUpperCase();
+          final valueStr = (m['value'] ?? m['url'] ?? '').toString();
+          final originalName = (m['originalFileName'] ?? '').toString();
+          final isLikelyUrl =
+              typeVal == 'URL' ||
+              (valueStr.startsWith('http') && originalName.isEmpty);
+
+          final kind = isLikelyUrl ? 'URL' : 'FILE';
+          final sizeNum =
+              m['size'] is int
+                  ? (m['size'] as int)
+                  : int.tryParse('${m['size'] ?? ''}') ?? 0;
+          final name =
+              (originalName.isNotEmpty
+                      ? originalName
+                      : (isLikelyUrl ? valueStr : ''))
+                  .toString();
+
+          return <String, dynamic>{
+            'name': name,
+            'sizeText':
+                (kind == 'URL' && sizeNum == 0) ? '' : fmtSizeLocal(sizeNum),
+            'contentType': (m['contentType'] ?? m['type'] ?? '').toString(),
+            'kind': kind, // 'FILE' | 'URL'
+            'url': isLikelyUrl ? valueStr : '',
+          };
+        }).toList();
+
+    final List<Map<String, dynamic>> serverAttachments =
+        (() {
+          final a = (detail?['AssignmentAttachments'] as List?) ?? const [];
+          if (a.isNotEmpty) return mapAttList(a);
+          final b = (detail?['xAssignmentResponseDtos'] as List?) ?? const [];
+          return mapAttList(b);
+        })();
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
@@ -398,9 +491,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
 
               SizedBox(height: height * 0.015),
 
-              // 첨부파일 (AssignmentAttachments)
-              if ((detail?['AssignmentAttachments'] as List?)?.isNotEmpty ==
-                  true) ...[
+              if (serverAttachments.isNotEmpty) ...[
                 Text(
                   '첨부파일',
                   style: TextStyle(
@@ -409,17 +500,8 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                   ),
                 ),
                 SizedBox(height: height * 0.009),
-                ...List<Map<String, dynamic>>.from(
-                  (detail?['AssignmentAttachments'] as List).map(
-                    (e) => Map<String, dynamic>.from(e as Map),
-                  ),
-                ).map((att) {
-                  final name = (att['originalFileName'] ?? '').toString();
-                  final size =
-                      att['size'] is int
-                          ? att['size'] as int
-                          : int.tryParse('${att['size'] ?? 0}') ?? 0;
-                  return Container(
+                ...serverAttachments.map(
+                  (f) => Container(
                     margin: EdgeInsets.only(bottom: 6),
                     padding: EdgeInsets.all(width * 0.03),
                     decoration: BoxDecoration(
@@ -428,81 +510,52 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.insert_drive_file_outlined),
+                        Icon(
+                          (f['kind'] == 'URL')
+                              ? Icons.link
+                              : Icons.insert_drive_file_outlined,
+                        ),
                         SizedBox(width: width * 0.025),
                         Expanded(
-                          child: Text(
-                            name,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: width * 0.03),
+                          child: GestureDetector(
+                            onTap: () async {
+                              if (f['kind'] == 'URL') {
+                                final u = Uri.tryParse(
+                                  (f['url'] ?? '').toString(),
+                                );
+                                if (u != null) {
+                                  await launchUrl(
+                                    u,
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                }
+                              }
+                            },
+                            child: Text(
+                              (f['name'] ?? '').toString(),
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: width * 0.03,
+                                color: Colors.blue,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
                           ),
                         ),
                         SizedBox(width: width * 0.02),
-                        Text(
-                          '(${_fmtSize(size)})',
-                          style: TextStyle(
-                            fontSize: width * 0.025,
-                            color: Colors.grey,
+                        if ((f['kind'] ?? '') != 'URL' &&
+                            (f['sizeText'] ?? '').toString().isNotEmpty)
+                          Text(
+                            '(${f['sizeText']})',
+                            style: TextStyle(
+                              fontSize: width * 0.025,
+                              color: Colors.grey,
+                            ),
                           ),
-                        ),
                       ],
                     ),
-                  );
-                }),
-                SizedBox(height: height * 0.015),
-              ]
-              // 첨부파일 (xAssignmentResponseDtos) – AssignmentAttachments가 비어있을 때 대체 표시
-              else if ((detail?['xAssignmentResponseDtos'] as List?)
-                      ?.isNotEmpty ==
-                  true) ...[
-                Text(
-                  '할당된 파일',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: width * 0.045,
                   ),
                 ),
-                SizedBox(height: height * 0.009),
-                ...List<Map<String, dynamic>>.from(
-                  (detail?['xAssignmentResponseDtos'] as List).map(
-                    (e) => Map<String, dynamic>.from(e as Map),
-                  ),
-                ).map((att) {
-                  final name = (att['originalFileName'] ?? '').toString();
-                  final size =
-                      att['size'] is int
-                          ? att['size'] as int
-                          : int.tryParse('${att['size'] ?? 0}') ?? 0;
-                  return Container(
-                    margin: EdgeInsets.only(bottom: 6),
-                    padding: EdgeInsets.all(width * 0.03),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F5F5),
-                      borderRadius: BorderRadius.circular(width * 0.025),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.insert_drive_file_outlined),
-                        SizedBox(width: width * 0.025),
-                        Expanded(
-                          child: Text(
-                            name,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: width * 0.03),
-                          ),
-                        ),
-                        SizedBox(width: width * 0.02),
-                        Text(
-                          '(${_fmtSize(size)})',
-                          style: TextStyle(
-                            fontSize: width * 0.025,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
                 SizedBox(height: height * 0.015),
               ],
 
@@ -532,8 +585,6 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                     ],
                   )
                   : SizedBox(width: width * 0.00001),
-
-             
 
               SizedBox(height: height * 0.015),
               // 업로드된 파일들 표시
@@ -588,6 +639,62 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                   );
                 }),
               ],
+              // 업로드된 링크 표시
+              if (uploadedUrls.isNotEmpty) ...[
+                SizedBox(height: height * 0.015),
+                Text(
+                  '업로드된 링크',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: width * 0.045,
+                  ),
+                ),
+                SizedBox(height: height * 0.009),
+                ...List.generate(uploadedUrls.length, (index) {
+                  final url = uploadedUrls[index];
+                  return Container(
+                    margin: EdgeInsets.only(bottom: 6),
+                    padding: EdgeInsets.all(width * 0.03),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(width * 0.025),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.link),
+                        SizedBox(width: width * 0.025),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () async {
+                              final u = Uri.tryParse(url);
+                              if (u != null) {
+                                await launchUrl(
+                                  u,
+                                  mode: LaunchMode.externalApplication,
+                                );
+                              }
+                            },
+                            child: Text(
+                              url,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: width * 0.03,
+                                color: Colors.blue,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: width * 0.02),
+                        GestureDetector(
+                          onTap: () => removeUploadedUrl(index),
+                          child: Icon(Icons.close, size: width * 0.045),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
               SizedBox(height: height * 0.03),
               Text(
                 '상세설명',
@@ -611,9 +718,8 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      showAddClassDialog(context, addUploadedFile);
-                    },
+                    key: _uploadButtonKey,
+                    onPressed: _showUploadChoiceMenu,
                     style: ElevatedButton.styleFrom(
                       elevation: 0,
                       backgroundColor: Colors.white,
@@ -631,32 +737,146 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                 ),
               ),
               SizedBox(height: height * 0.005),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    // toggleSubmissionStatus(index);
-                  },
-                  icon: Icon(Icons.upload, size: width * 0.045),
-                  label: Text(
-                    "과제 제출하기",
-                    style: TextStyle(fontSize: width * 0.035),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF86C1FF),
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(width * 0.025),
+              isClick
+                  ? SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        // gwaJeJeChul(submissionIdStr() ?? '');
+                        justChange();
+                      },
+                      icon: Icon(Icons.upload, size: width * 0.045),
+                      label: Text(
+                        "과제 제출하기",
+                        style: TextStyle(fontSize: width * 0.035),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF86C1FF),
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(width * 0.025),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: height * 0.018),
+                      ),
                     ),
-                    padding: EdgeInsets.symmetric(vertical: height * 0.018),
+                  )
+                  : SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        // gwaJeJeChulCancel(submissionIdStr() ?? '');
+                        justChange();
+                      },
+                      icon: Icon(Icons.upload, size: width * 0.045),
+                      label: Text(
+                        "과제 제출 취소하기",
+                        style: TextStyle(fontSize: width * 0.035),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(
+                          255,
+                          216,
+                          216,
+                          216,
+                        ),
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(width * 0.025),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: height * 0.018),
+                      ),
+                    ),
                   ),
-                ),
-              ),
               SizedBox(height: height * 0.05),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _showUrlInputDialog() async {
+    final controller = TextEditingController();
+    await showDialog(
+      context: context,
+      builder: (ctx) {
+        const brand = Color(0xff578FCA);
+        final theme = Theme.of(ctx);
+        return Theme(
+          data: theme.copyWith(
+            inputDecorationTheme: const InputDecorationTheme(
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: brand),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: brand, width: 2),
+              ),
+            ),
+            dialogTheme: DialogThemeData(backgroundColor: Colors.white),
+          ),
+          child: AlertDialog(
+            backgroundColor: Colors.white,
+            title: const Text('링크 업로드'),
+            content: TextField(
+              controller: controller,
+              decoration: const InputDecoration(hintText: 'URL을 입력하세요'),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('취소', style: TextStyle(color: Colors.black)),
+              ),
+              TextButton(
+                onPressed: () async {
+                  final url = controller.text.trim();
+                  if (url.isNotEmpty) {
+                    addUploadedUrl(url);
+                  }
+                  Navigator.pop(ctx);
+                },
+                child: const Text('등록', style: TextStyle(color: brand)),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showUploadChoiceMenu() async {
+    final RenderBox? button =
+        _uploadButtonKey.currentContext?.findRenderObject() as RenderBox?;
+    final RenderBox overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+    RelativeRect position;
+    if (button != null) {
+      final Offset offset = button.localToGlobal(Offset.zero);
+      position = RelativeRect.fromRect(
+        Rect.fromLTWH(
+          offset.dx,
+          offset.dy,
+          button.size.width,
+          button.size.height,
+        ),
+        Offset.zero & overlay.size,
+      );
+    } else {
+      position = const RelativeRect.fromLTRB(100, 100, 0, 0);
+    }
+
+    final choice = await showMenu<String>(
+      context: context,
+      position: position.shift(const Offset(0, -8)),
+      items: const [
+        PopupMenuItem<String>(value: 'file', child: Text('파일 업로드')),
+        PopupMenuItem<String>(value: 'url', child: Text('URL 링크 업로드')),
+      ],
+    );
+
+    if (choice == 'file') {
+      showAddClassDialog(context, addUploadedFile);
+    } else if (choice == 'url') {
+      _showUrlInputDialog();
+    }
   }
 }
