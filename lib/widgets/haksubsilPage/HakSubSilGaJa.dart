@@ -13,8 +13,8 @@ class Haksubsilgaja extends StatefulWidget {
 
   const Haksubsilgaja({
     super.key,
-    required this.assignment,
-    required this.onClose,
+     required this.assignment,
+     required this.onClose,
   });
 
   @override

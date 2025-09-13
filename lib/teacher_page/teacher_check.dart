@@ -1,10 +1,12 @@
-import 'package:flutter/material.dart';
+import 'package:clue/api_client.dart';
 import 'package:clue/config/teacher_data.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 
 class TeacherCheck extends StatefulWidget {
-  final VoidCallback? onBack; 
-
-  const TeacherCheck({super.key, this.onBack});
+  final VoidCallback? onBack;
+  final assignmentId;
+  const TeacherCheck({super.key, this.onBack, required this.assignmentId});
 
   @override
   State<TeacherCheck> createState() => _TeacherCheckState();
@@ -17,10 +19,30 @@ class _TeacherCheckState extends State<TeacherCheck> {
   String searchText = '';
   List<Map<String, dynamic>> filteredStudents = [];
 
+  Future<void> checkApi(String idStr) async {
+    debugPrint("idSSSSTTTTRRR:  $idStr");
+    try {
+      final dio = ApiClient.instance.dio;
+      final res = await dio.get('/api/assignments/$idStr/check');
+      final data = res.data;
+      debugPrint("응답값 : ${data.toString()}");
+    } on DioException catch (e) {
+      debugPrint("DioError:  ${e.error}");
+
+      debugPrint("DioError:  ${e.message}");
+    } catch (e) {
+      debugPrint("Errrrrrrorrrr:$e");
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     filteredStudents = TeacherData.getStudentJechul();
+    final idStr = (widget.assignmentId ?? '').toString();
+    if (idStr.isNotEmpty) {
+      checkApi(idStr);
+    }
   }
 
   void filterStudents() {
@@ -31,10 +53,9 @@ class _TeacherCheckState extends State<TeacherCheck> {
             final number = student['number'].toString().toLowerCase();
             final searchLower = searchText.toLowerCase();
             final isSubmitted = student['submitted'] as bool;
-            
- 
-            final matchesSearch = name.contains(searchLower) || number.contains(searchLower);
-            
+
+            final matchesSearch =
+                name.contains(searchLower) || number.contains(searchLower);
 
             bool matchesStatus = true;
             if (selectedStatus == '제출완료') {
@@ -43,7 +64,6 @@ class _TeacherCheckState extends State<TeacherCheck> {
               matchesStatus = !isSubmitted;
             }
 
-            
             return matchesSearch && matchesStatus;
           }).toList();
     });
@@ -113,19 +133,13 @@ class _TeacherCheckState extends State<TeacherCheck> {
               ),
               SizedBox(height: height * 0.02),
 
-
-              _buildDropdown(
-                selectedStatus,
-                ['상태', '제출완료', '미제출'],
-                (val) {
-                  setState(() {
-                    selectedStatus = val!;
-                  });
-                  filterStudents(); 
-                },
-              ),
+              _buildDropdown(selectedStatus, ['상태', '제출완료', '미제출'], (val) {
+                setState(() {
+                  selectedStatus = val!;
+                });
+                filterStudents();
+              }),
               SizedBox(height: height * 0.02),
-
 
               TextField(
                 decoration: InputDecoration(
@@ -163,7 +177,6 @@ class _TeacherCheckState extends State<TeacherCheck> {
               ),
               SizedBox(height: height * 0.02),
 
-
               Expanded(
                 child: ListView.separated(
                   itemCount: filteredStudents.length,
@@ -175,7 +188,6 @@ class _TeacherCheckState extends State<TeacherCheck> {
                       padding: EdgeInsets.symmetric(vertical: height * 0.015),
                       child: Row(
                         children: [
-
                           SizedBox(
                             width: width * 0.15,
                             child: Text(
@@ -188,7 +200,6 @@ class _TeacherCheckState extends State<TeacherCheck> {
                             ),
                           ),
 
-
                           SizedBox(
                             width: width * 0.2,
                             child: Text(
@@ -200,7 +211,6 @@ class _TeacherCheckState extends State<TeacherCheck> {
                               ),
                             ),
                           ),
-
 
                           Expanded(
                             child: Text(
@@ -216,10 +226,8 @@ class _TeacherCheckState extends State<TeacherCheck> {
                             ),
                           ),
 
-
                           GestureDetector(
                             onTap: () {
-
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text('${student['name']} 학생 채점하기'),

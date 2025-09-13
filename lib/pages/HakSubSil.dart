@@ -20,6 +20,33 @@ class _HaksubsilState extends State<Haksubsil> {
   final List<Map<String, dynamic>> noticeList = AppData.getNoticeList();
   List<Map<String, dynamic>> _classList = [];
 
+  Future<void> classJoin() async {
+    try {
+      final dio = ApiClient.instance.dio;
+      final res = dio.post('/api/class/PC8EiH/members');
+      debugPrint("postres : ${res.toString()}");
+    } on DioException catch (e) {
+      debugPrint("RERERERROEROER : ${e.error}");
+      debugPrint("RERERERROEROER : ${e.message}");
+    } catch (e) {
+      debugPrint("error:$e");
+    }
+  }
+
+  Future<void> haksubsilJoin(String code) async {
+    debugPrint("ccooddee : $code");
+    try {
+      final dio = ApiClient.instance.dio;
+      final api = await dio.post('/api/class/$code/members');
+      debugPrint(api.toString());
+    } on DioException catch (e) {
+      debugPrint("dioerror : ${e.message}");
+      debugPrint("dioerror : ${e.error}");
+    } catch (e) {
+      debugPrint("error: $e");
+    }
+  }
+
   void showAddClassDialog(BuildContext context) {
     final TextEditingController codeController = TextEditingController();
     final width = MediaQuery.of(context).size.width;
@@ -55,6 +82,7 @@ class _HaksubsilState extends State<Haksubsil> {
                     color: Color(0xff666666),
                   ),
                   controller: codeController,
+                  cursorColor: AppColor.bblue,
                   decoration: InputDecoration(
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 8,
@@ -67,6 +95,10 @@ class _HaksubsilState extends State<Haksubsil> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: AppColor.bblue),
                     ),
                   ),
                 ),
@@ -83,14 +115,20 @@ class _HaksubsilState extends State<Haksubsil> {
                   ),
                 ),
                 SizedBox(height: 5),
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColor.blue,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColor.blue),
+                GestureDetector(
+                  onTap: () {
+                    String code = codeController.text;
+                    haksubsilJoin(code);
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColor.blue,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColor.blue),
+                    ),
+                    child: Center(child: Text('확인')),
                   ),
-                  child: Center(child: Text('확인')),
                 ),
               ],
             ),
@@ -106,7 +144,7 @@ class _HaksubsilState extends State<Haksubsil> {
       final api = ApiClient.instance.dio;
       final res = await api.get('/api/class');
       final data = res.data;
-      
+
       List<Map<String, dynamic>> list = [];
 
       list =

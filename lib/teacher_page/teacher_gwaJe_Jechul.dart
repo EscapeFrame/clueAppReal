@@ -1379,6 +1379,13 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                   : showTeacherCheck
                   ? TeacherCheck(
                     key: const ValueKey('teacherCheck'),
+                    assignmentId: (
+                      (selectedAssignment?['assignmentId'] ??
+                              selectedAssignment?['id'] ??
+                              selectedAssignment?['assignment_id'] ??
+                              '')
+                          .toString()
+                    ),
                     onBack: () {
                       setState(() {
                         showTeacherCheck = false;
@@ -1624,6 +1631,21 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                             child: ElevatedButton.icon(
                               onPressed: () {
                                 setState(() {
+                                  // 현재 항목을 선택으로 설정하고 체크 화면으로 전환
+                                  final mapped = Map<String, dynamic>.from(
+                                    dataList[index],
+                                  );
+                                  if (mapped['assignmentId'] == null) {
+                                    final altId = mapped['id'] ??
+                                        mapped['assignment_id'];
+                                    if (altId != null) {
+                                      final parsed = int.tryParse(
+                                        altId.toString(),
+                                      );
+                                      mapped['assignmentId'] = parsed ?? altId;
+                                    }
+                                  }
+                                  selectedAssignment = mapped;
                                   showTeacherCheck = true;
                                 });
                               },

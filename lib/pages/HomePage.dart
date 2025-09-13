@@ -57,10 +57,11 @@ class _HomePageState extends State<HomePage> {
       final data = response.data;
       // 기대 타입: List<Map<String, dynamic>>
       if (data is List) {
-        final list = data
-            .whereType<Map>()
-            .map((e) => Map<String, dynamic>.from(e))
-            .toList();
+        final list =
+            data
+                .whereType<Map>()
+                .map((e) => Map<String, dynamic>.from(e))
+                .toList();
         // 남은 기간(= end - start) 짧은 순으로 정렬
         list.sort((a, b) {
           final da = _calcDaysDiff(
@@ -91,7 +92,6 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     noJeChulGwaJe();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -238,42 +238,50 @@ class _HomePageState extends State<HomePage> {
                         '기간 안에 과제를 제출하세요!',
                         style: TextStyle(fontSize: width * 0.038),
                       ),
-                     
                     ],
                   ),
                   SizedBox(height: height * 0.025),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: (_noJeChulList.isNotEmpty
-                              ? _noJeChulList.map((m) {
-                                  final String title =
-                                      (m['title'] ?? '').toString();
-                                  final String sStart =
-                                      (m['startDate'] ?? '').toString();
-                                  final String sEnd =
-                                      (m['endDate'] ?? '').toString();
-                                  int dayDiff = _calcDaysDiff(sStart, sEnd);
-                                  if (dayDiff < 0) dayDiff = 0;
-                                  return Padding(
-                                    padding: EdgeInsets.only(
-                                      right: width * 0.03,
+                      children:
+                          (_noJeChulList.isNotEmpty
+                                  ? _noJeChulList.map((m) {
+                                    final String title =
+                                        (m['title'] ?? '').toString();
+                                    final String sStart =
+                                        (m['startDate'] ?? '').toString();
+                                    final String sEnd =
+                                        (m['endDate'] ?? '').toString();
+                                    final String assignmentId =
+                                        (m['assignmentId'] ?? '').toString();
+                                    int dayDiff = _calcDaysDiff(sStart, sEnd);
+                                    if (dayDiff < 0) dayDiff = 0;
+                                    return Padding(
+                                      padding: EdgeInsets.only(
+                                        right: width * 0.03,
+                                      ),
+                                      child: GestureDetector(
+                                        onTap: () {},
+                                        child: DayCard(
+                                          day: dayDiff.toString(),
+                                          neyong: title,
+                                        ),
+                                      ),
+                                    );
+                                  })
+                                  : DayCardList.map(
+                                    (item) => Padding(
+                                      padding: EdgeInsets.only(
+                                        right: width * 0.03,
+                                      ),
+                                      child: DayCard(
+                                        day: item['day']!,
+                                        neyong: item['neyong']!,
+                                      ),
                                     ),
-                                    child: DayCard(
-                                      day: dayDiff.toString(),
-                                      neyong: title,
-                                    ),
-                                  );
-                                })
-                              : DayCardList.map((item) => Padding(
-                                    padding:
-                                        EdgeInsets.only(right: width * 0.03),
-                                    child: DayCard(
-                                      day: item['day']!,
-                                      neyong: item['neyong']!,
-                                    ),
-                                  )))
-                          .toList(),
+                                  ))
+                              .toList(),
                     ),
                   ),
                   SizedBox(height: height * 0.012),
