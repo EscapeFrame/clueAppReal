@@ -1,10 +1,10 @@
-import 'package:clue/teacher_page/assignment/data/assignment_service.dart';
-import 'package:clue/teacher_page/assignment/sheets/create_assignment_sheet.dart';
-import 'package:clue/teacher_page/assignment/sheets/edit_assignment_sheet.dart';
-import 'package:clue/teacher_page/assignment/utils/file_utils.dart';
-import 'package:clue/teacher_page/assignment/widgets/file_item_row.dart';
 import 'package:clue/teacher_page/tHakSubSilGaJa.dart';
 import 'package:clue/teacher_page/teacher_check.dart';
+import 'package:clue/teacher_page/teacher_gwaJe_Jechul/data/assignment_service.dart';
+import 'package:clue/teacher_page/teacher_gwaJe_Jechul/sheets/create_assignment_sheet.dart';
+import 'package:clue/teacher_page/teacher_gwaJe_Jechul/sheets/edit_assignment_sheet.dart';
+import 'package:clue/teacher_page/teacher_gwaJe_Jechul/utils/file_utils.dart';
+import 'package:clue/teacher_page/teacher_gwaJe_Jechul/widgets/file_item_row.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
@@ -387,4 +387,5 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
     );
   }
 }
-
+// 교사용 과제 목록/생성/수정 화면의 메인 페이지.
+// 서비스(AssignmentService), 시트(create/edit), 위젯(FileItemRow) 등을 조합해 UI와 상태를 관리합니다.

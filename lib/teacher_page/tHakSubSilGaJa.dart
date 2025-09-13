@@ -1,12 +1,15 @@
-import 'dart:io';
-
-import 'package:clue/api_client.dart';
-import 'package:clue/config/app_color.dart';
-import 'package:dio/dio.dart';
+import 'package:clue/teacher_page/t_haksubsil/data/haksubsil_service.dart';
+import 'package:clue/teacher_page/t_haksubsil/sheets/upload_file_sheet.dart';
+import 'package:clue/teacher_page/t_haksubsil/sheets/url_input_dialog.dart';
+import 'package:clue/teacher_page/t_haksubsil/utils/date_time.dart';
+import 'package:clue/teacher_page/t_haksubsil/utils/file_utils.dart';
+import 'package:clue/teacher_page/t_haksubsil/utils/id_utils.dart';
+import 'package:clue/teacher_page/t_haksubsil/widgets/assignment_actions.dart';
+import 'package:clue/teacher_page/t_haksubsil/widgets/assignment_header.dart';
+import 'package:clue/teacher_page/t_haksubsil/widgets/assignment_meta.dart';
+import 'package:clue/teacher_page/t_haksubsil/widgets/attachment_list.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:open_file/open_file.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Thaksubsilgaja extends StatefulWidget {
@@ -23,214 +26,7 @@ class Thaksubsilgaja extends StatefulWidget {
   State<Thaksubsilgaja> createState() => _ThaksubsilgajaState();
 }
 
-Future<void> downloadFile(
-  BuildContext context,
-  String url,
-  String fileName,
-) async {
-  try {
-    final dir = await getApplicationDocumentsDirectory();
-    final savePath = '${dir.path}/$fileName';
-    await Dio().download(url, savePath);
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('다운로드 완료: $fileName')));
-    await OpenFile.open(savePath); // 다운로드 후 자동으로 파일 열기
-  } catch (e) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('다운로드 실패: $e')));
-  }
-}
-
-Future<PlatformFile?> pickFile() async {
-  FilePickerResult? result = await FilePicker.platform.pickFiles();
-
-  if (result != null) {
-    // 선택된 파일 정보
-    PlatformFile file = result.files.first;
-
-    print('파일명: ${file.name}');
-    print('크기: ${file.size} bytes');
-    print('경로: ${file.path}');
-
-    return file;
-  } else {
-    print('사용자가 파일 선택을 취소함');
-    return null;
-  }
-}
-
-void showAddClassDialog(
-  BuildContext context,
-  Function(PlatformFile) onFileSelected,
-) {
-  final width = MediaQuery.of(context).size.width;
-  final height = MediaQuery.of(context).size.height;
-  PlatformFile? selectedFile;
-
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return Dialog(
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-              width: width * 0.8,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: Colors.white,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '파일 제출하기',
-                    style: TextStyle(
-                      fontSize: width * 0.04,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: height * 0.01),
-
-                  GestureDetector(
-                    onTap: () async {
-                      PlatformFile? file = await pickFile();
-                      if (file != null) {
-                        setState(() {
-                          selectedFile = file;
-                        });
-                      }
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        children: [
-                          if (selectedFile != null) ...[
-                            Icon(
-                              Icons.insert_drive_file_outlined,
-                              size: width * 0.09,
-                              color: Colors.blue,
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              selectedFile!.name,
-                              style: TextStyle(
-                                fontSize: width * 0.03,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              '${(selectedFile!.size / 1024).toStringAsFixed(1)} KB',
-                              style: TextStyle(
-                                fontSize: width * 0.025,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ] else ...[
-                            Icon(
-                              Icons.upload_file,
-                              size: width * 0.09,
-                              color: Colors.grey,
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              '화면을 클릭하여 업로드하세요',
-                              style: TextStyle(fontSize: width * 0.03),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: height * 0.02),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Color(0xffCCCCCC)),
-                            ),
-                            child: Center(child: Text('취소')),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            if (selectedFile != null) {
-                              onFileSelected(selectedFile!);
-                              Navigator.pop(context);
-                            }
-                          },
-                          child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              color:
-                                  selectedFile != null
-                                      ? AppColor.blue
-                                      : Colors.grey,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color:
-                                    selectedFile != null
-                                        ? AppColor.blue
-                                        : Colors.grey,
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                '확인',
-                                style: TextStyle(
-                                  color:
-                                      selectedFile != null
-                                          ? Colors.white
-                                          : Colors.grey[400],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    },
-  );
-}
-
-Future<Map<String, dynamic>?> assignmentsDetailApi(String assignmentId) async {
-  try {
-    final api = ApiClient.instance.dio;
-    final res = await api.get('/api/assignments/$assignmentId');
-    debugPrint('과제 상세 정보: ${res.data}');
-    if (res.statusCode == 200 && res.data is Map<String, dynamic>) {
-      return Map<String, dynamic>.from(res.data as Map);
-    }
-  } on DioException catch (e) {
-    debugPrint('과제 상세 정보 가져오기 중 오류 발생: ${e.response?.data}');
-  } catch (e) {
-    debugPrint('과제 상세 정보 가져오기 중 오류 발생: $e');
-  }
-  return null;
-}
+// Moved: download/pick/show dialog/service helpers are split into utils/sheets/data.
 
 class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
   bool loading = true;
@@ -239,40 +35,11 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
   final Set<String> _deletingAttachmentIds = <String>{};
   final GlobalKey _uploadButtonKey = GlobalKey();
 
-  DateTime? _parseDate(String? s) {
-    if (s == null || s.isEmpty) return null;
-    try {
-      return DateTime.parse(s.replaceAll(' ', 'T'));
-    } catch (_) {
-      return null;
-    }
-  }
-
-  String _formatDue(DateTime? dt) =>
-      dt == null ? '-' : dt.toIso8601String().split('T').first;
-
-  String _formatTimeLeft(DateTime? end) {
-    if (end == null) return '-';
-    final diff = end.difference(DateTime.now());
-    if (diff.isNegative) return '마감됨';
-    final d = diff.inDays, h = diff.inHours % 24, m = diff.inMinutes % 60;
-    if (d > 0) return '$d일 $h시간 남음';
-    if (diff.inHours > 0) return '${diff.inHours}시간 $m분 남음';
-    return '$m분 남음';
-  }
+  // formatting helpers moved to utils/date_time.dart
 
   String? _assignmentIdStr() {
-    final cands = [
-      detail?['assignmentId'],
-      widget.assignment['assignmentId'],
-      widget.assignment['id'],
-      widget.assignment['assignment_id'],
-    ];
-    for (final v in cands) {
-      final s = v?.toString();
-      if (s != null && s.isNotEmpty) return s;
-    }
-    return null;
+    final s = assignmentIdStrFrom(detail, widget.assignment);
+    return s.isEmpty ? null : s;
   }
 
   String _fmtSize(int bytes) {
@@ -287,7 +54,7 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
       loading = true;
       error = null;
     });
-    final data = await assignmentsDetailApi(idPath);
+    final data = await HaksubsilService.fetchAssignmentDetail(idPath);
     if (!mounted) return;
     if (data != null) {
       setState(() {
@@ -340,37 +107,23 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
   }
 
   Future<void> _deleteAttachment(String attachmentId) async {
-    debugPrint('삭제할 attachmentId: $attachmentId');
-    try {
-      final dio = ApiClient.instance.dio;
-      final res = await dio.delete('/api/assignments/attachment/$attachmentId');
-      if (!mounted) return;
-      if (res.statusCode == 200 || res.statusCode == 204) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('첨부 삭제 완료')));
-        final idStr = _assignmentIdStr();
-        if (idStr != null) {
-          await _loadDetail(idStr);
-        }
-      } else {
-        final msg = res.data?.toString() ?? '서버 응답 없음';
-        debugPrint('삭제 실패${res.statusCode}: $msg');
-      }
-    } on DioException catch (e) {
-      if (!mounted) return;
-      debugPrint('삭제오류:삭제 오류: ${e.message}');
-    } catch (e) {
-      if (!mounted) return;
+    final ok = await HaksubsilService.deleteAttachment(attachmentId);
+    if (!mounted) return;
+    if (ok) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('삭제 예외: $e')));
-    } finally {
-      if (mounted) {
-        setState(() {
-          _deletingAttachmentIds.remove(attachmentId);
-        });
-      }
+      ).showSnackBar(const SnackBar(content: Text('첨부 삭제 완료')));
+      final idStr = _assignmentIdStr();
+      if (idStr != null) await _loadDetail(idStr);
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('삭제 실패')));
+    }
+    if (mounted) {
+      setState(() {
+        _deletingAttachmentIds.remove(attachmentId);
+      });
     }
   }
   //통신 안됨
@@ -390,119 +143,36 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
 
   Future<void> uploadFile(PlatformFile file) async {
     final idStr = _assignmentIdStr();
-    try {
-      final mf = await MultipartFile.fromFile(file.path!, filename: file.name);
-      //파일 가져오기
-
-      final form = FormData.fromMap({'files': mf});
-      await ApiClient.instance.dio.post(
-        '/api/assignments/$idStr/file',
-        data: form,
-      );
-      if (!mounted) return;
+    if (idStr == null) return;
+    final ok = await HaksubsilService.uploadFileAttachment(idStr, file);
+    if (!mounted) return;
+    if (ok) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('업로드 완료')));
-      // 업로드 후 상세를 다시 가져와 첨부 리스트를 즉시 갱신
-      if (idStr != null) {
-        await _loadDetail(idStr);
-      }
-    } on DioException catch (e) {
-      if (!mounted) return;
+      await _loadDetail(idStr);
+    } else {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('업로드 실패: ${e.message}')));
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('업로드 예외: $e')));
+      ).showSnackBar(const SnackBar(content: Text('업로드 실패')));
     }
   }
 
   Future<void> _uploadUrlAttachment(String assignmentId, String url) async {
-    debugPrint('링크 업로드: $url');
     final idStr =
         assignmentId.isNotEmpty ? assignmentId : (_assignmentIdStr() ?? '');
-    debugPrint('링크 업로드 대상 ID: $idStr');
-    debugPrint('링크 업로드 대상 URL: ${url.trim()}');
-    try {
-      final dio = ApiClient.instance.dio;
-      // 링크 등록 엔드포인트로 전송
-      final res = await dio.post(
-        '/api/assignments/$idStr/link',
-        data: [
-          {'url': url.trim()},
-        ],
-      );
-      if (!mounted) return;
-      if (res.statusCode == 200 || res.statusCode == 201) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('링크가 등록되었습니다.')));
-        await _loadDetail(idStr);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('링크 등록 실패(${res.statusCode}): ${res.data}')),
-        );
-      }
-      debugPrint('링크 등록 응답: ${res.data}');
-    } on DioException catch (e) {
-      if (!mounted) return;
-      debugPrint('링크 등록 오류: ${e.message}');
-    } catch (e) {
-      if (!mounted) return;
+    final ok = await HaksubsilService.uploadUrlAttachment(idStr, url);
+    if (!mounted) return;
+    if (ok) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('링크 등록 예외: $e')));
+      ).showSnackBar(const SnackBar(content: Text('링크가 등록되었습니다.')));
+      await _loadDetail(idStr);
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('링크 등록 실패')));
     }
-  }
-
-  Future<void> _showUrlInputDialog() async {
-    final controller = TextEditingController();
-    await showDialog(
-      context: context,
-      builder: (ctx) {
-        const brand = Color(0xff578FCA);
-        final theme = Theme.of(ctx);
-        return Theme(
-          data: theme.copyWith(
-            inputDecorationTheme: const InputDecorationTheme(
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: brand),
-              ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: brand, width: 2),
-              ),
-            ),
-            dialogTheme: DialogThemeData(backgroundColor: Colors.white),
-          ),
-          child: AlertDialog(
-            backgroundColor: Colors.white,
-            title: const Text('링크 업로드'),
-            content: TextField(
-              controller: controller,
-              decoration: const InputDecoration(hintText: 'URL을 입력하세요'),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('취소', style: TextStyle(color: Colors.black)),
-              ),
-              TextButton(
-                onPressed: () async {
-                  final url = controller.text.trim();
-                  final idStr = _assignmentIdStr() ?? '';
-                  Navigator.pop(ctx);
-                  await _uploadUrlAttachment(idStr, url);
-                },
-                child: const Text('등록', style: TextStyle(color: brand)),
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   Future<void> _showUploadChoiceMenu() async {
@@ -536,9 +206,16 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
     );
 
     if (choice == 'file') {
-      showAddClassDialog(context, uploadFile);
+      final file = await showUploadFileSheet(context);
+      if (file != null) {
+        await uploadFile(file);
+      }
     } else if (choice == 'url') {
-      _showUrlInputDialog();
+      final url = await showUrlInputDialog(context);
+      if (url != null && url.isNotEmpty) {
+        final id = _assignmentIdStr() ?? '';
+        await _uploadUrlAttachment(id, url);
+      }
     }
   }
 
@@ -546,52 +223,14 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
     String attachmentId,
     String fallbackName,
   ) async {
-    debugPrint('attachmentId: $attachmentId');
-    try {
-      final dio = ApiClient.instance.dio;
-      final res = await dio.get(
-        '/api/assignments/$attachmentId/download',
-        options: Options(
-          responseType: ResponseType.bytes,
-          followRedirects: false,
-          validateStatus: (s) => s != null && s < 500,
-        ),
-      );
-      if (res.statusCode == 200) {
-        final bytes = res.data as List<int>;
-        // 파일명 추출 (Content-Disposition)
-        String fileName = fallbackName;
-        final cd = res.headers.value('content-disposition');
-        // if (cd != null) {
-        //   final m = RegExp(r"filename\*=UTF-8''([^;]+)|filename=\"?([^\";]+)\"?").firstMatch(cd);
-        //   final n = m?.group(1) ?? m?.group(2);
-        //   if (n != null && n.isNotEmpty) fileName = Uri.decodeFull(n);
-        // }
-        final dir = await getApplicationDocumentsDirectory();
-        final savePath = '${dir.path}/$fileName';
-        final file = File(savePath);
-        await file.writeAsBytes(bytes);
-        if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('다운로드 완료: $fileName')));
-        await OpenFile.open(savePath);
-      } else {
-        if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('다운로드 실패(${res.statusCode})')));
-      }
-    } on DioException catch (e) {
-      if (!mounted) return;
+    final bytes = await HaksubsilService.downloadAttachmentBytes(attachmentId);
+    if (!mounted) return;
+    if (bytes != null) {
+      await downloadAndOpen(context, bytes, fallbackName);
+    } else {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('다운로드 오류: ${e.message}')));
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('다운로드 예외: $e')));
+      ).showSnackBar(const SnackBar(content: Text('다운로드 실패')));
     }
   }
 
@@ -609,9 +248,9 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
             .toString();
     final endDateStr =
         (detail?['endDate'] ?? widget.assignment['endDate'])?.toString();
-    final end = _parseDate(endDateStr);
-    final due = _formatDue(end);
-    final timeLeft = _formatTimeLeft(end);
+    final end = parseDateFlexible(endDateStr);
+    final due = formatDue(end);
+    final timeLeft = formatTimeLeft(end);
 
     // 첨부 소스: AssignmentAttachments 우선, 없으면 xAssignmentResponseDtos 사용
     List<Map<String, dynamic>> mapAttList(List src) =>
@@ -684,39 +323,14 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
                           ),
                         ),
                       ],
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: width * 0.025,
-                              vertical: height * 0.005,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Color(0xff86C1FF),
-                                width: 1.5,
-                              ),
-                              color:
-                                  widget.assignment['submitted']
-                                      ? Colors.white
-                                      : Color(0xff86C1FF),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              widget.assignment['status'],
-                              style: TextStyle(
-                                fontSize: width * 0.03,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            iconSize: width * 0.06,
-                            icon: Icon(Icons.close),
-                            onPressed: widget.onClose,
-                          ),
-                        ],
+                      AssignmentHeader(
+                        width: width,
+                        height: height,
+                        statusText:
+                            (widget.assignment['status'] ?? '').toString(),
+                        submitted:
+                            (widget.assignment['submitted'] ?? false) == true,
+                        onClose: widget.onClose,
                       ),
                       SizedBox(height: 10),
                       Text(
@@ -727,120 +341,43 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
                         ),
                       ),
                       SizedBox(height: height * 0.012),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_today,
-                            size: width * 0.04,
-                            color: Colors.grey,
-                          ),
-                          SizedBox(width: width * 0.015),
-                          Text(
-                            "마감일: $due",
-                            style: TextStyle(fontSize: width * 0.03),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: height * 0.008),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.access_time,
-                            size: width * 0.04,
-                            color: Colors.blue,
-                          ),
-                          SizedBox(width: width * 0.015),
-                          Text(
-                            timeLeft,
-                            style: TextStyle(
-                              fontSize: width * 0.03,
-                              color: Colors.blue,
-                            ),
-                          ),
-                        ],
+                      AssignmentMeta(
+                        width: width,
+                        height: height,
+                        due: due,
+                        timeLeft: timeLeft,
                       ),
                       SizedBox(height: height * 0.015),
                       // 서버 첨부 파일 표시
                       if (serverAttachments.isNotEmpty) ...[
-                        Text(
-                          '첨부파일',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: width * 0.045,
-                          ),
-                        ),
-                        SizedBox(height: height * 0.009),
-                        ...serverAttachments.map(
-                          (f) => Container(
-                            margin: const EdgeInsets.only(bottom: 6),
-                            padding: EdgeInsets.all(width * 0.03),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF5F5F5),
-                              borderRadius: BorderRadius.circular(
-                                width * 0.025,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  (f['kind'] == 'URL')
-                                      ? Icons.link
-                                      : Icons.insert_drive_file_outlined,
-                                ),
-                                SizedBox(width: width * 0.025),
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () async {
-                                      if (f['kind'] == 'URL') {
-                                        final u = Uri.tryParse(
-                                          (f['url'] ?? '').toString(),
-                                        );
-                                        if (u != null) {
-                                          await launchUrl(
-                                            u,
-                                            mode:
-                                                LaunchMode.externalApplication,
-                                          );
-                                        }
-                                      } else {
-                                        await _downloadAttachment(
-                                          (f['attachmentId'] ?? '').toString(),
-                                          (f['name'] ?? '').toString(),
-                                        );
-                                      }
-                                    },
-                                    child: Text(
-                                      f['name'] ?? '',
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: width * 0.03,
-                                        color: Colors.blue,
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: width * 0.02),
-                                if ((f['kind'] ?? '') != 'URL' &&
-                                    (f['sizeText'] ?? '').toString().isNotEmpty)
-                                  Text(
-                                    '(${f['sizeText']})',
-                                    style: TextStyle(
-                                      fontSize: width * 0.025,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                SizedBox(width: width * 0.02),
-                                GestureDetector(
-                                  onTap:
-                                      () => _deleteAttachment(
-                                        f['attachmentId'].toString(),
-                                      ),
-                                  child: Icon(Icons.close, size: width * 0.045),
-                                ),
-                              ],
-                            ),
-                          ),
+                        AttachmentList(
+                          width: width,
+                          height: height,
+                          attachments: serverAttachments,
+                          deletingIds: _deletingAttachmentIds,
+                          onDownload: (id, name) async {
+                            final f = serverAttachments.firstWhere(
+                              (e) => (e['attachmentId'] ?? '').toString() == id,
+                              orElse: () => const {},
+                            );
+                            if ((f['kind'] ?? '') == 'URL') {
+                              final u = Uri.tryParse(
+                                (f['url'] ?? '').toString(),
+                              );
+                              if (u != null) {
+                                await launchUrl(
+                                  u,
+                                  mode: LaunchMode.externalApplication,
+                                );
+                                return;
+                              }
+                            }
+                            await _downloadAttachment(id, name);
+                          },
+                          onDelete: (id) async {
+                            setState(() => _deletingAttachmentIds.add(id));
+                            await _deleteAttachment(id);
+                          },
                         ),
                         SizedBox(height: height * 0.015),
                       ],
@@ -885,119 +422,12 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
                           : SizedBox(width: width * 0.00001),
                       SizedBox(height: height * 0.015),
 
-                      // // 업로드된 파일들 표시
-                      // if (uploadedFiles.isNotEmpty) ...[
-                      //   SizedBox(height: height * 0.015),
-                      //   Text(
-                      //     '할당 파일',
-                      //     style: TextStyle(
-                      //       fontWeight: FontWeight.bold,
-                      //       fontSize: width * 0.045,
-                      //     ),
-                      //   ),
-                      //   SizedBox(height: height * 0.009),
-                      //   ...List.generate(uploadedFiles.length, (index) {
-                      //     final file = uploadedFiles[index];
-                      //     return Container(
-                      //       margin: EdgeInsets.only(bottom: 6),
-                      //       padding: EdgeInsets.all(width * 0.03),
-                      //       decoration: BoxDecoration(
-                      //         color: const Color(0xFFF5F5F5),
-                      //         borderRadius: BorderRadius.circular(
-                      //           width * 0.025,
-                      //         ),
-                      //       ),
-                      //       child: Row(
-                      //         children: [
-                      //           Icon(
-                      //             Icons.insert_drive_file_outlined,
-                      //             size: width * 0.05,
-                      //           ),
-                      //           SizedBox(width: width * 0.025),
-                      //           Expanded(
-                      //             child: Text(
-                      //               file.name,
-                      //               overflow: TextOverflow.ellipsis,
-                      //               style: TextStyle(fontSize: width * 0.03),
-                      //             ),
-                      //           ),
-                      //           SizedBox(width: width * 0.02),
-                      //           Text(
-                      //             '(${(file.size / 1024).toStringAsFixed(1)} KB)',
-                      //             style: TextStyle(
-                      //               fontSize: width * 0.025,
-                      //               color: Colors.grey,
-                      //             ),
-                      //           ),
-                      //           SizedBox(width: width * 0.02),
-                      //           GestureDetector(
-                      //             onTap: () => removeUploadedFile(index),
-                      //             child: Icon(Icons.close, size: width * 0.045),
-                      //           ),
-                      //         ],
-                      //       ),
-                      //     );
-                      //   }),
-                      // ],
                       SizedBox(height: height * 0.05),
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Color(0xffCCCCCC),
-                            width: 0.7,
-                          ),
-                          borderRadius: BorderRadius.circular(width * 0.025),
-                        ),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            key: _uploadButtonKey,
-                            onPressed: _showUploadChoiceMenu,
-                            style: ElevatedButton.styleFrom(
-                              elevation: 0,
-                              backgroundColor: Colors.white,
-                              foregroundColor: Colors.black,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  width * 0.025,
-                                ),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                vertical: height * 0.018,
-                              ),
-                            ),
-                            child: Text(
-                              "파일 업로드",
-                              style: TextStyle(fontSize: width * 0.035),
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: height * 0.005),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            widget.onClose;
-                          },
-                          // icon: Icon(Icons.upload, size: width * 0.045),
-                          label: Text(
-                            "저장",
-                            style: TextStyle(fontSize: width * 0.035),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF86C1FF),
-                            foregroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                width * 0.025,
-                              ),
-                            ),
-                            padding: EdgeInsets.symmetric(
-                              vertical: height * 0.018,
-                            ),
-                          ),
-                        ),
+                      AssignmentActions(
+                        width: width,
+                        height: height,
+                        onUploadPressed: _showUploadChoiceMenu,
+                        onSavePressed: widget.onClose,
                       ),
                       SizedBox(height: height * 0.02),
                     ],
@@ -1007,3 +437,5 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
     );
   }
 }
+// 학습실(과제 상세) 화면.
+// 과제 상세 조회, 첨부(파일/URL) 표시/다운로드/삭제, 업로드/링크 등록 등 상호작용을 제공합니다.

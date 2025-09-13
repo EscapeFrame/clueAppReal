@@ -31,4 +31,5 @@ String formatTimeLeftFrom(DateTime? end) {
   if (diff.inHours > 0) return '${diff.inHours}시간 $m분 남음';
   return '$m분 남음';
 }
-
+// 날짜/시간 포맷과 남은 시간 계산 유틸.
+// 화면 전반에서 일관된 표기를 위해 사용합니다.

@@ -1,5 +1,5 @@
 import 'package:clue/api_client.dart';
-import 'package:clue/teacher_page/assignment/models/assignment.dart';
+import 'package:clue/teacher_page/teacher_gwaJe_Jechul/models/assignment.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
@@ -28,4 +28,5 @@ class AssignmentService {
     }
   }
 }
-
+// 과제 목록/데이터를 서버에서 가져오는 서비스 레이어.
+// API 호출과 모델 정규화(normalizeAssignments)를 연결해 화면에서 바로 쓸 수 있게 반환합니다.

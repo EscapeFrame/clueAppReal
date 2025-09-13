@@ -64,4 +64,5 @@ class FileItemRow extends StatelessWidget {
     );
   }
 }
-
+// 과제 카드 내 파일(첨부) 한 줄 UI 위젯.
+// 파일명/용량 표시, 다운로드/삭제 동작을 콜백으로 받아 표시합니다.
