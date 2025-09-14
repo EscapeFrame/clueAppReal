@@ -1,3 +1,5 @@
+// 파일 사이즈 포맷과 다운로드/열기 유틸.
+// 시트/페이지에서 공통으로 사용하여 중복을 줄입니다.
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
@@ -30,5 +32,4 @@ Future<void> downloadAndOpenFile(
     );
   }
 }
-// 파일 사이즈 포맷과 다운로드/열기 유틸.
-// 시트/페이지에서 공통으로 사용하여 중복을 줄입니다.
+

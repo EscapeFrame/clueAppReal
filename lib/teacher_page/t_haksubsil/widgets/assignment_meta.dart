@@ -1,3 +1,6 @@
+// 학습실 메타 정보 위젯.
+// 마감일과 남은 시간을 행 형태로 표시합니다.
+
 import 'package:flutter/material.dart';
 
 class AssignmentMeta extends StatelessWidget {
@@ -38,5 +41,3 @@ class AssignmentMeta extends StatelessWidget {
     );
   }
 }
-// 학습실 메타 정보 위젯.
-// 마감일과 남은 시간을 행 형태로 표시합니다.

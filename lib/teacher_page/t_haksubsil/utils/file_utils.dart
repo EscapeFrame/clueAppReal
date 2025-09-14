@@ -1,6 +1,8 @@
+// 학습실 파일 유틸.
+// 파일 선택(pickFile), 사이즈 포맷, 다운로드 후 열기(downloadAndOpen) 기능을 제공합니다.
+
 import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
@@ -45,5 +47,3 @@ Future<void> downloadAndOpen(
     }
   }
 }
-// 학습실 파일 유틸.
-// 파일 선택(pickFile), 사이즈 포맷, 다운로드 후 열기(downloadAndOpen) 기능을 제공합니다.

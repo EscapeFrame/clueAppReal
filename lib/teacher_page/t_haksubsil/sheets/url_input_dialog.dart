@@ -1,3 +1,6 @@
+// 학습실 URL 첨부 입력 다이얼로그.
+// URL 문자열을 입력받아 부모 위젯으로 반환.
+
 import 'package:flutter/material.dart';
 
 Future<String?> showUrlInputDialog(BuildContext context) async {
@@ -46,5 +49,3 @@ Future<String?> showUrlInputDialog(BuildContext context) async {
   );
   return result;
 }
-// 학습실 URL 첨부 입력 다이얼로그.
-// URL 문자열을 입력받아 상위로 반환합니다.

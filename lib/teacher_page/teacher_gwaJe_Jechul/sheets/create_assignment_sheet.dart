@@ -1,3 +1,6 @@
+// 과제 생성 모달창
+// 제목/내용/날짜 입력을 받고 유효성 검사 후 post로 전달.
+
 import 'package:clue/api_client.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/utils/date_time.dart';
 import 'package:dio/dio.dart';
@@ -461,5 +464,4 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
 
   return result;
 }
-// 과제 생성 바텀시트 UI.
-// 제목/내용/날짜 입력을 받고 유효성 검사 후 API로 생성, 결과를 상위로 전달합니다.
+

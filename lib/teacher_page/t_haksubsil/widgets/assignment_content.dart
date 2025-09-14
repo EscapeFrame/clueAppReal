@@ -1,3 +1,6 @@
+// 학습실 본문(내용) 표시 위젯.
+// 과제 설명 텍스트를 간단히 렌더링합니다.
+
 import 'package:flutter/material.dart';
 
 class AssignmentContent extends StatelessWidget {
@@ -18,5 +21,3 @@ class AssignmentContent extends StatelessWidget {
     );
   }
 }
-// 학습실 본문(내용) 표시 위젯.
-// 과제 설명 텍스트를 간단히 렌더링합니다.

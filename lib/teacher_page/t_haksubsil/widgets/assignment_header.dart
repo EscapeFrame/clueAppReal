@@ -1,3 +1,6 @@
+// 학습실 헤더 위젯.
+// 상태 칩(제출/미제출)과 닫기 버튼을 표시합니다.
+
 import 'package:flutter/material.dart';
 
 class AssignmentHeader extends StatelessWidget {
@@ -45,5 +48,3 @@ class AssignmentHeader extends StatelessWidget {
     );
   }
 }
-// 학습실 헤더 위젯.
-// 상태 칩(제출/미제출)과 닫기 버튼을 표시합니다.

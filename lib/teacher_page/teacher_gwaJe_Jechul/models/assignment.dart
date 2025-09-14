@@ -1,8 +1,7 @@
+// 서버에서 받은 응답을 UI에서 쓰기 쉬운 Map 형태(assignment card)에 맞게 변환
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/utils/date_time.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/utils/file_utils.dart';
 
-// 현재 UI는 Map 기반으로 동작하므로, 모델 클래스로 완전 이전 전까지
-// 정규화 함수를 제공해 기존 코드와 호환합니다.
 List<Map<String, dynamic>> normalizeAssignments(List<dynamic> raw) {
   DateTime? parseDate(String? s) {
     if (s == null || s.isEmpty) return null;
@@ -46,5 +45,5 @@ List<Map<String, dynamic>> normalizeAssignments(List<dynamic> raw) {
     };
   }).toList();
 }
-// 과제 도메인 모델에 가까운 정규화 로직.
-// 서버에서 받은 응답을 UI에서 쓰기 쉬운 Map 형태(assignment card)에 맞게 변환합니다.
+
+

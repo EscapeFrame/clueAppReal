@@ -1,3 +1,6 @@
+// 학습실 화면에서 사용하는 날짜/시간 유틸.
+// 문자열 파싱, 마감일 포맷, 남은 시간 계산을 제공합니다.
+
 DateTime? parseDateFlexible(String? s) {
   if (s == null || s.isEmpty) return null;
   try {
@@ -7,7 +10,8 @@ DateTime? parseDateFlexible(String? s) {
   }
 }
 
-String formatDue(DateTime? dt) => dt == null ? '-' : dt.toIso8601String().split('T').first;
+String formatDue(DateTime? dt) =>
+    dt == null ? '-' : dt.toIso8601String().split('T').first;
 
 String formatTimeLeft(DateTime? end) {
   if (end == null) return '-';
@@ -18,5 +22,3 @@ String formatTimeLeft(DateTime? end) {
   if (diff.inHours > 0) return '${diff.inHours}시간 $m분 남음';
   return '$m분 남음';
 }
-// 학습실 화면에서 사용하는 날짜/시간 유틸.
-// 문자열 파싱, 마감일 포맷, 남은 시간 계산을 제공합니다.

@@ -1,4 +1,7 @@
-import 'package:clue/teacher_page/t_haksubsil/utils/date_time.dart';
+// 첨부 응답 리스트를 UI에서 쓰기 좋은 형태로 정규화.
+// FILE/URL 구분, 파일명/용량표시, attachmentId 매핑.
+
+
 
 String _fmtSize(int bytes) {
   if (bytes >= 1024 * 1024) {
@@ -38,5 +41,3 @@ List<Map<String, dynamic>> normalizeAttachments(Map<String, dynamic>? detail) {
   final b = (detail?['xAssignmentResponseDtos'] as List?) ?? const [];
   return _mapAttList(b);
 }
-// 첨부 응답 리스트를 UI에서 쓰기 좋은 형태로 정규화하는 모델 헬퍼.
-// FILE/URL 구분, 파일명/용량표시, attachmentId 매핑을 수행합니다.

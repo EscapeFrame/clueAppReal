@@ -1,5 +1,8 @@
-import 'package:flutter/material.dart';
+// 학습실 첨부 목록 섹션 위젯.
+// 첨부 제목과 리스트를 렌더링하고, 각 항목의 다운로드/삭제 이벤트를 상위에 위임합니다.
+
 import 'package:clue/teacher_page/t_haksubsil/widgets/attachment_item.dart';
+import 'package:flutter/material.dart';
 
 class AttachmentList extends StatelessWidget {
   final double width;
@@ -43,5 +46,3 @@ class AttachmentList extends StatelessWidget {
     );
   }
 }
-// 학습실 첨부 목록 섹션 위젯.
-// 첨부 제목과 리스트를 렌더링하고, 각 항목의 다운로드/삭제 이벤트를 상위에 위임합니다.

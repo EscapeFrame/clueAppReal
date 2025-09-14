@@ -387,5 +387,4 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
     );
   }
 }
-// 교사용 과제 목록/생성/수정 화면의 메인 페이지.
-// 서비스(AssignmentService), 시트(create/edit), 위젯(FileItemRow) 등을 조합해 UI와 상태를 관리합니다.
+

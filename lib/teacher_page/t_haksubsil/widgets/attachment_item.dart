@@ -1,3 +1,6 @@
+// 학습실 첨부 아이템 한 줄 위젯.
+// 파일/URL 타입을 구분해 아이콘/링크 스타일을 적용하고, 다운로드/삭제 콜백을 제공합니다.
+
 import 'package:flutter/material.dart';
 
 class AttachmentItem extends StatelessWidget {
@@ -71,5 +74,3 @@ class AttachmentItem extends StatelessWidget {
     );
   }
 }
-// 학습실 첨부 아이템 한 줄 위젯.
-// 파일/URL 타입을 구분해 아이콘/링크 스타일을 적용하고, 다운로드/삭제 콜백을 제공합니다.

@@ -1,3 +1,6 @@
+// 학습실 하단 액션 영역 위젯.
+// 업로드 메뉴 버튼과 저장 버튼을 묶어 제공합니다.
+
 import 'package:flutter/material.dart';
 
 class AssignmentActions extends StatelessWidget {
@@ -61,5 +64,3 @@ class AssignmentActions extends StatelessWidget {
     );
   }
 }
-// 학습실 하단 액션 영역 위젯.
-// 업로드 메뉴 버튼과 저장 버튼을 묶어 제공합니다.

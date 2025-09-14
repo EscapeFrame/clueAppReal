@@ -1,3 +1,6 @@
+// tHakSubSilGaJa.dart의 api 통신
+// 상세 조회, 첨부 업로드/삭제, 다운로드 바이트 수신 등.
+
 import 'package:clue/api_client.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
@@ -89,5 +92,3 @@ class HaksubsilService {
     }
   }
 }
-// 학습실(과제 상세/첨부) 관련 서버 통신 서비스.
-// 상세 조회, 첨부 업로드/삭제, 다운로드 바이트 수신을 담당합니다.

@@ -1,5 +1,8 @@
-import 'package:clue/teacher_page/t_haksubsil/utils/file_utils.dart';
+// 학습실 파일 업로드 모달창.
+// 선택된 파일(PlatformFile)을 부모 위젯으로 반환.
+
 import 'package:clue/config/app_color.dart';
+import 'package:clue/teacher_page/t_haksubsil/utils/file_utils.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
@@ -116,5 +119,3 @@ Future<PlatformFile?> showUploadFileSheet(BuildContext context) async {
 
   return result;
 }
-// 학습실 파일 업로드 다이얼로그.
-// 파일 선택 UI를 제공하고, 선택된 파일(PlatformFile)을 상위로 반환합니다.
