@@ -1,5 +1,3 @@
-import 'package:clue/config/app_color.dart';
-import 'package:clue/config/app_text_styles.dart';
 import 'package:flutter/material.dart';
 
 class Suap extends StatelessWidget {

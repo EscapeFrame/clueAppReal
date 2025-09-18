@@ -25,7 +25,7 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
   late final TextEditingController _gradeController;
   late final TextEditingController _banController;
   late bool _isActivated;
-  late bool _isChatAllowed;
+  late bool isChatAllowed;
 
   @override
   void initState() {
@@ -51,7 +51,7 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
     );
 
     _isActivated = (widget.tsuap['activation'] == true) || (widget.tsuap['isActivation'] == true);
-    _isChatAllowed = (widget.tsuap['chatAllowed'] == true);
+    isChatAllowed = (widget.tsuap['chatAllowed'] == true);
   }
 
   @override
@@ -75,9 +75,9 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
-    final double inputHeight = height * 0.045;
+    // final double inputHeight = height * 0.045;
     final double inputFontSize = width * 0.038;
-    final double vPad = ((inputHeight - inputFontSize) / 2);
+    // final double vPad = ((inputHeight - inputFontSize) / 2);
 
     return SingleChildScrollView(
       child: Container(

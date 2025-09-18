@@ -10,15 +10,15 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
-  bool _show = false;
+  bool show = false;
 
   @override
   void initState() {
     super.initState();
 
-    // 첫 프레임 그려진 뒤 애니메이션 시작 (블로그의 addPostFrameCallback 패턴)
+    // 첫 프레임 그려진 뒤 애니메이션 시작
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      setState(() => _show = true);                  // AnimatedOpacity 시작
+      setState(() => show = true);                  // AnimatedOpacity 시작
       await Future.delayed(const Duration(milliseconds: 500)); // 로고 보이는 시간
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed('/home');      // 홈으로 교체 이동
