@@ -102,8 +102,15 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     List<Map<String, dynamic>> serverAttachments = const [];
     if (detail != null) {
       final a = (detail['AssignmentAttachments'] as List?) ?? const [];
-      final b = (detail['xAssignmentResponseDtos'] as List?) ?? const [];
-      serverAttachments = a.isNotEmpty ? mapAttachments(a) : mapAttachments(b);
+      final b = (detail['attachmentDtos'] as List?) ?? const [];
+      if (a.isNotEmpty) {
+        serverAttachments = mapAttachments(a);
+      } else if (b.isNotEmpty) {
+        serverAttachments = mapAttachments(b);
+      } else {
+        final c = (detail['xAssignmentResponseDtos'] as List?) ?? const [];
+        serverAttachments = mapAttachments(c);
+      }
     }
 
     final title = (detail?['title'] ?? widget.assignment['title'] ?? '').toString();

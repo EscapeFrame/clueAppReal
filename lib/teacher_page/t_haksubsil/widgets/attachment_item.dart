@@ -1,5 +1,6 @@
 // 학습실 첨부 아이템 한 줄 위젯.
 // 파일/URL 타입을 구분해 아이콘/링크 스타일을 적용하고, 다운로드/삭제 콜백을 제공합니다.
+// url도 id가 있어야한다!
 
 import 'package:flutter/material.dart';
 
@@ -58,17 +59,16 @@ class AttachmentItem extends StatelessWidget {
             style: TextStyle(fontSize: width * 0.025, color: Colors.grey),
           ),
           SizedBox(width: width * 0.02),
-          if (!isUrl)
-            GestureDetector(
-              onTap: deleting ? null : onDelete,
-              child: deleting
-                  ? SizedBox(
-                      width: width * 0.045,
-                      height: width * 0.045,
-                      child: const CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Icon(Icons.close, size: width * 0.045),
-            ),
+          GestureDetector(
+            onTap: deleting ? null : onDelete,
+            child: deleting
+                ? SizedBox(
+                    width: width * 0.045,
+                    height: width * 0.045,
+                    child: const CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Icon(Icons.close, size: width * 0.045),
+          ),
         ],
       ),
     );

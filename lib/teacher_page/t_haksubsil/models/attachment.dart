@@ -1,8 +1,6 @@
 // 첨부 응답 리스트를 UI에서 쓰기 좋은 형태로 정규화.
 // FILE/URL 구분, 파일명/용량표시, attachmentId 매핑.
 
-
-
 String _fmtSize(int bytes) {
   if (bytes >= 1024 * 1024) {
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
@@ -38,6 +36,8 @@ List<Map<String, dynamic>> _mapAttList(List src) => src
 List<Map<String, dynamic>> normalizeAttachments(Map<String, dynamic>? detail) {
   final a = (detail?['AssignmentAttachments'] as List?) ?? const [];
   if (a.isNotEmpty) return _mapAttList(a);
-  final b = (detail?['xAssignmentResponseDtos'] as List?) ?? const [];
-  return _mapAttList(b);
+  final b = (detail?['attachmentDtos'] as List?) ?? const [];
+  if (b.isNotEmpty) return _mapAttList(b);
+  final c = (detail?['xAssignmentResponseDtos'] as List?) ?? const [];
+  return _mapAttList(c);
 }

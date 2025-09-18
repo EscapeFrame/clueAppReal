@@ -11,6 +11,8 @@ class HaksubsilService {
     try {
       final api = ApiClient.instance.dio;
       final res = await api.get('/api/assignments/$id');
+      debugPrint('detail status=${res.statusCode}, data=${res.data}');
+
       if (res.statusCode == 200 && res.data is Map) {
         return Map<String, dynamic>.from(res.data as Map);
       }
@@ -28,6 +30,7 @@ class HaksubsilService {
     try {
       final dio = ApiClient.instance.dio;
       final res = await dio.delete('/api/assignments/attachment/$attachmentId');
+      debugPrint('delete status=${res.statusCode}, data=${res.data}');
       return res.statusCode == 200 || res.statusCode == 204;
     } catch (e) {
       debugPrint('delete error: $e');
@@ -58,6 +61,7 @@ class HaksubsilService {
         {'url': url.trim()},
       ]);
       final code = res.statusCode ?? 500;
+      // debugPrint('요청값 : ${res.data}');
       return code >= 200 && code < 300;
     } on DioException catch (e) {
       debugPrint('upload url dio error: ${e.message}');

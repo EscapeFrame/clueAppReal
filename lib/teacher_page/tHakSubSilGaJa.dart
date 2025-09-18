@@ -293,8 +293,10 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
         (() {
           final a = (detail?['AssignmentAttachments'] as List?) ?? const [];
           if (a.isNotEmpty) return mapAttList(a);
-          final b = (detail?['xAssignmentResponseDtos'] as List?) ?? const [];
-          return mapAttList(b);
+          final b = (detail?['attachmentDtos'] as List?) ?? const [];
+          if (b.isNotEmpty) return mapAttList(b);
+          final c = (detail?['xAssignmentResponseDtos'] as List?) ?? const [];
+          return mapAttList(c);
         })();
 
     return Scaffold(
