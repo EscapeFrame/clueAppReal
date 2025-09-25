@@ -11,7 +11,6 @@ import 'package:clue/widgets/mainPage/TimetableStyledPage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -27,26 +26,9 @@ class _HomePageState extends State<HomePage> {
 
   // 서버에서 불러온 미제출 과제 목록
   List<Map<String, dynamic>> _noJeChulList = [];
-  final Set<String> _notifiedAssignmentIds = <String>{};
+  final Map<String, Set<int>> _notifiedAssignmentTriggers = <String, Set<int>>{};
+  final Map<String, Set<int>> _scheduledAssignmentTriggers = <String, Set<int>>{};
   bool _notificationsInitialized = false;
-
-  static const AndroidNotificationDetails _androidAssignmentNotificationDetails =
-      AndroidNotificationDetails(
-    'assignment_deadline_channel',
-    '과제 마감 알림',
-    channelDescription: '마감이 임박한 과제를 알려줍니다.',
-    importance: Importance.high,
-    priority: Priority.high,
-  );
-
-  static const DarwinNotificationDetails _iosAssignmentNotificationDetails =
-      DarwinNotificationDetails();
-
-  static const NotificationDetails _assignmentNotificationDetails =
-      NotificationDetails(
-    android: _androidAssignmentNotificationDetails,
-    iOS: _iosAssignmentNotificationDetails,
-  );
 
   final List<Widget> cards = [
     const ServiceGongJi(key: ValueKey('service')),
@@ -82,59 +64,106 @@ class _HomePageState extends State<HomePage> {
   Future<void> _notifyUpcomingAssignments(
     List<Map<String, dynamic>> assignments,
   ) async {
+    if (!_notificationsInitialized) return;
     for (final assignment in assignments) {
       final assignmentId = (assignment['assignmentId'] ?? '').toString();
-      if (assignmentId.isEmpty || _notifiedAssignmentIds.contains(assignmentId)) {
+      if (assignmentId.isEmpty) {
         continue;
       }
 
-      final sStart = (assignment['startDate'] ?? '').toString();
       final sEnd = (assignment['endDate'] ?? '').toString();
-      final daysDiff = _calcDaysDiff(sStart, sEnd);
-      if (daysDiff > 3) continue;
+      final endDate = _parseDate(sEnd);
+      if (endDate == null) {
+        continue;
+      }
+
+      final now = DateTime.now();
+      if (!endDate.isAfter(now)) {
+        await FlutterLocalNotification.cancelAllAssignmentReminders(assignmentId);
+        _notifiedAssignmentTriggers.remove(assignmentId);
+        _scheduledAssignmentTriggers.remove(assignmentId);
+        continue;
+      }
 
       final title = (assignment['title'] ?? '과제').toString();
-      final endDate = _parseDate(sEnd);
-      try {
-        await _sendAssignmentNotification(
+      final DateTime threeDayTrigger = endDate.subtract(const Duration(days: 3));
+      final DateTime oneDayTrigger = endDate.subtract(const Duration(days: 1));
+
+      // 3일 전 알림 처리
+      if (threeDayTrigger.isAfter(now)) {
+        await FlutterLocalNotification.scheduleAssignmentReminder(
           assignmentId: assignmentId,
           title: title,
-          daysDiff: daysDiff,
           endDate: endDate,
+          daysBefore: 3,
         );
-        _notifiedAssignmentIds.add(assignmentId);
-      } catch (e) {
-        debugPrint('Notification error: $e');
+        _markScheduled(assignmentId, 3);
+        _unmarkNotified(assignmentId, 3);
+      } else if (oneDayTrigger.isAfter(now) && !_wasNotified(assignmentId, 3)) {
+        if (!_wasScheduled(assignmentId, 3)) {
+          await FlutterLocalNotification.showAssignmentReminderNow(
+            assignmentId: assignmentId,
+            title: title,
+            daysBefore: 3,
+          );
+          _markNotified(assignmentId, 3);
+        }
+      }
+
+      // 1일 전 알림 처리
+      if (oneDayTrigger.isAfter(now)) {
+        await FlutterLocalNotification.scheduleAssignmentReminder(
+          assignmentId: assignmentId,
+          title: title,
+          endDate: endDate,
+          daysBefore: 1,
+        );
+        _markScheduled(assignmentId, 1);
+        _unmarkNotified(assignmentId, 1);
+      } else if (!_wasNotified(assignmentId, 1) && !_wasScheduled(assignmentId, 1)) {
+        await FlutterLocalNotification.showAssignmentReminderNow(
+          assignmentId: assignmentId,
+          title: title,
+          daysBefore: 1,
+        );
+        _markNotified(assignmentId, 1);
       }
     }
   }
 
-  Future<void> _sendAssignmentNotification({
-    required String assignmentId,
-    required String title,
-    required int daysDiff,
-    DateTime? endDate,
-  }) async {
-    final plugin = FlutterLocalNotification.flutterLocalNotificationsPlugin;
-    final dueLabel = endDate != null
-        ? '${endDate.month}월 ${endDate.day}일 마감'
-        : null;
+  bool _wasNotified(String assignmentId, int daysBefore) {
+    return _notifiedAssignmentTriggers[assignmentId]?.contains(daysBefore) ?? false;
+  }
 
-    final body = daysDiff <= 0
-        ? '$title 과제가 오늘 마감돼요.${dueLabel != null ? ' ($dueLabel)' : ''}'
-        : '$title 과제가 ${daysDiff}일 안에 마감돼요.${dueLabel != null ? ' ($dueLabel)' : ''}';
+  void _markNotified(String assignmentId, int daysBefore) {
+    _notifiedAssignmentTriggers
+        .putIfAbsent(assignmentId, () => <int>{})
+        .add(daysBefore);
+  }
 
-    await plugin.show(
-      assignmentId.hashCode & 0x7fffffff,
-      '과제 마감 알림',
-      body,
-      _assignmentNotificationDetails,
-    );
+  void _unmarkNotified(String assignmentId, int daysBefore) {
+    final triggers = _notifiedAssignmentTriggers[assignmentId];
+    triggers?.remove(daysBefore);
+    if (triggers != null && triggers.isEmpty) {
+      _notifiedAssignmentTriggers.remove(assignmentId);
+    }
+  }
+
+  bool _wasScheduled(String assignmentId, int daysBefore) {
+    return _scheduledAssignmentTriggers[assignmentId]?.contains(daysBefore) ??
+        false;
+  }
+
+  void _markScheduled(String assignmentId, int daysBefore) {
+    _scheduledAssignmentTriggers
+        .putIfAbsent(assignmentId, () => <int>{})
+        .add(daysBefore);
   }
 
 
   //알람보내야할거
   Future<void> noJeChulGwaJe() async {
+    await _setupNotifications();
     final dio = ApiClient.instance.dio;
     try {
       final response = await dio.get('/api/assignments/me');
@@ -163,7 +192,6 @@ class _HomePageState extends State<HomePage> {
           _noJeChulList = list;
         });
 
-        await _setupNotifications();
         await _notifyUpcomingAssignments(list);
       }
       debugPrint("gwajejechul데이터?????${data.toString()}");
