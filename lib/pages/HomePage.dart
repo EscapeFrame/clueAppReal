@@ -57,14 +57,14 @@ class _HomePageState extends State<HomePage> {
     try {
       final response = await dio.get('/api/assignments/me');
       final data = response.data;
-      // 기대 타입: List<Map<String, dynamic>>
+
       if (data is List) {
         final list =
             data
                 .whereType<Map>()
                 .map((e) => Map<String, dynamic>.from(e))
                 .toList();
-        // 남은 기간(= end - start) 짧은 순으로 정렬
+
         list.sort((a, b) {
           final da = _calcDaysDiff(
             (a['startDate'] ?? '').toString(),
