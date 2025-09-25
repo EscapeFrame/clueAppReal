@@ -31,13 +31,19 @@ class FlutterLocalNotification {
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
-  // Triggers the iOS-specific permission dialog; Android handles this via manifest.
-  static requestNotificationPermission() {
-    flutterLocalNotificationsPlugin
+  // Requests notification permissions on each supported platform.
+  static Future<void> requestNotificationPermission() async {
+    await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
           IOSFlutterLocalNotificationsPlugin
         >()
         ?.requestPermissions(alert: true, badge: true, sound: true);
+
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.requestNotificationsPermission();
   }
 
   // Shows a simple test notification using the default channel configuration.

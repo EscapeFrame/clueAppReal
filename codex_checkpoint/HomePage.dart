@@ -1,6 +1,5 @@
 import 'package:clue/api_client.dart';
 import 'package:clue/config/app_data_.dart';
-import 'package:clue/notification.dart';
 import 'package:clue/widgets/mainPage/DayCard.dart';
 import 'package:clue/widgets/mainPage/Gonji_/HakKyoGonji.dart';
 import 'package:clue/widgets/mainPage/Gonji_/IlJeongGongji.dart';
@@ -11,7 +10,6 @@ import 'package:clue/widgets/mainPage/TimetableStyledPage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -27,26 +25,6 @@ class _HomePageState extends State<HomePage> {
 
   // 서버에서 불러온 미제출 과제 목록
   List<Map<String, dynamic>> _noJeChulList = [];
-  final Set<String> _notifiedAssignmentIds = <String>{};
-  bool _notificationsInitialized = false;
-
-  static const AndroidNotificationDetails _androidAssignmentNotificationDetails =
-      AndroidNotificationDetails(
-    'assignment_deadline_channel',
-    '과제 마감 알림',
-    channelDescription: '마감이 임박한 과제를 알려줍니다.',
-    importance: Importance.high,
-    priority: Priority.high,
-  );
-
-  static const DarwinNotificationDetails _iosAssignmentNotificationDetails =
-      DarwinNotificationDetails();
-
-  static const NotificationDetails _assignmentNotificationDetails =
-      NotificationDetails(
-    android: _androidAssignmentNotificationDetails,
-    iOS: _iosAssignmentNotificationDetails,
-  );
 
   final List<Widget> cards = [
     const ServiceGongJi(key: ValueKey('service')),
@@ -70,66 +48,6 @@ class _HomePageState extends State<HomePage> {
     final end = _parseDate(sEnd);
     if (start == null || end == null) return 0;
     return end.difference(start).inDays.abs();
-  }
-
-  Future<void> _setupNotifications() async {
-    if (_notificationsInitialized) return;
-    await FlutterLocalNotification.init();
-    await FlutterLocalNotification.requestNotificationPermission();
-    _notificationsInitialized = true;
-  }
-
-  Future<void> _notifyUpcomingAssignments(
-    List<Map<String, dynamic>> assignments,
-  ) async {
-    for (final assignment in assignments) {
-      final assignmentId = (assignment['assignmentId'] ?? '').toString();
-      if (assignmentId.isEmpty || _notifiedAssignmentIds.contains(assignmentId)) {
-        continue;
-      }
-
-      final sStart = (assignment['startDate'] ?? '').toString();
-      final sEnd = (assignment['endDate'] ?? '').toString();
-      final daysDiff = _calcDaysDiff(sStart, sEnd);
-      if (daysDiff > 3) continue;
-
-      final title = (assignment['title'] ?? '과제').toString();
-      final endDate = _parseDate(sEnd);
-      try {
-        await _sendAssignmentNotification(
-          assignmentId: assignmentId,
-          title: title,
-          daysDiff: daysDiff,
-          endDate: endDate,
-        );
-        _notifiedAssignmentIds.add(assignmentId);
-      } catch (e) {
-        debugPrint('Notification error: $e');
-      }
-    }
-  }
-
-  Future<void> _sendAssignmentNotification({
-    required String assignmentId,
-    required String title,
-    required int daysDiff,
-    DateTime? endDate,
-  }) async {
-    final plugin = FlutterLocalNotification.flutterLocalNotificationsPlugin;
-    final dueLabel = endDate != null
-        ? '${endDate.month}월 ${endDate.day}일 마감'
-        : null;
-
-    final body = daysDiff <= 0
-        ? '$title 과제가 오늘 마감돼요.${dueLabel != null ? ' ($dueLabel)' : ''}'
-        : '$title 과제가 ${daysDiff}일 안에 마감돼요.${dueLabel != null ? ' ($dueLabel)' : ''}';
-
-    await plugin.show(
-      assignmentId.hashCode & 0x7fffffff,
-      '과제 마감 알림',
-      body,
-      _assignmentNotificationDetails,
-    );
   }
 
 
@@ -158,13 +76,9 @@ class _HomePageState extends State<HomePage> {
           );
           return da.compareTo(db);
         });
-        if (!mounted) return;
         setState(() {
           _noJeChulList = list;
         });
-
-        await _setupNotifications();
-        await _notifyUpcomingAssignments(list);
       }
       debugPrint("gwajejechul데이터?????${data.toString()}");
     } on DioException catch (e) {
