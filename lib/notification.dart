@@ -1,17 +1,20 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+// Wrapper around flutter_local_notifications to keep setup in one place.
 class FlutterLocalNotification {
   FlutterLocalNotification._();
 
   static FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  // Call once during app startup to wire Android/iOS init settings.
   static init() async {
     AndroidInitializationSettings androidInitializationSettings =
         const AndroidInitializationSettings('mipmap/ic_launcher');
 
     DarwinInitializationSettings iosInitializationSettings =
         const DarwinInitializationSettings(
+          // We request permissions later so onboarding flow can decide timing.
           requestAlertPermission: false,
 
           requestBadgePermission: false,
@@ -28,6 +31,7 @@ class FlutterLocalNotification {
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
+  // Triggers the iOS-specific permission dialog; Android handles this via manifest.
   static requestNotificationPermission() {
     flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
@@ -36,6 +40,7 @@ class FlutterLocalNotification {
         ?.requestPermissions(alert: true, badge: true, sound: true);
   }
 
+  // Shows a simple test notification using the default channel configuration.
   static Future<void> showNotification() async {
     const AndroidNotificationDetails androidNotificationDetails =
         AndroidNotificationDetails(

@@ -50,6 +50,8 @@ class _HomePageState extends State<HomePage> {
     return end.difference(start).inDays.abs();
   }
 
+
+  //알람보내야할거
   Future<void> noJeChulGwaJe() async {
     final dio = ApiClient.instance.dio;
     try {
