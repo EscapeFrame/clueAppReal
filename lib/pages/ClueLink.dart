@@ -1,4 +1,8 @@
-import 'package:clue/linksave/LinksaveModal.dart';
+import 'package:clue/config/app_data_.dart';
+import 'package:clue/linksave/LinkList.dart';
+import 'package:clue/linksave/LinkSujeong.dart' as link_edit;
+import 'package:clue/linksave/LinksaveModal.dart' as link_add;
+import 'package:clue/linksave/NoLink.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -11,18 +15,65 @@ class Cluelink extends StatefulWidget {
 
 class _CluelinkState extends State<Cluelink> {
   final List<String> categories = ['전체', '인문과목', '전공과목', '방과후'];
+  final List<Map<String, dynamic>> _links =
+      AppData.getLinkDummyList()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
   int selectedIndex = 0; //기본선택 : 전체
+
+  List<Map<String, dynamic>> get _filteredLinks {
+    if (selectedIndex == 0) return _links;
+    final category = categories[selectedIndex];
+    return _links.where((link) {
+      final tags = (link['tags'] as List?)?.cast<String>() ?? const <String>[];
+      return tags.contains(category);
+    }).toList();
+  }
+
+  List<String> _collectAllTags() {
+    final tagSet = <String>{};
+    for (final link in _links) {
+      final tags = (link['tags'] as List?)?.cast<String>() ?? const <String>[];
+      tagSet.addAll(tags);
+    }
+    tagSet.addAll(categories.where((c) => c != '전체'));
+    return tagSet.toList();
+  }
+
+  String _formatDate(DateTime date) {
+    final year = date.year.toString().padLeft(4, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '$year-$month-$day';
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showLinkAddDialog(context);
+        onPressed: () async {
+          final result = await link_add.showLinkAddDialog(context);
+          if (result != null) {
+            setState(() {
+              _links.insert(0, {
+                'title': result.title,
+                'url': result.url,
+                'description': result.description,
+                'tags': result.tags,
+                'restrictByGrade': result.restrictByGrade,
+                'restrictByClass': result.restrictByClass,
+                'createdAt': _formatDate(DateTime.now()),
+              });
+            });
+          }
         },
         backgroundColor: const Color(0xff0077FF),
-        child: const Icon(Icons.add, color: Color(0xffffffff),),
+        child: const Icon(
+          Icons.add,
+          color: Color(0xffffffff),
+        ),
       ),
       body: Column(
         children: [
@@ -132,46 +183,77 @@ class _CluelinkState extends State<Cluelink> {
           ),
           Expanded(
             child: Container(
-              width: double.infinity,
-
-              decoration: BoxDecoration(color: Colors.grey.shade200),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: width * 0.25,
-
-                    height: width * 0.25,
-                    decoration: BoxDecoration(
-                      color: Color(0xffB7DAFF),
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                    child: Icon(
-                      Icons.open_in_new,
-                      color: Color(0xff0077FF),
-                      size: width * 0.13,
-                    ),
-                  ),
-                  SizedBox(height: height * 0.03),
-                  Text(
-                    '현재 존재하는 링크가 없습니다.',
-                    style: TextStyle(
-                      fontSize: width * 0.055,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                  ),
-                  SizedBox(height: height * 0.004),  
-                  Text(
-                    '새로운 링크를 추가해 보세요.',
-                    style: TextStyle(
-                      fontSize: width * 0.045,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
-                    ),
-                  ),
-                ],
-              ),
+              color: Colors.grey.shade200,
+              child:
+                  _filteredLinks.isEmpty
+                      ? const Nolink()
+                      : ListView.separated(
+                        padding: EdgeInsets.fromLTRB(
+                          width * 0.05,
+                          height * 0.02,
+                          width * 0.05,
+                          height * 0.04,
+                        ),
+                        itemBuilder: (context, index) {
+                          final item = _filteredLinks[index];
+                          final tags =
+                              (item['tags'] as List?)?.cast<String>() ??
+                              const <String>[];
+                          final originalIndex = _links.indexOf(item);
+                          return LinkList(
+                            title: item['title'] as String? ?? '',
+                            url: item['url'] as String? ?? '',
+                            description: item['description'] as String?,
+                            tags: tags,
+                            restrictByGrade: item['restrictByGrade'] == true,
+                            restrictByClass: item['restrictByClass'] == true,
+                            createdAt: item['createdAt'] as String?,
+                            onEdit:
+                                originalIndex == -1
+                                    ? null
+                                    : () async {
+                                        final edited =
+                                            await link_edit.showLinkEditDialog(
+                                          context,
+                                          initial: link_edit.LinkEditPayload(
+                                            title:
+                                                item['title'] as String? ?? '',
+                                            url: item['url'] as String? ?? '',
+                                            description:
+                                                item['description'] as String?,
+                                            tags: List<String>.from(tags),
+                                            restrictByGrade:
+                                                item['restrictByGrade'] == true,
+                                            restrictByClass:
+                                                item['restrictByClass'] == true,
+                                          ),
+                                          allTags: _collectAllTags(),
+                                        );
+                                        if (edited != null) {
+                                          setState(() {
+                                            final updated = Map<String,
+                                                dynamic>.from(
+                                              _links[originalIndex],
+                                            );
+                                            updated
+                                              ..['title'] = edited.title
+                                              ..['url'] = edited.url
+                                              ..['description'] =
+                                                  edited.description
+                                              ..['tags'] = edited.tags
+                                              ..['restrictByGrade'] =
+                                                  edited.restrictByGrade
+                                              ..['restrictByClass'] =
+                                                  edited.restrictByClass;
+                                            _links[originalIndex] = updated;
+                                          });
+                                        }
+                                      },
+                          );
+                        },
+                        separatorBuilder: (_, __) => SizedBox(height: height * 0.02),
+                        itemCount: _filteredLinks.length,
+                      ),
             ),
           ),
         ],

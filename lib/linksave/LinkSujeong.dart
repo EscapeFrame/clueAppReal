@@ -1,14 +1,7 @@
 import 'package:flutter/material.dart';
 
-class LinkFormResult {
-  final String title;
-  final String url;
-  final String? description;
-  final List<String> tags;
-  final bool restrictByGrade;
-  final bool restrictByClass;
-
-  LinkFormResult({
+class LinkEditPayload {
+  const LinkEditPayload({
     required this.title,
     required this.url,
     required this.tags,
@@ -16,48 +9,82 @@ class LinkFormResult {
     this.restrictByGrade = false,
     this.restrictByClass = false,
   });
+
+  final String title;
+  final String url;
+  final String? description;
+  final List<String> tags;
+  final bool restrictByGrade;
+  final bool restrictByClass;
 }
 
-Future<LinkFormResult?> showLinkAddDialog(BuildContext context) {
-  return showDialog<LinkFormResult>(
+Future<LinkEditPayload?> showLinkEditDialog(
+  BuildContext context, {
+  required LinkEditPayload initial,
+  List<String>? allTags,
+}) {
+  final tags = <String>{..._defaultTags, ...initial.tags, ...?allTags}.toList()
+    ..sort();
+
+  return showDialog<LinkEditPayload>(
     context: context,
     barrierDismissible: false,
-    builder: (_) => const _LinkAddDialog(),
+    builder: (_) => _LinkEditDialog(
+      initial: initial,
+      allTags: tags,
+    ),
   );
 }
 
-class _LinkAddDialog extends StatefulWidget {
-  const _LinkAddDialog();
+const List<String> _defaultTags = ['인문과목', '전공과목', '방과후'];
+
+class _LinkEditDialog extends StatefulWidget {
+  const _LinkEditDialog({
+    required this.initial,
+    required this.allTags,
+  });
+
+  final LinkEditPayload initial;
+  final List<String> allTags;
 
   @override
-  State<_LinkAddDialog> createState() => _LinkAddDialogState();
+  State<_LinkEditDialog> createState() => _LinkEditDialogState();
 }
 
-class _LinkAddDialogState extends State<_LinkAddDialog> {
+class _LinkEditDialogState extends State<_LinkEditDialog> {
   final _formKey = GlobalKey<FormState>();
 
-  final _titleC = TextEditingController();
-  final _urlC = TextEditingController();
-  final _descC = TextEditingController();
-
-  final List<String> _allTags = ['인문과목', '전공과목', '방과후'];
-  final Set<String> _selected = {};
-
-  bool _byGrade = false;
-  bool _byClass = false;
+  late final TextEditingController _titleC;
+  late final TextEditingController _urlC;
+  late final TextEditingController _descC;
+  late final Set<String> _selected;
+  late bool _byGrade;
+  late bool _byClass;
+  late final VoidCallback _listener;
 
   @override
   void initState() {
     super.initState();
-    void listener() => setState(() {});
-    _titleC.addListener(listener);
-    _urlC.addListener(listener);
+    _titleC = TextEditingController(text: widget.initial.title);
+    _urlC = TextEditingController(text: widget.initial.url);
+    _descC = TextEditingController(text: widget.initial.description ?? '');
+    _selected = {...widget.initial.tags};
+    _byGrade = widget.initial.restrictByGrade;
+    _byClass = widget.initial.restrictByClass;
+
+    _listener = () => setState(() {});
+    _titleC.addListener(_listener);
+    _urlC.addListener(_listener);
   }
 
   @override
   void dispose() {
-    _titleC.dispose();
-    _urlC.dispose();
+    _titleC
+      ..removeListener(_listener)
+      ..dispose();
+    _urlC
+      ..removeListener(_listener)
+      ..dispose();
     _descC.dispose();
     super.dispose();
   }
@@ -67,14 +94,13 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
     final theme = Theme.of(context);
     final canSubmit = _canSubmit;
 
-
     return Dialog(
       backgroundColor: Colors.white,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: LayoutBuilder(
-        builder: (context, c) {
-          final width = c.maxWidth;
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
           return ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 520),
             child: Padding(
@@ -85,12 +111,22 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '링크추가',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: width * 0.05,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          '링크수정',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: width * 0.05,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          splashRadius: 18,
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 20),
                     _buildLabeledField(
@@ -103,11 +139,12 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                           hintText: '제목을 입력해주세요.',
                           hintStyle: TextStyle(fontSize: width * 0.03 + 3),
                         ),
-                        validator:
-                            (v) =>
-                                (v == null || v.trim().isEmpty)
-                                    ? '제목은 필수입니다.'
-                                    : null,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return '제목은 필수입니다.';
+                          }
+                          return null;
+                        },
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -122,15 +159,15 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                           hintText: 'URL을 입력해주세요.',
                           hintStyle: TextStyle(fontSize: width * 0.03 + 3),
                         ),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty)
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
                             return 'URL은 필수입니다.';
-                          final hasScheme =
-                              v.startsWith('http://') ||
-                              v.startsWith('https://');
-                          return hasScheme
-                              ? null
-                              : '올바른 주소를 입력해주세요';
+                          }
+                          final trimmed = value.trim();
+                          final hasScheme = trimmed.startsWith('http://') ||
+                              trimmed.startsWith('https://');
+                          if (!hasScheme) return '올바른 주소를 입력해주세요';
+                          return null;
                         },
                       ),
                     ),
@@ -154,28 +191,27 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                       requiredMark: true,
                       helper: '중복선택이 가능하며 1개 이상 선택해주셔야합니다.',
                       child: Padding(
-                        padding: const EdgeInsets.only(top:6),
+                        padding: const EdgeInsets.only(top: 6),
                         child: Wrap(
-                        
-                          spacing: width * 0.003+7,
-                          runSpacing: width * 0.003+7,
-                          children:
-                              _allTags.map((tag) {
-                                final selected = _selected.contains(tag);
-                                return _LinkOptionChip(
+                          spacing: width * 0.003 + 7,
+                          runSpacing: width * 0.003 + 7,
+                          children: widget.allTags
+                              .map(
+                                (tag) => _LinkOptionChip(
                                   label: tag,
-                                  selected: selected,
+                                  selected: _selected.contains(tag),
                                   onTap: () {
                                     setState(() {
-                                      if (selected) {
+                                      if (_selected.contains(tag)) {
                                         _selected.remove(tag);
                                       } else {
                                         _selected.add(tag);
                                       }
                                     });
                                   },
-                                );
-                              }).toList(),
+                                ),
+                              )
+                              .toList(),
                         ),
                       ),
                     ),
@@ -242,13 +278,12 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                               }
                               Navigator.pop(
                                 context,
-                                LinkFormResult(
+                                LinkEditPayload(
                                   title: _titleC.text.trim(),
                                   url: _urlC.text.trim(),
-                                  description:
-                                      _descC.text.trim().isEmpty
-                                          ? null
-                                          : _descC.text.trim(),
+                                  description: _descC.text.trim().isEmpty
+                                      ? null
+                                      : _descC.text.trim(),
                                   tags: _selected.toList(),
                                   restrictByGrade: _byGrade,
                                   restrictByClass: _byClass,
@@ -280,17 +315,16 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
   bool get _canSubmit {
     final titleFilled = _titleC.text.trim().isNotEmpty;
     final urlText = _urlC.text.trim();
-    final urlFilled = urlText.isNotEmpty;
-    final hasScheme =
-        urlText.startsWith('http://') || urlText.startsWith('https://');
+    final urlValid =
+        urlText.isNotEmpty &&
+        (urlText.startsWith('http://') || urlText.startsWith('https://'));
     final hasTags = _selected.isNotEmpty;
     final hasScope = _byGrade || _byClass;
-    return titleFilled && urlFilled && hasScheme && hasTags && hasScope;
+    return titleFilled && urlValid && hasTags && hasScope;
   }
 
   Widget _buildLabeledField(
     BuildContext context, {
-      
     required String label,
     required Widget child,
     bool requiredMark = false,
@@ -325,15 +359,14 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
           text: TextSpan(
             text: label,
             style: labelStyle,
-            children:
-                requiredMark
-                    ? [
-                      TextSpan(
-                        text: ' *',
-                        style: labelStyle?.copyWith(color: Colors.blue),
-                      ),
-                    ]
-                    : null,
+            children: requiredMark
+                ? [
+                    TextSpan(
+                      text: ' *',
+                      style: labelStyle?.copyWith(color: Colors.blue),
+                    ),
+                  ]
+                : null,
           ),
         ),
         if (helper != null) ...[
@@ -354,7 +387,7 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
 }
 
 class _LinkOptionChip extends StatelessWidget {
-   const _LinkOptionChip({
+  const _LinkOptionChip({
     required this.label,
     required this.selected,
     required this.onTap,
@@ -363,7 +396,7 @@ class _LinkOptionChip extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
-  
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -393,8 +426,7 @@ class _LinkOptionChip extends StatelessWidget {
 }
 
 class _LinkScopeToggle extends StatelessWidget {
-  
-   const _LinkScopeToggle({
+  const _LinkScopeToggle({
     required this.label,
     required this.selected,
     required this.onChanged,
@@ -405,14 +437,13 @@ class _LinkScopeToggle extends StatelessWidget {
   final ValueChanged<bool> onChanged;
 
   @override
-  
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(label, style:  TextStyle(fontSize: width*0.035)),
+        Text(label, style: TextStyle(fontSize: width * 0.035)),
         const SizedBox(width: 10),
         Transform.scale(
           scale: 0.9,

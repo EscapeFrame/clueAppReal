@@ -272,6 +272,36 @@ class AppData {
     },
   ];
 
+  static final List<Map<String, dynamic>> linkDummyList = [
+    {
+      'title': '자료구조 시각화 모음',
+      'url': 'https://visualgo.net',
+      'description': '그래프, 트리, 정렬 알고리즘을 애니메이션으로 확인할 수 있는 자료입니다.',
+      'tags': ['전공과목', '알고리즘'],
+      'restrictByGrade': true,
+      'restrictByClass': false,
+      'createdAt': '2025-01-12',
+    },
+    {
+      'title': 'TED-ED 인문학 강연',
+      'url': 'https://www.youtube.com/playlist?list=TEDedHumanities',
+      'description': '흥미로운 인문학 주제를 짧게 소개하는 영어 영상 모음입니다.',
+      'tags': ['인문과목', '영상'],
+      'restrictByGrade': false,
+      'restrictByClass': true,
+      'createdAt': '2025-02-03',
+    },
+    {
+      'title': '방과후 메이커 교실 신청',
+      'url': 'https://example.com/maker-club',
+      'description': '3D 프린터와 레이저 커터를 활용하는 방과후 메이커 프로그램 신청 안내입니다.',
+      'tags': ['방과후', '메이커'],
+      'restrictByGrade': true,
+      'restrictByClass': true,
+      'createdAt': '2025-03-21',
+    },
+  ];
+
   static List<Map<String, dynamic>> getNoticeList() {
     return List.from(noticeList);
   }
@@ -295,4 +325,8 @@ class AppData {
   static List<Map<String, dynamic>> getSuapList() {
     return List.from(suapList);
   }
-} 
+
+  static List<Map<String, dynamic>> getLinkDummyList() {
+    return List.from(linkDummyList);
+  }
+}
