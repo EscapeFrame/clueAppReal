@@ -50,7 +50,7 @@ class DayCard extends StatelessWidget {
           Text(
             'D-$day',
             style: TextStyle(
-              fontWeight: dayValue <= 20 ? FontWeight.w900 : FontWeight.w300,
+              fontWeight: FontWeight.w900 ,
               color: dayValue <= 5 ? Colors.red : Colors.black,
               fontSize: dayFontSize,
             ),

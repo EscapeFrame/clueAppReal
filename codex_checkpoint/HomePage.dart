@@ -1,5 +1,5 @@
-import 'package:clue/api_client.dart';
 import 'package:clue/config/app_data_.dart';
+import 'package:clue/services/assignment_notification_service.dart';
 import 'package:clue/widgets/mainPage/DayCard.dart';
 import 'package:clue/widgets/mainPage/Gonji_/HakKyoGonji.dart';
 import 'package:clue/widgets/mainPage/Gonji_/IlJeongGongji.dart';
@@ -7,7 +7,6 @@ import 'package:clue/widgets/mainPage/Gonji_/ServiceGongji.dart';
 import 'package:clue/widgets/mainPage/HomepageCard.dart';
 import 'package:clue/widgets/mainPage/Suap.dart';
 import 'package:clue/widgets/mainPage/TimetableStyledPage.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -50,40 +49,34 @@ class _HomePageState extends State<HomePage> {
     return end.difference(start).inDays.abs();
   }
 
-
   //알람보내야할거
   Future<void> noJeChulGwaJe() async {
-    final dio = ApiClient.instance.dio;
     try {
-      final response = await dio.get('/api/assignments/me');
-      final data = response.data;
+      await AssignmentNotificationService.ensureBackgroundTaskRegistered();
+      final list = await AssignmentNotificationService.syncAssignments(
+        requestPermission: true,
+      );
 
-      if (data is List) {
-        final list =
-            data
-                .whereType<Map>()
-                .map((e) => Map<String, dynamic>.from(e))
-                .toList();
-
-        list.sort((a, b) {
-          final da = _calcDaysDiff(
-            (a['startDate'] ?? '').toString(),
-            (a['endDate'] ?? '').toString(),
-          );
-          final db = _calcDaysDiff(
-            (b['startDate'] ?? '').toString(),
-            (b['endDate'] ?? '').toString(),
-          );
-          return da.compareTo(db);
-        });
-        setState(() {
-          _noJeChulList = list;
-        });
+      if (list == null) {
+        return;
       }
-      debugPrint("gwajejechul데이터?????${data.toString()}");
-    } on DioException catch (e) {
-      debugPrint('DioException: ${e.message}');
-      debugPrint('DioException: ${e.response}');
+
+      list.sort((a, b) {
+        final da = _calcDaysDiff(
+          (a['startDate'] ?? '').toString(),
+          (a['endDate'] ?? '').toString(),
+        );
+        final db = _calcDaysDiff(
+          (b['startDate'] ?? '').toString(),
+          (b['endDate'] ?? '').toString(),
+        );
+        return da.compareTo(db);
+      });
+      if (!mounted) return;
+      setState(() {
+        _noJeChulList = list;
+      });
+      debugPrint('gwajejechul데이터?????$list');
     } catch (e) {
       debugPrint('Error: $e');
     }
@@ -255,8 +248,6 @@ class _HomePageState extends State<HomePage> {
                                         (m['startDate'] ?? '').toString();
                                     final String sEnd =
                                         (m['endDate'] ?? '').toString();
-                                    final String assignmentId =
-                                        (m['assignmentId'] ?? '').toString();
                                     int dayDiff = _calcDaysDiff(sStart, sEnd);
                                     if (dayDiff < 0) dayDiff = 0;
                                     return Padding(

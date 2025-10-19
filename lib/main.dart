@@ -1,7 +1,9 @@
 import 'package:clue/login.dart';
+import 'package:clue/pages/ClueLink.dart';
 import 'package:clue/pages/HakSubSil.dart';
 import 'package:clue/pages/HomePage.dart';
 import 'package:clue/pages/Settings.dart';
+import 'package:clue/services/assignment_notification_service.dart';
 import 'package:clue/teacher_page/tHakSubSilSuap.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -15,10 +17,11 @@ Future<void> main() async {
     debugPrint('dotenv load failed: $e');
   }
   runApp(const MyApp());
+  await AssignmentNotificationService.ensureBackgroundTaskRegistered();
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key}); 
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -44,8 +47,8 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  // static String code="teacher";
-  static String code = "student";
+  static String code="teacher";
+  // static String code = "student";
   final List<Widget> _pages = [
     HomePage(),
     code != 'teacher' ? Haksubsil() : Thaksubsilsuap(),
@@ -53,6 +56,7 @@ class _MainScreenState extends State<MainScreen> {
     Login(),
     // Test(),
     Settings(),
+    Cluelink(),
   ];
 
   void _onItemTapped(int index) {
@@ -131,6 +135,21 @@ class _MainScreenState extends State<MainScreen> {
               colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
             ),
             label: '설정',
+          ),
+          BottomNavigationBarItem(
+            backgroundColor: Colors.white,
+            icon: SvgPicture.asset(
+              'assets/images/Setting.svg',
+              colorFilter: ColorFilter.mode(
+                const Color.fromARGB(223, 199, 199, 199),
+                BlendMode.srcIn,
+              ),
+            ),
+            activeIcon: SvgPicture.asset(
+              'assets/images/Setting.svg',
+              colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
+            ),
+            label: '링크',
           ),
         ],
       ),

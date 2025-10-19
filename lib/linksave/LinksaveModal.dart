@@ -1,0 +1,414 @@
+import 'package:flutter/material.dart';
+
+class LinkFormResult {
+  final String title;
+  final String url;
+  final String? description;
+  final List<String> tags;
+  final bool restrictByGrade;
+  final bool restrictByClass;
+
+  LinkFormResult({
+    required this.title,
+    required this.url,
+    required this.tags,
+    this.description,
+    this.restrictByGrade = false,
+    this.restrictByClass = false,
+  });
+}
+
+Future<LinkFormResult?> showLinkAddDialog(BuildContext context) {
+  return showDialog<LinkFormResult>(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => const _LinkAddDialog(),
+  );
+}
+
+class _LinkAddDialog extends StatefulWidget {
+  const _LinkAddDialog();
+
+  @override
+  State<_LinkAddDialog> createState() => _LinkAddDialogState();
+}
+
+class _LinkAddDialogState extends State<_LinkAddDialog> {
+  final _formKey = GlobalKey<FormState>();
+
+  final _titleC = TextEditingController();
+  final _urlC = TextEditingController();
+  final _descC = TextEditingController();
+
+  final List<String> _allTags = ['인문과목', '전공과목', '방과후'];
+  final Set<String> _selected = {};
+
+  bool _byGrade = false;
+  bool _byClass = false;
+
+  @override
+  void dispose() {
+    _titleC.dispose();
+    _urlC.dispose();
+    _descC.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+
+    return Dialog(
+      backgroundColor: Colors.white,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: LayoutBuilder(
+        builder: (context, c) {
+          final width = c.maxWidth;
+          return ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '링크추가',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontSize: width * 0.05,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildLabeledField(
+                      context,
+                      label: '제목',
+                      requiredMark: true,
+                      child: TextFormField(
+                        controller: _titleC,
+                        decoration: InputDecoration(
+                          hintText: '제목을 입력해주세요.',
+                          hintStyle: TextStyle(fontSize: width * 0.03 + 3),
+                        ),
+                        validator:
+                            (v) =>
+                                (v == null || v.trim().isEmpty)
+                                    ? '제목은 필수입니다.'
+                                    : null,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildLabeledField(
+                      context,
+                      label: 'URL',
+                      requiredMark: true,
+                      child: TextFormField(
+                        controller: _urlC,
+                        keyboardType: TextInputType.url,
+                        decoration: InputDecoration(
+                          hintText: 'URL을 입력해주세요.',
+                          hintStyle: TextStyle(fontSize: width * 0.03 + 3),
+                        ),
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty)
+                            return 'URL은 필수입니다.';
+                          final hasScheme =
+                              v.startsWith('http://') ||
+                              v.startsWith('https://');
+                          return hasScheme
+                              ? null
+                              : 'http:// 또는 https:// 를 포함해주세요.';
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildLabeledField(
+                      context,
+                      label: '설명',
+                      child: TextFormField(
+                        controller: _descC,
+                        maxLines: 2,
+                        decoration: InputDecoration(
+                          hintText: 'URL에 대한 설명을 간단히 적어주세요.',
+                          hintStyle: TextStyle(fontSize: width * 0.03 + 3),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildLabeledField(
+                      context,
+                      label: '태그',
+                      requiredMark: true,
+                      helper: '중복선택이 가능하며 1개 이상 선택해주셔야합니다.',
+                      child: Padding(
+                        padding: const EdgeInsets.only(top:6),
+                        child: Wrap(
+                        
+                          spacing: width * 0.055,
+                          runSpacing: width * 0.055,
+                          children:
+                              _allTags.map((tag) {
+                                final selected = _selected.contains(tag);
+                                return _LinkOptionChip(
+                                  label: tag,
+                                  selected: selected,
+                                  onTap: () {
+                                    setState(() {
+                                      if (selected) {
+                                        _selected.remove(tag);
+                                      } else {
+                                        _selected.add(tag);
+                                      }
+                                    });
+                                  },
+                                );
+                              }).toList(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildLabeledField(
+                      context,
+                      label: '공개범위',
+                      requiredMark: true,
+                      helper: '중복선택이 가능하며 1개이상 선택해주셔야합니다.',
+                      child: Wrap(
+                        spacing: 18,
+                        children: [
+                          _LinkScopeToggle(
+                            label: '학년',
+                            selected: _byGrade,
+                            onTap:
+                                () => setState(() {
+                                  _byGrade = !_byGrade;
+                                }),
+                          ),
+                          _LinkScopeToggle(
+                            label: '반',
+                            selected: _byClass,
+                            onTap:
+                                () => setState(() {
+                                  _byClass = !_byClass;
+                                }),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xff86C1FF)),
+                            ),
+                            child: const Text('취소'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: () {
+                              final valid =
+                                  _formKey.currentState?.validate() ?? false;
+                              if (!valid) return;
+                              if (_selected.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('태그를 1개 이상 선택해주세요.'),
+                                  ),
+                                );
+                                return;
+                              }
+                              if (!_byGrade && !_byClass) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('공개범위를 1개 이상 선택해주세요.'),
+                                  ),
+                                );
+                                return;
+                              }
+                              Navigator.pop(
+                                context,
+                                LinkFormResult(
+                                  title: _titleC.text.trim(),
+                                  url: _urlC.text.trim(),
+                                  description:
+                                      _descC.text.trim().isEmpty
+                                          ? null
+                                          : _descC.text.trim(),
+                                  tags: _selected.toList(),
+                                  restrictByGrade: _byGrade,
+                                  restrictByClass: _byClass,
+                                ),
+                              );
+                            },
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFFE4E4E4),
+                              foregroundColor: Colors.black87,
+                            ),
+                            child: const Text('확인'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildLabeledField(
+    BuildContext context, {
+      
+    required String label,
+    required Widget child,
+    bool requiredMark = false,
+    String? helper,
+  }) {
+    final width = MediaQuery.of(context).size.width;
+
+    final base = Theme.of(context);
+    final labelStyle = base.textTheme.bodyMedium?.copyWith(
+      fontWeight: FontWeight.w600,
+      fontSize: width * 0.04,
+    );
+    final decoratedChild = Theme(
+      data: base.copyWith(
+        inputDecorationTheme: const InputDecorationTheme(
+          filled: true,
+          fillColor: Color(0xFFF5F5F5),
+          border: OutlineInputBorder(
+            borderSide: BorderSide.none,
+            borderRadius: BorderRadius.all(Radius.circular(8)),
+          ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        ),
+      ),
+      child: child,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        RichText(
+          text: TextSpan(
+            text: label,
+            style: labelStyle,
+            children:
+                requiredMark
+                    ? [
+                      TextSpan(
+                        text: ' *',
+                        style: labelStyle?.copyWith(color: Colors.blue),
+                      ),
+                    ]
+                    : null,
+          ),
+        ),
+        if (helper != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            helper,
+            style: base.textTheme.bodySmall?.copyWith(
+              color: Colors.grey[600],
+              fontSize: width * 0.033,
+            ),
+          ),
+        ],
+        const SizedBox(height: 8),
+        decoratedChild,
+      ],
+    );
+  }
+}
+
+class _LinkOptionChip extends StatelessWidget {
+   const _LinkOptionChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return Transform.scale(
+      scale: width * 0.001 + 0.7,
+      child: GestureDetector(
+        onTap: onTap,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: selected ? const Color(0xFF86C1FF) : const Color(0xFFF2F2F2),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: selected ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LinkScopeToggle extends StatelessWidget {
+  const _LinkScopeToggle({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(label, style: const TextStyle(fontSize: 13)),
+        const SizedBox(height: 6),
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 68,
+            height: 32,
+            decoration: BoxDecoration(
+              color:
+                  selected ? const Color(0xFF86C1FF) : const Color(0xFFEFEFEF),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              selected ? 'On' : 'Off',
+              style: TextStyle(
+                fontSize: 12,
+                color: selected ? Colors.white : Colors.black54,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

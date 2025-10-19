@@ -1,6 +1,5 @@
-import 'package:clue/api_client.dart';
 import 'package:clue/config/app_data_.dart';
-import 'package:clue/notification.dart';
+import 'package:clue/services/assignment_notification_service.dart';
 import 'package:clue/widgets/mainPage/DayCard.dart';
 import 'package:clue/widgets/mainPage/Gonji_/HakKyoGonji.dart';
 import 'package:clue/widgets/mainPage/Gonji_/IlJeongGongji.dart';
@@ -8,7 +7,6 @@ import 'package:clue/widgets/mainPage/Gonji_/ServiceGongji.dart';
 import 'package:clue/widgets/mainPage/HomepageCard.dart';
 import 'package:clue/widgets/mainPage/Suap.dart';
 import 'package:clue/widgets/mainPage/TimetableStyledPage.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -26,9 +24,6 @@ class _HomePageState extends State<HomePage> {
 
   // 서버에서 불러온 미제출 과제 목록
   List<Map<String, dynamic>> _noJeChulList = [];
-  final Map<String, Set<int>> _notifiedAssignmentTriggers = <String, Set<int>>{};
-  final Map<String, Set<int>> _scheduledAssignmentTriggers = <String, Set<int>>{};
-  bool _notificationsInitialized = false;
 
   final List<Widget> cards = [
     const ServiceGongJi(key: ValueKey('service')),
@@ -47,157 +42,47 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  int _calcDaysDiff(String sStart, String sEnd) {
-    final start = _parseDate(sStart);
+  int _calcDaysDiff(String sEnd) {
     final end = _parseDate(sEnd);
-    if (start == null || end == null) return 0;
-    return end.difference(start).inDays.abs();
+    if (end == null) return 0;
+    final diff = end.difference(DateTime.now());
+    if (diff.isNegative) return -1;
+    final hours = diff.inHours;
+    return hours % 24 == 0 ? hours ~/ 24 : hours ~/ 24 + 1;
   }
-
-  Future<void> _setupNotifications() async {
-    if (_notificationsInitialized) return;
-    await FlutterLocalNotification.init();
-    await FlutterLocalNotification.requestNotificationPermission();
-    _notificationsInitialized = true;
-  }
-
-  Future<void> _notifyUpcomingAssignments(
-    List<Map<String, dynamic>> assignments,
-  ) async {
-    if (!_notificationsInitialized) return;
-    for (final assignment in assignments) {
-      final assignmentId = (assignment['assignmentId'] ?? '').toString();
-      if (assignmentId.isEmpty) {
-        continue;
-      }
-
-      final sEnd = (assignment['endDate'] ?? '').toString();
-      final endDate = _parseDate(sEnd);
-      if (endDate == null) {
-        continue;
-      }
-
-      final now = DateTime.now();
-      if (!endDate.isAfter(now)) {
-        await FlutterLocalNotification.cancelAllAssignmentReminders(assignmentId);
-        _notifiedAssignmentTriggers.remove(assignmentId);
-        _scheduledAssignmentTriggers.remove(assignmentId);
-        continue;
-      }
-
-      final title = (assignment['title'] ?? '과제').toString();
-      final DateTime threeDayTrigger = endDate.subtract(const Duration(days: 3));
-      final DateTime oneDayTrigger = endDate.subtract(const Duration(days: 1));
-
-      // 3일 전 알림 처리
-      if (threeDayTrigger.isAfter(now)) {
-        await FlutterLocalNotification.scheduleAssignmentReminder(
-          assignmentId: assignmentId,
-          title: title,
-          endDate: endDate,
-          daysBefore: 3,
-        );
-        _markScheduled(assignmentId, 3);
-        _unmarkNotified(assignmentId, 3);
-      } else if (oneDayTrigger.isAfter(now) && !_wasNotified(assignmentId, 3)) {
-        if (!_wasScheduled(assignmentId, 3)) {
-          await FlutterLocalNotification.showAssignmentReminderNow(
-            assignmentId: assignmentId,
-            title: title,
-            daysBefore: 3,
-          );
-          _markNotified(assignmentId, 3);
-        }
-      }
-
-      // 1일 전 알림 처리
-      if (oneDayTrigger.isAfter(now)) {
-        await FlutterLocalNotification.scheduleAssignmentReminder(
-          assignmentId: assignmentId,
-          title: title,
-          endDate: endDate,
-          daysBefore: 1,
-        );
-        _markScheduled(assignmentId, 1);
-        _unmarkNotified(assignmentId, 1);
-      } else if (!_wasNotified(assignmentId, 1) && !_wasScheduled(assignmentId, 1)) {
-        await FlutterLocalNotification.showAssignmentReminderNow(
-          assignmentId: assignmentId,
-          title: title,
-          daysBefore: 1,
-        );
-        _markNotified(assignmentId, 1);
-      }
-    }
-  }
-
-  bool _wasNotified(String assignmentId, int daysBefore) {
-    return _notifiedAssignmentTriggers[assignmentId]?.contains(daysBefore) ?? false;
-  }
-
-  void _markNotified(String assignmentId, int daysBefore) {
-    _notifiedAssignmentTriggers
-        .putIfAbsent(assignmentId, () => <int>{})
-        .add(daysBefore);
-  }
-
-  void _unmarkNotified(String assignmentId, int daysBefore) {
-    final triggers = _notifiedAssignmentTriggers[assignmentId];
-    triggers?.remove(daysBefore);
-    if (triggers != null && triggers.isEmpty) {
-      _notifiedAssignmentTriggers.remove(assignmentId);
-    }
-  }
-
-  bool _wasScheduled(String assignmentId, int daysBefore) {
-    return _scheduledAssignmentTriggers[assignmentId]?.contains(daysBefore) ??
-        false;
-  }
-
-  void _markScheduled(String assignmentId, int daysBefore) {
-    _scheduledAssignmentTriggers
-        .putIfAbsent(assignmentId, () => <int>{})
-        .add(daysBefore);
-  }
-
 
   //알람보내야할거
   Future<void> noJeChulGwaJe() async {
-    await _setupNotifications();
-    final dio = ApiClient.instance.dio;
     try {
-      final response = await dio.get('/api/assignments/me');
-      final data = response.data;
+      await AssignmentNotificationService.ensureBackgroundTaskRegistered();
+      final list = await AssignmentNotificationService.syncAssignments(
+        requestPermission: true,
+      );
 
-      if (data is List) {
-        final list =
-            data
-                .whereType<Map>()
-                .map((e) => Map<String, dynamic>.from(e))
-                .toList();
-
-        list.sort((a, b) {
-          final da = _calcDaysDiff(
-            (a['startDate'] ?? '').toString(),
-            (a['endDate'] ?? '').toString(),
-          );
-          final db = _calcDaysDiff(
-            (b['startDate'] ?? '').toString(),
-            (b['endDate'] ?? '').toString(),
-          );
-          return da.compareTo(db);
-        });
-        if (!mounted) return;
-        setState(() {
-          _noJeChulList = list;
-        });
-
-        await _notifyUpcomingAssignments(list);
+      if (list == null) {
+        return;
       }
-      debugPrint("gwajejechul데이터?????${data.toString()}");
-    } on DioException catch (e) {
-      debugPrint('DioException: ${e.message}');
-      debugPrint('DioException: ${e.response}');
+
+      final now = DateTime.now();
+      final filtered = list.where((item) {
+        final start =
+            _parseDate((item['startDate'] ?? '').toString());
+        final end = _parseDate((item['endDate'] ?? '').toString());
+        final startOk = start == null || !start.isAfter(now);
+        final endOk = end == null || end.isAfter(now);
+        return startOk && endOk;
+      }).toList();
+
+      filtered.sort((a, b) {
+        final da = _calcDaysDiff((a['endDate'] ?? '').toString());
+        final db = _calcDaysDiff((b['endDate'] ?? '').toString());
+        return da.compareTo(db);
+      });
+      if (!mounted) return;
+      setState(() {
+        _noJeChulList = filtered;
+      });
+      debugPrint('gwajejechul데이터?????$list');
     } catch (e) {
       debugPrint('Error: $e');
     }
@@ -357,49 +242,42 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                   SizedBox(height: height * 0.025),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children:
-                          (_noJeChulList.isNotEmpty
-                                  ? _noJeChulList.map((m) {
-                                    final String title =
-                                        (m['title'] ?? '').toString();
-                                    final String sStart =
-                                        (m['startDate'] ?? '').toString();
-                                    final String sEnd =
-                                        (m['endDate'] ?? '').toString();
-                                    final String assignmentId =
-                                        (m['assignmentId'] ?? '').toString();
-                                    int dayDiff = _calcDaysDiff(sStart, sEnd);
-                                    if (dayDiff < 0) dayDiff = 0;
-                                    return Padding(
-                                      padding: EdgeInsets.only(
-                                        right: width * 0.03,
-                                      ),
-                                      child: GestureDetector(
-                                        onTap: () {},
-                                        child: DayCard(
-                                          day: dayDiff.toString(),
-                                          neyong: title,
-                                        ),
-                                      ),
-                                    );
-                                  })
-                                  : DayCardList.map(
-                                    (item) => Padding(
-                                      padding: EdgeInsets.only(
-                                        right: width * 0.03,
-                                      ),
-                                      child: DayCard(
-                                        day: item['day']!,
-                                        neyong: item['neyong']!,
-                                      ),
-                                    ),
-                                  ))
-                              .toList(),
+                  if (_noJeChulList.isEmpty)
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: height * 0.02),
+                      child: Text(
+                        '과제가 없습니다.',
+                        style: TextStyle(
+                          fontSize: width * 0.04,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    )
+                  else
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: _noJeChulList.map((m) {
+                          final String title =
+                              (m['title'] ?? '').toString();
+                          final String sEnd =
+                              (m['endDate'] ?? '').toString();
+                          final int dayDiff = _calcDaysDiff(sEnd);
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              right: width * 0.03,
+                            ),
+                            child: GestureDetector(
+                              onTap: () {},
+                              child: DayCard(
+                                day: (dayDiff < 0 ? 0 : dayDiff).toString(),
+                                neyong: title,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
                     ),
-                  ),
                   SizedBox(height: height * 0.012),
                 ],
               ),

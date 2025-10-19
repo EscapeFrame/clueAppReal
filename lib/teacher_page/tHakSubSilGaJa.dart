@@ -108,6 +108,7 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
 
   Future<void> _deleteAttachment(String attachmentId) async {
     final ok = await HaksubsilService.deleteAttachment(attachmentId);
+    debugPrint('assignmentId: $attachmentId');
     if (!mounted) return;
     if (ok) {
       ScaffoldMessenger.of(

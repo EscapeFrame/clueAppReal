@@ -3,31 +3,30 @@ import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-// Wrapper around flutter_local_notifications to keep setup in one place.
 class FlutterLocalNotification {
   FlutterLocalNotification._();
 
   static FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
-  static bool _timezoneInitialized = false;
+  static bool _timezoneInitialized = false; //한번만 초기화하기 위한 플래그.
 
   static const AndroidNotificationDetails _androidAssignmentDetails =
       AndroidNotificationDetails(
-    'assignment_deadline_channel',
-    '과제 마감 알림',
-    channelDescription: '마감이 임박한 과제를 알려줍니다.',
-    importance: Importance.high,
-    priority: Priority.high,
-  );
+        'assignment_deadline_channel',
+        '과제 마감 알림',
+        channelDescription: '마감이 임박한 과제를 알려줍니다.',
+        importance: Importance.high,
+        priority: Priority.high,
+      );
 
   static const DarwinNotificationDetails _iosAssignmentDetails =
       DarwinNotificationDetails();
 
   static const NotificationDetails _assignmentNotificationDetails =
       NotificationDetails(
-    android: _androidAssignmentDetails,
-    iOS: _iosAssignmentDetails,
-  );
+        android: _androidAssignmentDetails,
+        iOS: _iosAssignmentDetails,
+      );
 
   // Call once during app startup to wire Android/iOS init settings.
   static init() async {
@@ -124,8 +123,10 @@ class FlutterLocalNotification {
   }) async {
     await _ensureTimezoneInitialized();
 
-    final tz.TZDateTime scheduled = tz.TZDateTime.from(endDate, tz.local)
-        .subtract(Duration(days: daysBefore));
+    final tz.TZDateTime scheduled = tz.TZDateTime.from(
+      endDate,
+      tz.local,
+    ).subtract(Duration(days: daysBefore));
     if (scheduled.isBefore(tz.TZDateTime.now(tz.local))) {
       // Don't schedule if the trigger time already passed.
       return;
@@ -133,9 +134,10 @@ class FlutterLocalNotification {
 
     await cancelAssignmentReminder(assignmentId, daysBefore);
 
-    final body = daysBefore <= 0
-        ? '$title 과제가 오늘 마감돼요.'
-        : '$title 과제가 ${daysBefore}일 안에 마감돼요.';
+    final body =
+        daysBefore <= 0
+            ? '$title 과제가 오늘 마감돼요.'
+            : '$title 과제가 $daysBefore일 안에 마감돼요.';
 
     await flutterLocalNotificationsPlugin.zonedSchedule(
       _assignmentReminderId(assignmentId, daysBefore),
@@ -168,9 +170,10 @@ class FlutterLocalNotification {
     required String title,
     required int daysBefore,
   }) async {
-    final body = daysBefore <= 0
-        ? '$title 과제가 오늘 마감돼요.'
-        : '$title 과제가 ${daysBefore}일 안에 마감돼요.';
+    final body =
+        daysBefore <= 0
+            ? '$title 과제가 오늘 마감돼요.'
+            : '$title 과제가 $daysBefore일 안에 마감돼요.';
 
     await flutterLocalNotificationsPlugin.show(
       _assignmentReminderId(assignmentId, daysBefore),
