@@ -1,6 +1,7 @@
 import 'package:clue/config/app_data_.dart';
 import 'package:clue/linksave/LinkList.dart';
 import 'package:clue/linksave/LinkSujeong.dart' as link_edit;
+import 'package:clue/linksave/LinkSuccessDialog.dart';
 import 'package:clue/linksave/LinksaveModal.dart' as link_add;
 import 'package:clue/linksave/NoLink.dart';
 import 'package:flutter/material.dart';
@@ -247,6 +248,12 @@ class _CluelinkState extends State<Cluelink> {
                                                   edited.restrictByClass;
                                             _links[originalIndex] = updated;
                                           });
+                                          if (!context.mounted) return;
+                                          await showDialog<void>(
+                                            context: context,
+                                            barrierDismissible: false,
+                                            builder: (_) => const LinkSuccessDialog(),
+                                          );
                                         }
                                       },
                           );

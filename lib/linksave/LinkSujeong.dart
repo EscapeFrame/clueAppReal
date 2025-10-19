@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:clue/linksave/LinkSuccessDialog.dart';
 
 class LinkEditPayload {
   const LinkEditPayload({
@@ -256,7 +257,7 @@ class _LinkEditDialogState extends State<_LinkEditDialog> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: FilledButton(
-                            onPressed: () {
+                            onPressed: () async {
                               final valid =
                                   _formKey.currentState?.validate() ?? false;
                               if (!valid) return;
@@ -276,19 +277,16 @@ class _LinkEditDialogState extends State<_LinkEditDialog> {
                                 );
                                 return;
                               }
-                              Navigator.pop(
-                                context,
-                                LinkEditPayload(
-                                  title: _titleC.text.trim(),
-                                  url: _urlC.text.trim(),
-                                  description: _descC.text.trim().isEmpty
-                                      ? null
-                                      : _descC.text.trim(),
-                                  tags: _selected.toList(),
-                                  restrictByGrade: _byGrade,
-                                  restrictByClass: _byClass,
-                                ),
-                              );
+                              Navigator.pop(context, LinkEditPayload(
+                                title: _titleC.text.trim(),
+                                url: _urlC.text.trim(),
+                                description: _descC.text.trim().isEmpty
+                                    ? null
+                                    : _descC.text.trim(),
+                                tags: _selected.toList(),
+                                restrictByGrade: _byGrade,
+                                restrictByClass: _byClass,
+                              ));
                             },
                             style: FilledButton.styleFrom(
                               backgroundColor: canSubmit
