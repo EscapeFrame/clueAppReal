@@ -121,7 +121,7 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                               v.startsWith('https://');
                           return hasScheme
                               ? null
-                              : 'http:// 또는 https:// 를 포함해주세요.';
+                              : '올바른 주소를 입력해주세요';
                         },
                       ),
                     ),
@@ -148,8 +148,8 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                         padding: const EdgeInsets.only(top:6),
                         child: Wrap(
                         
-                          spacing: width * 0.055,
-                          runSpacing: width * 0.055,
+                          spacing: width * 0.003+7,
+                          runSpacing: width * 0.003+7,
                           children:
                               _allTags.map((tag) {
                                 final selected = _selected.contains(tag);
@@ -182,18 +182,16 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                           _LinkScopeToggle(
                             label: '학년',
                             selected: _byGrade,
-                            onTap:
-                                () => setState(() {
-                                  _byGrade = !_byGrade;
-                                }),
+                            onChanged: (value) => setState(() {
+                              _byGrade = value;
+                            }),
                           ),
                           _LinkScopeToggle(
                             label: '반',
                             selected: _byClass,
-                            onTap:
-                                () => setState(() {
-                                  _byClass = !_byClass;
-                                }),
+                            onChanged: (value) => setState(() {
+                              _byClass = value;
+                            }),
                           ),
                         ],
                       ),
@@ -347,7 +345,7 @@ class _LinkOptionChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     return Transform.scale(
-      scale: width * 0.001 + 0.7,
+      scale: width * 0.0015 + 0.2,
       child: GestureDetector(
         onTap: onTap,
         child: DecoratedBox(
@@ -372,40 +370,34 @@ class _LinkOptionChip extends StatelessWidget {
 }
 
 class _LinkScopeToggle extends StatelessWidget {
-  const _LinkScopeToggle({
+  
+   const _LinkScopeToggle({
     required this.label,
     required this.selected,
-    required this.onTap,
+    required this.onChanged,
   });
 
   final String label;
   final bool selected;
-  final VoidCallback onTap;
+  final ValueChanged<bool> onChanged;
 
   @override
+  
   Widget build(BuildContext context) {
-    return Column(
+    final width = MediaQuery.of(context).size.width;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(label, style: const TextStyle(fontSize: 13)),
-        const SizedBox(height: 6),
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            width: 68,
-            height: 32,
-            decoration: BoxDecoration(
-              color:
-                  selected ? const Color(0xFF86C1FF) : const Color(0xFFEFEFEF),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              selected ? 'On' : 'Off',
-              style: TextStyle(
-                fontSize: 12,
-                color: selected ? Colors.white : Colors.black54,
-              ),
-            ),
+        Text(label, style:  TextStyle(fontSize: width*0.035)),
+        const SizedBox(width: 10),
+        Transform.scale(
+          scale: 0.9,
+          child: Switch.adaptive(
+            value: selected,
+            onChanged: onChanged,
+            activeColor: const Color(0xFF86C1FF),
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         ),
       ],
