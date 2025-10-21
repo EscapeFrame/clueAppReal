@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'LinkDelete.dart';
+
 class LinkList extends StatelessWidget {
   const LinkList({
     super.key,
@@ -68,7 +70,14 @@ class LinkList extends StatelessWidget {
                   icon: Icons.delete_outline,
                   color: const Color(0xffFF6D6D),
                   scale: scale,
-                  onTap: onDelete,
+                  onTap: () async {
+                    await LinkDeleteDialog.show(
+                      context,
+                      itemTitle: title,
+                      itemDescription: description,
+                      onConfirmed: onDelete,
+                    );
+                  },
                 ),
               ],
             ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:clue/linksave/LinkSuccessDialog.dart';
 
 class LinkEditPayload {
   const LinkEditPayload({

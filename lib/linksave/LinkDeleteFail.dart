@@ -1,26 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'LinkDeleteCheck.dart';
-
-class LinkDeleteDialog extends StatelessWidget {
-  const LinkDeleteDialog({
-    super.key,
-    required this.itemTitle,
-    this.itemDescription,
-    
-  });
-
-  final String itemTitle;
-  final String? itemDescription;
-  
+class LinkDeleteFailDialog extends StatelessWidget {
+  const LinkDeleteFailDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final height = MediaQuery.of(context).size.height;
     final theme = Theme.of(context);
-    final description = itemDescription?.trim();
-
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
       backgroundColor: Colors.white,
@@ -38,7 +23,7 @@ class LinkDeleteDialog extends StatelessWidget {
                     '내용을 삭제하시겠습니까?',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
-                      fontSize: width * 0.045 + 4,
+                      fontSize: 18,
                     ),
                   ),
                 ),
@@ -49,26 +34,16 @@ class LinkDeleteDialog extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: height * 0.01),
+            const SizedBox(height: 16),
             Text(
-              itemTitle,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-                fontSize: width * 0.03 + 6,
+              '죄송합니다.\n해당 내용 삭제를 실패하였습니다.\n다시 시도해주세요.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: const Color(0xFFFF5A5A),
+                fontSize: 15,
+                height: 1.4,
               ),
             ),
-            if (description != null && description.isNotEmpty) ...[
-              // const SizedBox(height: 2),
-              Text(
-                description,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[600],
-                  fontSize: width * 0.02 + 5,
-                  height: 1.4,
-                ),
-              ),
-            ],
-            SizedBox(height: height * 0.05),
+            const SizedBox(height: 28),
             Row(
               children: [
                 Expanded(
@@ -78,11 +53,11 @@ class LinkDeleteDialog extends StatelessWidget {
                       foregroundColor: const Color(0xFF0D6EFD),
                       side: const BorderSide(color: Color(0xFF86C1FF)),
                     ),
-                    child: Text(
+                    child: const Text(
                       '취소',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w500,
-                        fontSize: 15,
+                        fontSize: 15, 
                       ),
                     ),
                   ),
@@ -95,9 +70,9 @@ class LinkDeleteDialog extends StatelessWidget {
                       backgroundColor: const Color(0xFF86C1FF),
                       foregroundColor: Colors.white,
                     ),
-                    child: Text(
-                      '확인',
-                      style: const TextStyle(
+                    child: const Text(
+                      '재시도',
+                      style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 15,
                       ),
@@ -112,37 +87,11 @@ class LinkDeleteDialog extends StatelessWidget {
     );
   }
 
-  static Future<bool?> show(
-    BuildContext context, {
-    required String itemTitle,
-    String? itemDescription,
-    String heading = '내용을 삭제하시겠습니까?',
-    String confirmLabel = '확인',
-    String cancelLabel = '취소',
-    VoidCallback? onConfirmed,
-    String successMessage = '내용이 삭제되었습니다.',
-    String successButtonLabel = '닫기',
-  }) async {
-    final confirmed = await showDialog<bool>(
+  static Future<bool?> show(BuildContext context) {
+    return showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => LinkDeleteDialog(
-        itemTitle: itemTitle,
-        itemDescription: itemDescription,
-        
-      ),
+      builder: (_) => const LinkDeleteFailDialog(),
     );
-
-    if (confirmed == true) {
-      onConfirmed?.call();
-      await LinkDeleteCheckDialog.show(
-        context,
-        heading: heading,
-        message: successMessage,
-        closeLabel: successButtonLabel,
-      );
-    }
-
-    return confirmed;
   }
 }
