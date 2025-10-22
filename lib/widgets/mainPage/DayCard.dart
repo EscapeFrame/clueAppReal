@@ -1,75 +1,99 @@
 import 'package:flutter/material.dart';
 
 class DayCard extends StatelessWidget {
-  
+  const DayCard({
+    super.key,
+    required this.day,
+    required this.neyong,
+    this.location,
+  });
 
   final String day;
   final String neyong;
-
-  const DayCard({super.key, required this.day, required this.neyong});
+  final String? location;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final width = MediaQuery.of(context).size.width;
-    final height = MediaQuery.of(context).size.height;
+    final hasLocation = (location ?? '').trim().isNotEmpty;
 
-    // 반응형 크기 계산
-    final cardWidth = width * 0.65; // 화면 너비의 75%
-    final cardHeight = height * 0.205; // 화면 높이의 20%
-    final cardPadding = width * 0.06;
-    final dayFontSize = (width * 0.04).clamp(14.0, 24.0); // 최소 14, 최대 24
-    final contentFontSize = (width * 0.03).clamp(12.0, 20.0); // 최소 12, 최대 20
-    final submitFontSize = (width * 0.025).clamp(10.0, 16.0); // 최소 10, 최대 16
-    final borderRadius = width * 0.025;
-    final shadowBlur = width * 0.025;
-    final shadowOffset = width * 0.01;
-
-    final int dayValue = int.parse(day);
+    final double cardWidth = (width * 0.7).clamp(240.0, 360.0).toDouble();
+    final double horizontalPadding = (width * 0.045).clamp(16.0, 22.0).toDouble();
+    final double verticalPadding = (width * 0.04).clamp(14.0, 20.0).toDouble();
+    final String dayLabel = day == '0' ? 'D-day' : 'D-$day';
 
     return Container(
       width: cardWidth,
-      height: cardHeight,
+      padding: EdgeInsets.symmetric(
+        horizontal: horizontalPadding,
+        vertical: verticalPadding,
+      ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
         color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE9E9E9)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black12,
-            blurRadius: shadowBlur,
-            offset: Offset(0, shadowOffset),
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 2,
+            blurRadius: 8,
+            offset: const Offset(0, 3), // changes position of shadow
           ),
         ],
       ),
-      padding: EdgeInsets.symmetric(
-        horizontal: cardPadding,
-        vertical: height * 0.022,
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            'D-$day',
-            style: TextStyle(
-              fontWeight: FontWeight.w900 ,
-              color: dayValue <= 5 ? Colors.red : Colors.black,
-              fontSize: dayFontSize,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF0F0),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFFFA4A4)),
+            ),
+            child: Text(
+              dayLabel,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFFFF4D65),
+              ),
             ),
           ),
-          SizedBox(height: height * 0.002),
+          const SizedBox(height: 16),
           Text(
             neyong,
-            overflow: TextOverflow.ellipsis,
             maxLines: 1,
-            style: TextStyle(fontSize: contentFontSize),
-          ),
-          Spacer(),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Text(
-              '제출 >',
-              style: TextStyle(fontSize: submitFontSize, color: Colors.grey),
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF1F1F1F),
             ),
           ),
+          if (hasLocation) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(
+                  Icons.location_on_outlined,
+                  size: theme.textTheme.bodyMedium?.fontSize,
+                  color: const Color(0xFF8C8C8C),
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    location!.trim(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: const Color(0xFF8C8C8C),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

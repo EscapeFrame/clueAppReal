@@ -1,7 +1,7 @@
 import 'package:clue/config/app_data_.dart';
 import 'package:clue/linksave/LinkList.dart';
-import 'package:clue/linksave/LinkSujeong.dart' as link_edit;
 import 'package:clue/linksave/LinkSuccessDialog.dart';
+import 'package:clue/linksave/LinkSujeong.dart' as link_edit;
 import 'package:clue/linksave/LinksaveModal.dart' as link_add;
 import 'package:clue/linksave/NoLink.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +15,7 @@ class Cluelink extends StatefulWidget {
 }
 
 class _CluelinkState extends State<Cluelink> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final List<String> categories = ['전체', '인문과목', '전공과목', '방과후'];
   final List<Map<String, dynamic>> _links =
       AppData.getLinkDummyList()
@@ -53,6 +54,7 @@ class _CluelinkState extends State<Cluelink> {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
+      key: _scaffoldKey,
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final result = await link_add.showLinkAddDialog(context);
@@ -71,11 +73,9 @@ class _CluelinkState extends State<Cluelink> {
           }
         },
         backgroundColor: const Color(0xff0077FF),
-        child: const Icon(
-          Icons.add,
-          color: Color(0xffffffff),
-        ),
+        child: const Icon(Icons.add, color: Color(0xffffffff)),
       ),
+      endDrawer: const _LinkSideMenu(),
       body: Column(
         children: [
           Padding(
@@ -105,14 +105,21 @@ class _CluelinkState extends State<Cluelink> {
                     Container(
                       child: Row(
                         children: [
-                          SvgPicture.asset(
-                            'assets/images/bars-3.svg',
-                            width: width * 0.074,
-                          ),
-                          SizedBox(width: width * 0.03),
+                          
+                          
                           SvgPicture.asset(
                             'assets/images/jong.svg',
                             width: width * 0.055,
+                          ),
+                          SizedBox(width: width * 0.03),
+                          GestureDetector(
+                            onTap:
+                                () =>
+                                    _scaffoldKey.currentState?.openEndDrawer(),
+                            child: SvgPicture.asset(
+                              'assets/images/bars-3.svg',
+                              width: width * 0.074,
+                            ),
                           ),
                           SizedBox(width: width * 0.0443),
                         ],
@@ -213,57 +220,184 @@ class _CluelinkState extends State<Cluelink> {
                                 originalIndex == -1
                                     ? null
                                     : () async {
-                                        final edited =
-                                            await link_edit.showLinkEditDialog(
-                                          context,
-                                          initial: link_edit.LinkEditPayload(
-                                            title:
-                                                item['title'] as String? ?? '',
-                                            url: item['url'] as String? ?? '',
-                                            description:
-                                                item['description'] as String?,
-                                            tags: List<String>.from(tags),
-                                            restrictByGrade:
-                                                item['restrictByGrade'] == true,
-                                            restrictByClass:
-                                                item['restrictByClass'] == true,
-                                          ),
-                                          allTags: _collectAllTags(),
-                                        );
-                                        if (edited != null) {
-                                          setState(() {
-                                            final updated = Map<String,
-                                                dynamic>.from(
-                                              _links[originalIndex],
-                                            );
-                                            updated
-                                              ..['title'] = edited.title
-                                              ..['url'] = edited.url
-                                              ..['description'] =
-                                                  edited.description
-                                              ..['tags'] = edited.tags
-                                              ..['restrictByGrade'] =
-                                                  edited.restrictByGrade
-                                              ..['restrictByClass'] =
-                                                  edited.restrictByClass;
-                                            _links[originalIndex] = updated;
-                                          });
-                                          if (!context.mounted) return;
-                                          await showDialog<void>(
-                                            context: context,
-                                            barrierDismissible: false,
-                                            builder: (_) => const LinkSuccessDialog(),
+                                      final edited = await link_edit
+                                          .showLinkEditDialog(
+                                            context,
+                                            initial: link_edit.LinkEditPayload(
+                                              title:
+                                                  item['title'] as String? ??
+                                                  '',
+                                              url: item['url'] as String? ?? '',
+                                              description:
+                                                  item['description']
+                                                      as String?,
+                                              tags: List<String>.from(tags),
+                                              restrictByGrade:
+                                                  item['restrictByGrade'] ==
+                                                  true,
+                                              restrictByClass:
+                                                  item['restrictByClass'] ==
+                                                  true,
+                                            ),
+                                            allTags: _collectAllTags(),
                                           );
-                                        }
-                                      },
+                                      if (edited != null) {
+                                        setState(() {
+                                          final updated =
+                                              Map<String, dynamic>.from(
+                                                _links[originalIndex],
+                                              );
+                                          updated
+                                            ..['title'] = edited.title
+                                            ..['url'] = edited.url
+                                            ..['description'] =
+                                                edited.description
+                                            ..['tags'] = edited.tags
+                                            ..['restrictByGrade'] =
+                                                edited.restrictByGrade
+                                            ..['restrictByClass'] =
+                                                edited.restrictByClass;
+                                          _links[originalIndex] = updated;
+                                        });
+                                        if (!context.mounted) return;
+                                        await showDialog<void>(
+                                          context: context,
+                                          barrierDismissible: false,
+                                          builder:
+                                              (_) => const LinkSuccessDialog(),
+                                        );
+                                      }
+                                    },
                           );
                         },
-                        separatorBuilder: (_, __) => SizedBox(height: height * 0.02),
+                        separatorBuilder:
+                            (_, __) => SizedBox(height: height * 0.02),
                         itemCount: _filteredLinks.length,
                       ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _LinkSideMenu extends StatelessWidget {
+  const _LinkSideMenu();
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final theme = Theme.of(context);
+    final double drawerWidth =
+        (media.size.width * 0.78).clamp(280.0, media.size.width).toDouble();
+
+    return Drawer(
+      width: drawerWidth,
+
+      child: SafeArea(
+        child: Container(
+          decoration: BoxDecoration(color: Colors.white),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    splashRadius: 20,
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close, color: Colors.black),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const _MenuEntry(text: 'CLUE 서비스로 이동'),
+                const SizedBox(height: 22),
+                const _MenuEntry(text: '설정'),
+                const SizedBox(height: 22),
+                const _MenuEntry(text: '문의하기'),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F3FF),
+                    borderRadius: BorderRadius.circular(26),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 34,
+                        height: 34,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(0xFFE1E5EB),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          '공덕한',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF0D6EFD),
+                          ),
+                        ),
+                      ),
+                      const Icon(
+                        Icons.copy_outlined,
+                        size: 20,
+                        color: Color(0xFF0D6EFD),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MenuEntry extends StatelessWidget {
+  const _MenuEntry({required this.text, this.trailing});
+
+  final String text;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.titleMedium?.copyWith(
+      fontSize: 18,
+      fontWeight: FontWeight.w500,
+    );
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(child: Text(text, style: style)),
+        if (trailing != null) trailing!,
+      ],
+    );
+  }
+}
+
+class _MenuIndicator extends StatelessWidget {
+  const _MenuIndicator();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 8,
+      height: 8,
+      margin: const EdgeInsets.only(left: 12),
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Color(0xFF3BC56C),
       ),
     );
   }
