@@ -17,9 +17,10 @@ class Haksubsil extends StatefulWidget {
 }
 
 class _HaksubsilState extends State<Haksubsil> {
-  final List<Map<String, dynamic>> noticeList = AppData.getNoticeList();
-  List<Map<String, dynamic>> _classList = [];
-
+  List<Map<String, dynamic>> _classList = AppData.getNoticeList();
+  final List<String> categories = ['전체', '인문과목', '전공과목', '방과후'];
+  int selectedIndex = 0; //기본선택 : 전체
+  bool _isLoading = true;
   Future<void> classJoin() async {
     try {
       final dio = ApiClient.instance.dio;
@@ -44,6 +45,37 @@ class _HaksubsilState extends State<Haksubsil> {
       debugPrint("dioerror : ${e.error}");
     } catch (e) {
       debugPrint("error: $e");
+    }
+  }
+
+  Widget _buildTabContent() {
+    if (_isLoading && _classList.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+    switch (selectedIndex) {
+      case 1:
+        return Inmoonhaksubsilbarogaja(
+          key: const ValueKey('inmoon'),
+          noticeList: _classList,
+        );
+      case 2:
+        return Jeonggonghaksubsilbarogaja(
+          key: const ValueKey('jeonggong'),
+          noticeList: _classList,
+        );
+      case 3:
+        return Banggwahoohaksubsilbarogaja(
+          key: const ValueKey('banggwahoo'),
+          noticeList: _classList,
+        );
+      case 0:
+      default:
+        return Haksubsilbarogaja(
+          key: const ValueKey('all'),
+          noticeList: _classList,
+        );
     }
   }
 
@@ -153,8 +185,11 @@ class _HaksubsilState extends State<Haksubsil> {
               .map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e))
               .toList();
 
+      if (!mounted) return;
       setState(() {
-        _classList = list;
+        if (list.isNotEmpty) {
+          _classList = list;
+        }
       });
 
       debugPrint(res.data.toString());
@@ -165,6 +200,10 @@ class _HaksubsilState extends State<Haksubsil> {
       );
     } catch (e) {
       debugPrint('Error: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -179,134 +218,203 @@ class _HaksubsilState extends State<Haksubsil> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
-    return DefaultTabController(
-      length: 4,
-      child: Scaffold(
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            showAddClassDialog(context);
-          },
-          backgroundColor: Color(0xff86C1FF),
-          child: const Icon(Icons.add),
-        ),
-        body: Column(
-          children: [
-            Container(
-              color: Colors.white,
-              padding: EdgeInsets.symmetric(
-                horizontal: width * 0.06,
-                vertical: height * 0.015,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: height * 0.05),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showAddClassDialog(context);
+        },
+        backgroundColor: Color(0xff0077FF),
+        child: const Icon(Icons.add, color: Color(0xffffffff)),
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  child: SvgPicture.asset(
+                    'assets/images/realLogo.svg',
+
+                    width: width * 0.25,
+                  ),
+                ),
+
+                Container(
+                  child: Row(
                     children: [
                       SvgPicture.asset(
-                        'assets/images/clueLogo.svg',
-                        width: width * 0.25,
+                        'assets/images/jong.svg',
+                        width: width * 0.055,
                       ),
-                      Container(
-                        margin: EdgeInsets.only(right: width * 0.035),
+                      SizedBox(width: width * 0.03),
+                      GestureDetector(
+                        // onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
                         child: SvgPicture.asset(
-                          'assets/images/jong.svg',
-                          width: width * 0.055,
+                          'assets/images/bars-3.svg',
+                          width: width * 0.074,
                         ),
                       ),
+                      SizedBox(width: width * 0.0443),
                     ],
                   ),
-                  SizedBox(height: height * 0.05),
-                  Text(
-                    '나의 학습실',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: width * 0.045,
-                    ),
-                  ),
-                  SizedBox(height: height * 0.005),
-                  Text(
-                    '학습실을 확인하고 관리해주세요!',
-                    style: TextStyle(fontSize: width * 0.038),
-                  ),
-                  SizedBox(height: height * 0.003),
-                  TabBar(
-                    labelColor: Colors.black,
-                    unselectedLabelColor: Colors.grey,
-                    indicatorColor: Colors.lightBlue,
-                    indicatorWeight: 3,
-                    labelStyle: TextStyle(
-                      fontSize: width * 0.04,
-                      fontWeight: FontWeight.w300,
-                      letterSpacing: 1,
-                    ),
-                    tabs: [
-                      Tab(
-                        child: SizedBox(
-                          height: height * 0.04,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              '전체',
-                              style: TextStyle(fontSize: width * 0.045),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Tab(
-                        child: SizedBox(
-                          height: height * 0.04,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              '인문과목',
-                              style: TextStyle(fontSize: width * 0.045),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Tab(
-                        child: SizedBox(
-                          height: height * 0.04,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              '전공과목',
-                              style: TextStyle(fontSize: width * 0.045),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Tab(
-                        child: SizedBox(
-                          height: height * 0.04,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              '방과후',
-                              style: TextStyle(fontSize: width * 0.045),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-            Expanded(
-              child: TabBarView(
-                children: [
-                  Haksubsilbarogaja(noticeList: _classList),
-                  Inmoonhaksubsilbarogaja(noticeList: _classList),
-                  Jeonggonghaksubsilbarogaja(noticeList: _classList),
-                  Banggwahoohaksubsilbarogaja(noticeList: _classList),
-                ],
-              ),
+          ),
+          SizedBox(height: height * 0.016),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: width * 0.0443),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '나의 학습실',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: width * 0.055,
+                  ),
+                ),
+                SizedBox(height: height * 0.01),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final bool isWide = constraints.maxWidth >= 620;
+                    final double maxFieldWidth =
+                        isWide ? 540 : constraints.maxWidth;
+                    final double trailingPadding = isWide ? 24 : 16;
+                    final double verticalPadding = isWide ? 18 : 12;
+                    final double radiusValue = isWide ? 18 : 14;
+                    final double hintFontSize =
+                        isWide ? width * 0.0335 : width * 0.035;
+                    final double minHeight = isWide ? 56 : 46;
+                    final double iconContainerSize = isWide ? 42 : 36;
+                    final double iconSize = isWide ? 22 : 20;
+                    final BorderRadius iconRadius = BorderRadius.circular(
+                      isWide ? 14 : 12,
+                    );
+                    final IconData iconData =
+                        isWide ? Icons.search_rounded : Icons.search;
+                    final Color iconBackground =
+                        isWide
+                            ? const Color(0xFFE3E9F4)
+                            : const Color(0xFFF0F2F5);
+
+                    return Align(
+                      alignment: Alignment.centerLeft,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: maxFieldWidth),
+                        child: TextField(
+                          decoration: InputDecoration(
+                            hintText: "검색할 내용을 입력하세요",
+                            hintStyle: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: hintFontSize,
+                            ),
+                            filled: true,
+                            fillColor: const Color(0xFFF5F6FA),
+                            prefixIcon: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isWide ? 10 : 8,
+                              ),
+                              child: Container(
+                                width: iconContainerSize,
+                                height: iconContainerSize,
+                                decoration: BoxDecoration(
+                                  color: iconBackground,
+                                  borderRadius: iconRadius,
+                                ),
+                                child: Icon(
+                                  iconData,
+                                  size: iconSize,
+                                  color: const Color(0xFF0D6EFD),
+                                ),
+                              ),
+                            ),
+                            prefixIconConstraints: BoxConstraints(
+                              minWidth: iconContainerSize + (isWide ? 20 : 16),
+                              minHeight: iconContainerSize,
+                            ),
+                            contentPadding: EdgeInsets.only(
+                              top: verticalPadding,
+                              bottom: verticalPadding,
+                              right: trailingPadding,
+                            ),
+                            isDense: true,
+                            constraints: BoxConstraints(minHeight: minHeight),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(radiusValue),
+                              borderSide: const BorderSide(
+                                color: Color(0xFFE1E5EC),
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(radiusValue),
+                              borderSide: const BorderSide(
+                                color: Color(0xFF0D6EFD),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
+                SizedBox(height: height * 0.013),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: List.generate(categories.length, (index) {
+                    final bool isSelected = selectedIndex == index;
+
+                    return GestureDetector(
+                      onTap: () {
+                        if (selectedIndex != index) {
+                          setState(() => selectedIndex = index);
+                        }
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeInOut,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: width * 0.04,
+                          vertical: width * 0.025,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              isSelected
+                                  ? const Color(0xff0077FF)
+                                  : Colors.transparent,
+                          borderRadius: BorderRadius.circular(50),
+                        ),
+                        child: Text(
+                          categories[index],
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : Colors.grey[700],
+                            fontSize: width * 0.035,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+
+          SizedBox(height: height * 0.02),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              switchInCurve: Curves.easeInOut,
+              switchOutCurve: Curves.easeInOut,
+              child: _buildTabContent(),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -31,17 +31,28 @@ class LinkList extends StatelessWidget {
     final mediaQuery = MediaQuery.of(context);
     final width = mediaQuery.size.width;
     final scale = (width / 360).clamp(0.85, 1.2);
-    double scaled(double base) => double.parse((base * scale).toStringAsFixed(2));
+    double scaled(double base) =>
+        double.parse((base * scale).toStringAsFixed(2));
 
     final scopes = <String>[];
     if (restrictByGrade) scopes.add('학년');
     if (restrictByClass) scopes.add('반');
 
-    return Material(
-      color: Colors.white,
-      elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.04),
-      borderRadius: BorderRadius.circular(18),
+    return Container(
+
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.09),
+            blurRadius: 12,
+            spreadRadius: 1,
+            offset: Offset.zero,
+          ),
+        ],
+        color: Colors.white,
+
+        borderRadius: BorderRadius.circular(18),
+      ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
         child: Column(
@@ -53,10 +64,10 @@ class LinkList extends StatelessWidget {
                   child: Text(
                     createdAt ?? '',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                          fontSize: scaled(13),
-                        ),
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                      fontSize: scaled(13),
+                    ),
                   ),
                 ),
                 _ActionIcon(
@@ -85,19 +96,19 @@ class LinkList extends StatelessWidget {
             Text(
               title,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black,
-                    fontSize: scaled(18),
-                  ),
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+                fontSize: scaled(18),
+              ),
             ),
             if ((description ?? '').trim().isNotEmpty) ...[
               const SizedBox(height: 6),
               Text(
                 description!.trim(),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey[600],
-                      fontSize: scaled(13),
-                    ),
+                  color: Colors.grey[600],
+                  fontSize: scaled(13),
+                ),
               ),
             ],
             if (scopes.isNotEmpty || tags.isNotEmpty) ...[
@@ -121,11 +132,7 @@ class LinkList extends StatelessWidget {
 }
 
 class _ScopeChip extends StatelessWidget {
-  const _ScopeChip(
-    this.label, {
-    this.tag = false,
-    required this.scale,
-  });
+  const _ScopeChip(this.label, {this.tag = false, required this.scale});
 
   final String label;
   final bool tag;
@@ -168,18 +175,13 @@ class _ActionIcon extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
-  
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(4),
-        child: Icon(
-          icon,
-          size: (20 * scale).clamp(16, 24),
-          color:  color,
-        ),
+        child: Icon(icon, size: (20 * scale).clamp(16, 24), color: color),
       ),
     );
   }
