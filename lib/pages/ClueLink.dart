@@ -55,6 +55,11 @@ class _CluelinkState extends State<Cluelink> {
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
       key: _scaffoldKey,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        toolbarHeight: 0,
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final result = await link_add.showLinkAddDialog(context);

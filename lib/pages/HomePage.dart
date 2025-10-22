@@ -108,7 +108,7 @@ class _HomePageState extends State<HomePage> {
       body: Container(
         color: Colors.white,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(
@@ -148,7 +148,7 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-      
+          
             Expanded(
               child: SingleChildScrollView(
                 child: Container(

@@ -1,10 +1,7 @@
 import 'package:clue/api_client.dart';
 import 'package:clue/config/app_color.dart';
 import 'package:clue/config/app_data_.dart';
-import 'package:clue/widgets/haksubsilPage/haksubsilTabBar_/BangGwaHooHakSubSilBaroGaJa.dart';
-import 'package:clue/widgets/haksubsilPage/haksubsilTabBar_/HakSubSilBaroGaJa.dart';
-import 'package:clue/widgets/haksubsilPage/haksubsilTabBar_/InmoonHakSubSilBaroGaJa.dart';
-import 'package:clue/widgets/haksubsilPage/haksubsilTabBar_/JeongGongHakSubSilBaroGaJa.dart';
+import 'package:clue/widgets/haksubsilPage/HakSubSilBaroGaBoJa.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -50,33 +47,24 @@ class _HaksubsilState extends State<Haksubsil> {
 
   Widget _buildTabContent() {
     if (_isLoading && _classList.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
-    switch (selectedIndex) {
-      case 1:
-        return Inmoonhaksubsilbarogaja(
-          key: const ValueKey('inmoon'),
-          noticeList: _classList,
-        );
-      case 2:
-        return Jeonggonghaksubsilbarogaja(
-          key: const ValueKey('jeonggong'),
-          noticeList: _classList,
-        );
-      case 3:
-        return Banggwahoohaksubsilbarogaja(
-          key: const ValueKey('banggwahoo'),
-          noticeList: _classList,
-        );
-      case 0:
-      default:
-        return Haksubsilbarogaja(
-          key: const ValueKey('all'),
-          noticeList: _classList,
-        );
-    }
+    const filters = [null, 'inmoon', 'jeongong', 'banggwahoo'];
+    final clampedIndex = selectedIndex.clamp(0, filters.length - 1).toInt();
+    final filter = filters[clampedIndex];
+    final emptyMessages = [
+      '등록된 학습실이 없습니다.',
+      '인문과목 학습실이 없습니다.',
+      '전공과목 학습실이 없습니다.',
+      '방과후 학습실이 없습니다.',
+    ];
+
+    return HakSubSilBaroGaBoJa(
+      key: ValueKey(filter ?? 'all'),
+      noticeList: _classList,
+      subjectFilter: filter,
+      emptyMessage: emptyMessages[clampedIndex],
+    );
   }
 
   void showAddClassDialog(BuildContext context) {
@@ -219,6 +207,11 @@ class _HaksubsilState extends State<Haksubsil> {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        toolbarHeight: 0,
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           showAddClassDialog(context);
@@ -226,195 +219,204 @@ class _HaksubsilState extends State<Haksubsil> {
         backgroundColor: Color(0xff0077FF),
         child: const Icon(Icons.add, color: Color(0xffffffff)),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  child: SvgPicture.asset(
-                    'assets/images/realLogo.svg',
+      body: Container(
+        color: Colors.white,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    child: SvgPicture.asset(
+                      'assets/images/realLogo.svg',
 
-                    width: width * 0.25,
+                      width: width * 0.25,
+                    ),
                   ),
-                ),
 
-                Container(
-                  child: Row(
-                    children: [
-                      SvgPicture.asset(
-                        'assets/images/jong.svg',
-                        width: width * 0.055,
-                      ),
-                      SizedBox(width: width * 0.03),
-                      GestureDetector(
-                        // onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
-                        child: SvgPicture.asset(
-                          'assets/images/bars-3.svg',
-                          width: width * 0.074,
+                  Container(
+                    child: Row(
+                      children: [
+                        SvgPicture.asset(
+                          'assets/images/jong.svg',
+                          width: width * 0.055,
                         ),
-                      ),
-                      SizedBox(width: width * 0.0443),
-                    ],
+                        SizedBox(width: width * 0.03),
+                        GestureDetector(
+                          // onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+                          child: SvgPicture.asset(
+                            'assets/images/bars-3.svg',
+                            width: width * 0.074,
+                          ),
+                        ),
+                        SizedBox(width: width * 0.0443),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          SizedBox(height: height * 0.016),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: width * 0.0443),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '나의 학습실',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: width * 0.055,
+            SizedBox(height: height * 0.01),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: width * 0.0443),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '나의 학습실',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: width * 0.055,
+                    ),
                   ),
-                ),
-                SizedBox(height: height * 0.01),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final bool isWide = constraints.maxWidth >= 620;
-                    final double maxFieldWidth =
-                        isWide ? 540 : constraints.maxWidth;
-                    final double trailingPadding = isWide ? 24 : 16;
-                    final double verticalPadding = isWide ? 18 : 12;
-                    final double radiusValue = isWide ? 18 : 14;
-                    final double hintFontSize =
-                        isWide ? width * 0.0335 : width * 0.035;
-                    final double minHeight = isWide ? 56 : 46;
-                    final double iconContainerSize = isWide ? 42 : 36;
-                    final double iconSize = isWide ? 22 : 20;
-                    final BorderRadius iconRadius = BorderRadius.circular(
-                      isWide ? 14 : 12,
-                    );
-                    final IconData iconData =
-                        isWide ? Icons.search_rounded : Icons.search;
-                    final Color iconBackground =
-                        isWide
-                            ? const Color(0xFFE3E9F4)
-                            : const Color(0xFFF0F2F5);
+                  SizedBox(height: height * 0.01),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final bool isWide = constraints.maxWidth >= 620;
+                      final double maxFieldWidth =
+                          isWide ? 540 : constraints.maxWidth;
+                      final double trailingPadding = isWide ? 24 : 16;
+                      final double verticalPadding = isWide ? 18 : 12;
+                      final double radiusValue = isWide ? 18 : 14;
+                      final double hintFontSize =
+                          isWide ? width * 0.0335 : width * 0.035;
+                      final double minHeight = isWide ? 56 : 46;
+                      final double iconContainerSize = isWide ? 42 : 36;
+                      final double iconSize = isWide ? 22 : 20;
+                      final BorderRadius iconRadius = BorderRadius.circular(
+                        isWide ? 14 : 12,
+                      );
+                      final IconData iconData =
+                          isWide ? Icons.search_rounded : Icons.search;
+                      final Color iconBackground =
+                          isWide
+                              ? const Color(0xFFE3E9F4)
+                              : const Color(0xFFF0F2F5);
 
-                    return Align(
-                      alignment: Alignment.centerLeft,
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: maxFieldWidth),
-                        child: TextField(
-                          decoration: InputDecoration(
-                            hintText: "검색할 내용을 입력하세요",
-                            hintStyle: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: hintFontSize,
-                            ),
-                            filled: true,
-                            fillColor: const Color(0xFFF5F6FA),
-                            prefixIcon: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: isWide ? 10 : 8,
+                      return Align(
+                        alignment: Alignment.centerLeft,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: maxFieldWidth),
+                          child: TextField(
+                            decoration: InputDecoration(
+                              hintText: "검색할 내용을 입력하세요",
+                              hintStyle: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: hintFontSize,
                               ),
-                              child: Container(
-                                width: iconContainerSize,
-                                height: iconContainerSize,
-                                decoration: BoxDecoration(
-                                  color: iconBackground,
-                                  borderRadius: iconRadius,
+                              filled: true,
+                              fillColor: const Color(0xFFF5F6FA),
+                              prefixIcon: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: isWide ? 10 : 8,
                                 ),
-                                child: Icon(
-                                  iconData,
-                                  size: iconSize,
-                                  color: const Color(0xFF0D6EFD),
+                                child: Container(
+                                  width: iconContainerSize,
+                                  height: iconContainerSize,
+                                  decoration: BoxDecoration(
+                                    color: iconBackground,
+                                    borderRadius: iconRadius,
+                                  ),
+                                  child: Icon(
+                                    iconData,
+                                    size: iconSize,
+                                    color: const Color(0xFF0D6EFD),
+                                  ),
                                 ),
                               ),
-                            ),
-                            prefixIconConstraints: BoxConstraints(
-                              minWidth: iconContainerSize + (isWide ? 20 : 16),
-                              minHeight: iconContainerSize,
-                            ),
-                            contentPadding: EdgeInsets.only(
-                              top: verticalPadding,
-                              bottom: verticalPadding,
-                              right: trailingPadding,
-                            ),
-                            isDense: true,
-                            constraints: BoxConstraints(minHeight: minHeight),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(radiusValue),
-                              borderSide: const BorderSide(
-                                color: Color(0xFFE1E5EC),
+                              prefixIconConstraints: BoxConstraints(
+                                minWidth:
+                                    iconContainerSize + (isWide ? 20 : 16),
+                                minHeight: iconContainerSize,
                               ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(radiusValue),
-                              borderSide: const BorderSide(
-                                color: Color(0xFF0D6EFD),
+                              contentPadding: EdgeInsets.only(
+                                top: verticalPadding,
+                                bottom: verticalPadding,
+                                right: trailingPadding,
+                              ),
+                              isDense: true,
+                              constraints: BoxConstraints(minHeight: minHeight),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  radiusValue,
+                                ),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE1E5EC),
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  radiusValue,
+                                ),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFF0D6EFD),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                      );
+                    },
+                  ),
 
-                SizedBox(height: height * 0.013),
+                  SizedBox(height: height * 0.013),
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(categories.length, (index) {
-                    final bool isSelected = selectedIndex == index;
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: List.generate(categories.length, (index) {
+                      final bool isSelected = selectedIndex == index;
 
-                    return GestureDetector(
-                      onTap: () {
-                        if (selectedIndex != index) {
-                          setState(() => selectedIndex = index);
-                        }
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeInOut,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: width * 0.04,
-                          vertical: width * 0.025,
-                        ),
-                        decoration: BoxDecoration(
-                          color:
-                              isSelected
-                                  ? const Color(0xff0077FF)
-                                  : Colors.transparent,
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                        child: Text(
-                          categories[index],
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.grey[700],
-                            fontSize: width * 0.035,
-                            fontWeight: FontWeight.w500,
+                      return GestureDetector(
+                        onTap: () {
+                          if (selectedIndex != index) {
+                            setState(() => selectedIndex = index);
+                          }
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeInOut,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: width * 0.04,
+                            vertical: width * 0.025,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                isSelected
+                                    ? const Color(0xff0077FF)
+                                    : Colors.transparent,
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                          child: Text(
+                            categories[index],
+                            style: TextStyle(
+                              color:
+                                  isSelected ? Colors.white : Colors.grey[700],
+                              fontSize: width * 0.035,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  }),
-                ),
-              ],
+                      );
+                    }),
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          SizedBox(height: height * 0.02),
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 250),
-              switchInCurve: Curves.easeInOut,
-              switchOutCurve: Curves.easeInOut,
-              child: _buildTabContent(),
+            SizedBox(height: height * 0.01),
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                switchInCurve: Curves.easeInOut,
+                switchOutCurve: Curves.easeInOut,
+                child: _buildTabContent(),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
