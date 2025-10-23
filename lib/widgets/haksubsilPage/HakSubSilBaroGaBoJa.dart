@@ -57,7 +57,7 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final filtered = _filteredNotices();
-    final iconChanger = 'inmoon'; //임시
+    final iconChanger = 'asdfasdf'; //임시
     if (filtered.isEmpty) {
       return Container(
         color: Color(0xffF7F7F7),
@@ -102,12 +102,12 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
                 width * 0.045,
                 width * 0.045,
                 width * 0.055,
-                width * 0.037,
+                width * 0.045,
               ),
               decoration: BoxDecoration(
                 color: Color(0xffffffff),
                 borderRadius: BorderRadius.circular(width * 0.025),
-                border: Border.all(color: Colors.grey, width: 0.5),
+                border: Border.all(color: Color(0xffE9E9E9), width: 1.5),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -124,20 +124,38 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
                                 color: Colors.blue[50],
                                 borderRadius: BorderRadius.circular(50),
                               ),
-                              child: Transform.scale(
-                                scale: width * 0.06 / 20,
-                                child: SvgPicture.asset(
-                                  'assets/images/bookIcon.svg',
+                              child:
+                                  iconChanger == 'inmoon'
+                                      ? Transform.scale(
+                                        scale: width * 0.06 / 20,
+                                        child: SvgPicture.asset(
+                                          'assets/images/bookIcon.svg',
 
-                                  fit: BoxFit.scaleDown,
-                                ),
-                              ),
+                                          fit: BoxFit.scaleDown,
+                                        ),
+                                      )
+                                      : iconChanger == 'jeongong'
+                                      ? Transform.scale(
+                                        scale: width * 0.06 / 20,
+                                        child: SvgPicture.asset(
+                                          'assets/images/capIcon.svg',
+
+                                          fit: BoxFit.scaleDown,
+                                        ),
+                                      )
+                                      : Transform.scale(
+                                        scale: width * 0.06 / 20,
+                                        child: SvgPicture.asset(
+                                          'assets/images/bangGwaHooIcon.svg',
+                                          fit: BoxFit.scaleDown,
+                                        ),
+                                      ),
                             ),
-                            SizedBox(width: width * 0.05),
+                            SizedBox(width: width * 0.025),
                             Text(
                               (notice['name'] ?? '').toString(),
                               style: TextStyle(
-                                fontSize: width * 0.045,
+                                fontSize: width * 0.053,
                                 fontWeight: FontWeight.w600,
                               ),
                               maxLines: 1,
@@ -148,32 +166,18 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: width * 0.008),
+                  SizedBox(height: width * 0.01),
                   Row(
                     children: [
                       Text(
-                        (notice['sort'] ?? '').toString(),
+                        '${(notice['sort'] ?? '').toString()}  |  ${(notice['target'] ?? '').toString()}',
                         style: TextStyle(
                           fontSize: width * 0.04,
                           color: Colors.grey,
                         ),
                       ),
                       SizedBox(width: width * 0.01),
-                      Text(
-                        '|',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: width * 0.035,
-                        ),
-                      ),
-                      SizedBox(width: width * 0.01),
-                      Text(
-                        (notice['target'] ?? '').toString(),
-                        style: TextStyle(
-                          fontSize: width * 0.04,
-                          color: Colors.grey,
-                        ),
-                      ),
+                      
                     ],
                   ),
                   SizedBox(height: width * 0.008),
@@ -187,19 +191,7 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      const Spacer(),
-                      Text(
-                        '과제 보기 >',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: width * 0.04,
-                        ),
-                      ),
-                    ],
-                  ),
+                  
                 ],
               ),
             ),
