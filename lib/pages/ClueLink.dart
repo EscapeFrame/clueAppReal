@@ -97,7 +97,6 @@ class _CluelinkState extends State<Cluelink> {
                     Container(
                       child: SvgPicture.asset(
                         'assets/images/realLogo.svg',
-
                         width: width * 0.25,
                       ),
                     ),
@@ -128,7 +127,7 @@ class _CluelinkState extends State<Cluelink> {
                 padding: EdgeInsets.symmetric(horizontal: width * 0.0443),
                 child: Column(
                   children: [
-                    SizedBox(height: height * 0.02),
+                    SizedBox(height: height * 0.01),
                     LayoutBuilder(
                       builder: (context, constraints) {
                         final bool isWide = constraints.maxWidth >= 620;

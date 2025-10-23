@@ -102,7 +102,7 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
                 width * 0.045,
                 width * 0.045,
                 width * 0.055,
-                width * 0.045,
+                width * 0.055,
               ),
               decoration: BoxDecoration(
                 color: Color(0xffffffff),
@@ -151,11 +151,11 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
                                         ),
                                       ),
                             ),
-                            SizedBox(width: width * 0.025),
+                            SizedBox(width: width * 0.027),
                             Text(
                               (notice['name'] ?? '').toString(),
                               style: TextStyle(
-                                fontSize: width * 0.053,
+                                fontSize: width * 0.05,
                                 fontWeight: FontWeight.w600,
                               ),
                               maxLines: 1,
@@ -166,7 +166,7 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: width * 0.01),
+                  SizedBox(height: width * 0.012),
                   Row(
                     children: [
                       Text(

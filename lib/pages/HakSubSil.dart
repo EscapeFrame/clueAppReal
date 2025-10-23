@@ -88,14 +88,25 @@ class _HaksubsilState extends State<Haksubsil> {
               crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
-                Text(
-                  '학습실 추가하기',
-                  style: TextStyle(
-                    fontSize: width * 0.04,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '학습실 추가하기',
+                      style: TextStyle(
+                        fontSize: width * 0.04,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: Icon(Icons.close, size: width * 0.055),
+                    ),
+                  ],
                 ),
-                SizedBox(height: height * 0.01),
+
                 TextField(
                   style: TextStyle(
                     fontSize: width * 0.031,
@@ -113,42 +124,51 @@ class _HaksubsilState extends State<Haksubsil> {
                     fillColor: Color(0xffF3F3F3),
                     hintText: "학습실 코드를 입력해주세요",
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide.none,
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide(color: AppColor.bblue),
                     ),
                   ),
                 ),
-                SizedBox(height: height * 0.02),
-                GestureDetector(
-                  onTap: () => {Navigator.pop(context)},
-                  child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 4),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Color(0xffCCCCCC)),
+                SizedBox(height: height * 0.05),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => {Navigator.pop(context)},
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 4),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Color(0xffCCCCCC)),
+                          ),
+                          child: Center(child: Text('취소')),
+                        ),
+                      ),
                     ),
-                    child: Center(child: Text('취소')),
-                  ),
-                ),
-                SizedBox(height: 5),
-                GestureDetector(
-                  onTap: () {
-                    String code = codeController.text;
-                    haksubsilJoin(code);
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColor.blue,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColor.blue),
+                    SizedBox(width: width*0.015),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          String code = codeController.text;
+                          haksubsilJoin(code);
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColor.blue,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColor.blue),
+                          ),
+                          child: Center(child: Text('확인')),
+                        ),
+                      ),
                     ),
-                    child: Center(child: Text('확인')),
-                  ),
+                  ],
                 ),
               ],
             ),
