@@ -5,141 +5,165 @@ import 'package:flutter_svg/svg.dart';
 class Settings extends StatelessWidget {
   const Settings({super.key});
 
+  static const _backgroundColor = Color(0xffF5F5F5);
+  static const _cardShadow = [
+    BoxShadow(color: Color(0x11000000), blurRadius: 18, offset: Offset(0, 6)),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final height = MediaQuery.of(context).size.height;
-
-    Widget sectionHeader(String title) {
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Text(
-          title,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: width * 0.045,
-          ),
-        ),
-      );
-    }
-
-    Widget sectionItem(String title) {
-      return ListTile(
-        title: Text(title, style: TextStyle(fontSize: width * 0.037)),
-        dense: true,
-        contentPadding: EdgeInsets.symmetric(horizontal: 21),
-      );
-    }
-
-    Widget toggleItem(String title, bool value) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 21),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title, style: TextStyle(fontSize: width * 0.037)),
-            Transform.scale(
-              scale: width * 0.00175,
-              child: Switch(
-                value: value,
-                onChanged: (_) {},
-
-                activeTrackColor: const Color(0xff578FCA),
-                inactiveThumbColor: Colors.white,
-                inactiveTrackColor: const Color(0xffcccccc),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    Widget divider() {
-      return Container(
-        height: 6,
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFFEFEFEF),
-          borderRadius: BorderRadius.circular(12),
-        ),
-      );
-    }
+    final theme = Theme.of(context);
+    final media = MediaQuery.of(context);
+    final width = media.size.width;
 
     return Scaffold(
-      body: SingleChildScrollView(
+      backgroundColor: _backgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        toolbarHeight: 0,
+      ),
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-              color: const Color(0xffffffff),
-              padding: EdgeInsets.symmetric(
-                horizontal: width * 0.06,
-                vertical: height * 0.015,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: height * 0.05),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      SvgPicture.asset(
-                        'assets/images/clueLogo.svg',
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      child: SvgPicture.asset(
+                        'assets/images/realLogo.svg',
+              
                         width: width * 0.25,
                       ),
-                      Container(
-                        margin: EdgeInsets.only(right: width * 0.035),
-                        child: SvgPicture.asset(
-                          'assets/images/jong.svg',
-                          width: width * 0.055,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: height * 0.05),
-                  Card(
-                    margin: EdgeInsets.zero,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      side: BorderSide.none,
-                      borderRadius: BorderRadius.zero,
                     ),
-                    color: Colors.white,
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: FlutterLogo(size: 72.0),
-                      title: Text(
-                        '공덕현',
-                        style: TextStyle(
-                          fontSize: width * 0.043,
-                          fontWeight: FontWeight.bold,
-                        ),
+              
+                    Container(
+                      child: Row(
+                        children: [
+                          SvgPicture.asset(
+                            'assets/images/jong.svg',
+                            width: width * 0.055,
+                          ),
+                          SizedBox(width: width * 0.03),
+                          GestureDetector(
+                            // onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+                            child: SvgPicture.asset(
+                              'assets/images/bars-3.svg',
+                              width: width * 0.074,
+                            ),
+                          ),
+                          SizedBox(width: width * 0.0443),
+                        ],
                       ),
-                      subtitle: Column(
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 24,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 20,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: _cardShadow,
+                      ),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // SizedBox(height: 4),
-                          Text(
-                            '부산소프트웨어마이스터고등학교',
-                            style: TextStyle(fontSize: width * 0.035),
-                          ),
-                          Text(
-                            '2학년 2반 1번',
-                            style: TextStyle(fontSize: width * 0.035),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 64,
+                                height: 64,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFE6ECF4),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.person,
+                                  color: Color(0xFF7F8EA3),
+                                  size: 36,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '공덕현',
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: width * 0.048,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '부산소프트웨어마이스터고등학교',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: const Color(0xFF5C6672),
+                                      fontSize: width * 0.035,
+                                    ),
+                                  ),
+                                  Text(
+                                    '2학년 2반 1번',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: const Color(0xFF5C6672),
+                                      fontSize: width * 0.035,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                      // trailing: Icon(Icons.more_vert),
-                      isThreeLine: true,
                     ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  SettingsSet(),
-                ],
+                    const SizedBox(height: 24),
+                    const SettingsSet(),
+                  ],
+                ),
               ),
             ),
           ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        child: SizedBox(
+          height: 52,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0D6EFD),
+              foregroundColor: Colors.white,
+              textStyle: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            onPressed: () {},
+            child: const Text('변경사항 저장'),
+          ),
         ),
       ),
     );
