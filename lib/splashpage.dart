@@ -38,8 +38,10 @@ class _SplashView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white, // 네이티브 스플래시 color와 맞추기
-      body: Center(
-        child: _LogoFade(),          // 분리하면 재사용/테스트 쉬움
+      body: SafeArea(
+        child: Center(
+          child: _LogoFade(), // 분리하면 재사용/테스트 쉬움
+        ),
       ),
     );
   }
@@ -66,14 +68,46 @@ class _LogoFadeState extends State<_LogoFade> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final textStyle = TextStyle(
+      fontSize: width * 0.065,
+      fontWeight: FontWeight.w500,
+      color: const Color(0xFF1E1E1E),
+      height: 1.2,
+    );
+    final clueStyle = textStyle.copyWith(
+      color: const Color(0xFF0D6EFD),
+      fontWeight: FontWeight.w700,
+    );
+    final imageWidth = (width * 0.7).clamp(220.0, 360.0);
+
     return AnimatedOpacity(
       opacity: _opacity,
       duration: const Duration(milliseconds: 350), // 블로그처럼 1~3초 사이 취향대로
       curve: Curves.easeOut,
-      child: SvgPicture.asset(
-        'assets/images/logo.svg',
-        width: 160,
-        height: 160,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style: textStyle,
+                children: [
+                  const TextSpan(text: 'Welcome to '),
+                  TextSpan(text: 'CLUE', style: clueStyle),
+                  const TextSpan(text: ' service'),
+                ],
+              ),
+            ),
+            SizedBox(height: width * 0.08),
+            SvgPicture.asset(
+              'assets/images/ClueSplash.svg',
+              width: imageWidth,
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,6 +1,5 @@
 import 'package:clue/api_client.dart';
 import 'package:clue/config/app_color.dart';
-import 'package:clue/config/app_data_.dart';
 import 'package:clue/widgets/haksubsilPage/HakSubSilBaroGaBoJa.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +13,7 @@ class Haksubsil extends StatefulWidget {
 }
 
 class _HaksubsilState extends State<Haksubsil> {
-  List<Map<String, dynamic>> _classList = AppData.getNoticeList();
+  List<Map<String, dynamic>> _classList = const [];
   final List<String> categories = ['전체', '인문과목', '전공과목', '방과후'];
   int selectedIndex = 0; //기본선택 : 전체
   bool _isLoading = true;
@@ -195,9 +194,7 @@ class _HaksubsilState extends State<Haksubsil> {
 
       if (!mounted) return;
       setState(() {
-        if (list.isNotEmpty) {
-          _classList = list;
-        }
+        _classList = list;
       });
 
       debugPrint(res.data.toString());

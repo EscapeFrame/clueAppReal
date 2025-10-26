@@ -17,15 +17,30 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
   final String? emptyMessage;
 
   List<Map<String, dynamic>> _filteredNotices() {
+    final validNotices =
+        noticeList
+            .where(
+              (notice) => (notice['classRoomId'] ?? '').toString().trim().isNotEmpty,
+            )
+            .map((notice) {
+              final copy = Map<String, dynamic>.from(notice);
+              final name = (copy['name'] ?? '').toString().trim();
+              if (name.isEmpty) {
+                final fallback = (copy['title'] ?? '').toString().trim();
+                if (fallback.isNotEmpty) copy['name'] = fallback;
+              }
+              return copy;
+            })
+            .toList();
+
     if (subjectFilter == null || subjectFilter!.isEmpty) {
-      return List<Map<String, dynamic>>.from(noticeList);
+      return validNotices;
     }
 
-    return noticeList
+    return validNotices
         .where(
           (notice) => (notice['subject'] ?? '').toString() == subjectFilter,
         )
-        .map((notice) => Map<String, dynamic>.from(notice))
         .toList();
   }
 

@@ -47,17 +47,45 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  // static String code="teacher";
-  static String code = "student";
-  final List<Widget> _pages = [
-    HomePage(),
-    code != 'teacher' ? Haksubsil() : Thaksubsilsuap(),
-    // Education(),
-    Login(),
-    // Test(),
-    Settings(),
-    Cluelink(),
-  ];
+  static String code="teacher";
+  // static String code = "student";
+  late final List<Widget> _pages;
+  late final List<GlobalKey<NavigatorState>> _navigatorKeys;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      HomePage(),
+      code != 'teacher' ? Haksubsil() : Thaksubsilsuap(),
+      Login(),
+      Settings(),
+      Cluelink(),
+    ];
+    _navigatorKeys = List.generate(
+      _pages.length,
+      (_) => GlobalKey<NavigatorState>(),
+    );
+  }
+
+  Future<bool> _onWillPop() async {
+    final navigator = _navigatorKeys[_selectedIndex].currentState;
+    if (navigator?.canPop() ?? false) {
+      navigator!.pop();
+      return false;
+    }
+    return true;
+  }
+
+  Widget _buildTabNavigator(int index, Widget child) {
+    return Navigator(
+      key: _navigatorKeys[index],
+      onGenerateRoute: (settings) => MaterialPageRoute(
+        builder: (_) => child,
+        settings: settings,
+      ),
+    );
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -67,91 +95,100 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.shifting,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: [
-          BottomNavigationBarItem(
-            backgroundColor: Colors.white,
-            icon: SvgPicture.asset(
-              'assets/images/homen.svg',
-              colorFilter: ColorFilter.mode(
-                const Color.fromARGB(223, 199, 199, 199),
-                BlendMode.srcIn,
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        body: IndexedStack(
+          index: _selectedIndex,
+          children: [
+            for (var i = 0; i < _pages.length; i++)
+              _buildTabNavigator(i, _pages[i]),
+          ],
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.shifting,
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          items: [
+            BottomNavigationBarItem(
+              backgroundColor: Colors.white,
+              icon: SvgPicture.asset(
+                'assets/images/homen.svg',
+                colorFilter: ColorFilter.mode(
+                  const Color.fromARGB(223, 199, 199, 199),
+                  BlendMode.srcIn,
+                ),
               ),
-            ),
-            activeIcon: SvgPicture.asset(
-              'assets/images/homen.svg',
-              colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
-            ),
-            label: '홈',
-          ),
-          BottomNavigationBarItem(
-            backgroundColor: Colors.white,
-            icon: SvgPicture.asset(
-              'assets/images/bookn.svg',
-              colorFilter: ColorFilter.mode(
-                const Color.fromARGB(223, 199, 199, 199),
-                BlendMode.srcIn,
+              activeIcon: SvgPicture.asset(
+                'assets/images/homen.svg',
+                colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
               ),
+              label: '홈',
             ),
-            activeIcon: SvgPicture.asset(
-              'assets/images/bookn.svg',
-              colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
-            ),
-            label: '책',
-          ),
-          BottomNavigationBarItem(
-            backgroundColor: Colors.white,
-            icon: SvgPicture.asset(
-              'assets/images/Union.svg',
-              colorFilter: ColorFilter.mode(
-                const Color.fromARGB(223, 199, 199, 199),
-                BlendMode.srcIn,
+            BottomNavigationBarItem(
+              backgroundColor: Colors.white,
+              icon: SvgPicture.asset(
+                'assets/images/bookn.svg',
+                colorFilter: ColorFilter.mode(
+                  const Color.fromARGB(223, 199, 199, 199),
+                  BlendMode.srcIn,
+                ),
               ),
-            ),
-            activeIcon: SvgPicture.asset(
-              'assets/images/Union.svg',
-              colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
-            ),
-            label: '학교공지',
-          ),
-          BottomNavigationBarItem(
-            backgroundColor: Colors.white,
-            icon: SvgPicture.asset(
-              'assets/images/Setting.svg',
-              colorFilter: ColorFilter.mode(
-                const Color.fromARGB(223, 199, 199, 199),
-                BlendMode.srcIn,
+              activeIcon: SvgPicture.asset(
+                'assets/images/bookn.svg',
+                colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
               ),
+              label: '책',
             ),
-            activeIcon: SvgPicture.asset(
-              'assets/images/Setting.svg',
-              colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
-            ),
-            label: '설정',
-          ),
-          BottomNavigationBarItem(
-            backgroundColor: Colors.white,
-            icon: SvgPicture.asset(
-              'assets/images/Setting.svg',
-              colorFilter: ColorFilter.mode(
-                const Color.fromARGB(223, 199, 199, 199),
-                BlendMode.srcIn,
+            BottomNavigationBarItem(
+              backgroundColor: Colors.white,
+              icon: SvgPicture.asset(
+                'assets/images/Union.svg',
+                colorFilter: ColorFilter.mode(
+                  const Color.fromARGB(223, 199, 199, 199),
+                  BlendMode.srcIn,
+                ),
               ),
+              activeIcon: SvgPicture.asset(
+                'assets/images/Union.svg',
+                colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
+              ),
+              label: '학교공지',
             ),
-            activeIcon: SvgPicture.asset(
-              'assets/images/Setting.svg',
-              colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
+            BottomNavigationBarItem(
+              backgroundColor: Colors.white,
+              icon: SvgPicture.asset(
+                'assets/images/Setting.svg',
+                colorFilter: ColorFilter.mode(
+                  const Color.fromARGB(223, 199, 199, 199),
+                  BlendMode.srcIn,
+                ),
+              ),
+              activeIcon: SvgPicture.asset(
+                'assets/images/Setting.svg',
+                colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
+              ),
+              label: '설정',
             ),
-            label: '링크',
-          ),
-        ],
+            BottomNavigationBarItem(
+              backgroundColor: Colors.white,
+              icon: SvgPicture.asset(
+                'assets/images/Setting.svg',
+                colorFilter: ColorFilter.mode(
+                  const Color.fromARGB(223, 199, 199, 199),
+                  BlendMode.srcIn,
+                ),
+              ),
+              activeIcon: SvgPicture.asset(
+                'assets/images/Setting.svg',
+                colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
+              ),
+              label: '링크',
+            ),
+          ],
+        ),
       ),
     );
   }
