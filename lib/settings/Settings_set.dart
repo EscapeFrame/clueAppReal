@@ -1,3 +1,4 @@
+import 'package:clue/settings/Settings_ProfileSujeong.dart';
 import 'package:clue/settings/Settings_cheat.dart';
 import 'package:flutter/material.dart';
 
@@ -86,7 +87,7 @@ class _SettingsSetState extends State<SettingsSet> {
               activeTrackColor: const Color(0xFF0D6EFD),
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: const Color(0xFFE1E5EC),
-              trackOutlineColor: MaterialStateProperty.resolveWith(
+              trackOutlineColor: WidgetStateProperty.resolveWith(
                 (states) => Colors.transparent,
               ),
             ),
@@ -99,7 +100,15 @@ class _SettingsSetState extends State<SettingsSet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         buildSection('사용자관련', [
-          buildNavigationTile('사용자 정보 수정'),
+          buildNavigationTile(
+            '사용자 정보 수정',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const SettingsProfileSujeong(),
+              ),
+            ),
+          ),
           buildNavigationTile(
             '보관된 채팅',
             onTap:
