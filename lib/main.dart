@@ -1,5 +1,5 @@
-import 'package:clue/login.dart';
 import 'package:clue/pages/ClueLink.dart';
+import 'package:clue/pages/Education.dart';
 import 'package:clue/pages/HakSubSil.dart';
 import 'package:clue/pages/HomePage.dart';
 import 'package:clue/pages/Settings.dart';
@@ -58,7 +58,8 @@ class _MainScreenState extends State<MainScreen> {
     _pages = [
       HomePage(),
       code != 'teacher' ? Haksubsil() : Thaksubsilsuap(),
-      Login(),
+      // Login(),
+      Education(),
       Settings(),
       Cluelink(),
     ];
