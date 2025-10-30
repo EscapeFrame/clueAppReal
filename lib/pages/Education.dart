@@ -1,8 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-class Education extends StatelessWidget {
+class Education extends StatefulWidget {
   const Education({super.key});
+
+  @override
+  State<Education> createState() => _EducationState();
+}
+
+class _EducationState extends State<Education>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+  int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging &&
+          _currentIndex != _tabController.index) {
+        setState(() => _currentIndex = _tabController.index);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,18 +107,10 @@ class _PeriodChip extends StatelessWidget {
       ),
     );
 
-
-
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.centerRight,
-      children: [
-        chip,
-        Positioned(
-          right: -6,
-          child: SizedBox.shrink()
-        ),
-      ],
+      children: [chip, Positioned(right: -6, child: SizedBox.shrink())],
     );
   }
 }

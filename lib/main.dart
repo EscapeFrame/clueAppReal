@@ -1,5 +1,5 @@
+import 'package:clue/login.dart';
 import 'package:clue/pages/ClueLink.dart';
-import 'package:clue/pages/Education.dart';
 import 'package:clue/pages/HakSubSil.dart';
 import 'package:clue/pages/HomePage.dart';
 import 'package:clue/pages/Settings.dart';
@@ -47,8 +47,8 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  static String code="teacher";
-  // static String code = "student";
+  // static String code="teacher";
+  static String code = "student";
   late final List<Widget> _pages;
   late final List<GlobalKey<NavigatorState>> _navigatorKeys;
 
@@ -58,8 +58,8 @@ class _MainScreenState extends State<MainScreen> {
     _pages = [
       HomePage(),
       code != 'teacher' ? Haksubsil() : Thaksubsilsuap(),
-      // Login(),
-      Education(),
+      Login(),
+      // Education(),
       Settings(),
       Cluelink(),
     ];

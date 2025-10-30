@@ -11,10 +11,15 @@ class SettingsProfileSujeong extends StatefulWidget {
 class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
   String _selectedGrade = '2학년';
   String _selectedClass = '2반';
-  final TextEditingController _nameController = TextEditingController(text: '공덕현');
-  final TextEditingController _emailController =
-      TextEditingController(text: 'example@gmail.com');
-  final TextEditingController _numberController = TextEditingController(text: '1');
+  final TextEditingController _nameController = TextEditingController(
+    text: '공덕현',
+  );
+  final TextEditingController _emailController = TextEditingController(
+    text: 'example@gmail.com',
+  );
+  final TextEditingController _numberController = TextEditingController(
+    text: '1',
+  );
   final TextEditingController _introController = TextEditingController();
 
   @override
@@ -45,17 +50,18 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
           const SizedBox(height: 12),
           Wrap(
             spacing: 12,
-            children: options
-                .map(
-                  (option) => GestureDetector(
-                    onTap: () => onChanged(option),
-                    child: _ChoiceChip(
-                      label: option,
-                      selected: selected == option,
-                    ),
-                  ),
-                )
-                .toList(),
+            children:
+                options
+                    .map(
+                      (option) => GestureDetector(
+                        onTap: () => onChanged(option),
+                        child: _ChoiceChip(
+                          label: option,
+                          selected: selected == option,
+                        ),
+                      ),
+                    )
+                    .toList(),
           ),
         ],
       );
@@ -64,172 +70,211 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5F9),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  SvgPicture.asset(
-                    'assets/images/clueLogo.svg',
-                    height: width * 0.12,
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back_ios_new),
-                  ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: SvgPicture.asset(
-                      'assets/images/bars-3.svg',
-                      height: width * 0.075,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              Text(
-                '사용자 정보 수정',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  fontSize: width * 0.05,
+        child: Column(
+          children: [
+            Container(
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
                 ),
-              ),
-              const SizedBox(height: 24),
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x14000000),
-                      blurRadius: 24,
-                      offset: Offset(0, 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      child: SvgPicture.asset(
+                        'assets/images/realLogo.svg',
+
+                        width: width * 0.25,
+                      ),
+                    ),
+
+                    Container(
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: Icon(Icons.arrow_back, size: width * 0.07),
+                          ),
+                          SizedBox(width: width * 0.03),
+                          GestureDetector(
+                            // onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+                            child: SvgPicture.asset(
+                              'assets/images/bars-3.svg',
+                              width: width * 0.074,
+                            ),
+                          ),
+                          SizedBox(width: width * 0.0443),
+                        ],
+                      ),
                     ),
                   ],
                 ),
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Center(
+                    const SizedBox(height: 18),
+                    Text(
+                      '사용자 정보 수정',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontSize: width * 0.05,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x14000000),
+                            blurRadius: 24,
+                            offset: Offset(0, 12),
+                          ),
+                        ],
+                      ),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            width: 96,
-                            height: 96,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFE6ECF4),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.person,
-                              size: 48,
-                              color: Color(0xFF7F8EA3),
+                          Center(
+                            child: Column(
+                              children: [
+                                Container(
+                                  width: width * 0.22,
+                                  height: width * 0.22,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFE6ECF4),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.person,
+                                    size: width * 0.11,
+                                    color: const Color(0xFF7F8EA3),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                OutlinedButton.icon(
+                                  onPressed: () {},
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: const Color(0xFF0D6EFD),
+                                    side: const BorderSide(
+                                      color: Color(0xFFB9D5FF),
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  icon: const Icon(
+                                    Icons.camera_alt_outlined,
+                                    size: 18,
+                                  ),
+                                  label: const Text('사진변경'),
+                                ),
+                                const SizedBox(height: 6),
+                                const Text(
+                                  'JPG, PNG 파일만 업로드 가능합니다',
+                                  style: TextStyle(
+                                    color: Color(0xFF6B7280),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          OutlinedButton.icon(
-                            onPressed: () {},
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFF0D6EFD),
-                              side: const BorderSide(color: Color(0xFFB9D5FF)),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
+                          const SizedBox(height: 32),
+                          _LabeledField(
+                            label: '이름',
+                            requiredMark: true,
+                            child: TextFormField(
+                              controller: _nameController,
+                              decoration: _inputDecoration(''),
                             ),
-                            icon: const Icon(Icons.camera_alt_outlined, size: 18),
-                            label: const Text('사진변경'),
                           ),
-                          const SizedBox(height: 6),
-                          const Text(
-                            'JPG, PNG 파일만 업로드 가능합니다',
-                            style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
+                          const SizedBox(height: 20),
+                          _LabeledField(
+                            label: '이메일',
+                            requiredMark: true,
+                            child: TextFormField(
+                              controller: _emailController,
+                              readOnly: true,
+                              decoration: _inputDecoration(
+                                '',
+                              ).copyWith(fillColor: const Color(0xFFEFF2F7)),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          buildChoiceGroup(
+                            label: '학년',
+                            options: const ['1학년', '2학년', '3학년'],
+                            selected: _selectedGrade,
+                            onChanged:
+                                (value) =>
+                                    setState(() => _selectedGrade = value),
+                          ),
+                          const SizedBox(height: 24),
+                          buildChoiceGroup(
+                            label: '반',
+                            options: const ['1반', '2반', '3반', '4반'],
+                            selected: _selectedClass,
+                            onChanged:
+                                (value) =>
+                                    setState(() => _selectedClass = value),
+                          ),
+                          const SizedBox(height: 24),
+                          _LabeledField(
+                            label: '번호',
+                            requiredMark: true,
+                            child: TextFormField(
+                              controller: _numberController,
+                              keyboardType: TextInputType.number,
+                              decoration: _inputDecoration('번호를 입력해주세요.'),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          _LabeledField(
+                            label: '자기소개',
+                            child: TextFormField(
+                              controller: _introController,
+                              minLines: 3,
+                              maxLines: 3,
+                              decoration: _inputDecoration('내용을 입력해주세요.'),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 32),
-                    _LabeledField(
-                      label: '이름',
-                      requiredMark: true,
-                      child: TextFormField(
-                        controller: _nameController,
-                        decoration: _inputDecoration(''),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    _LabeledField(
-                      label: '이메일',
-                      requiredMark: true,
-                      child: TextFormField(
-                        controller: _emailController,
-                        readOnly: true,
-                        decoration: _inputDecoration('').copyWith(
-                          fillColor: const Color(0xFFEFF2F7),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      height: 52,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0D6EFD),
+                          foregroundColor: Colors.white,
+                          textStyle: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    buildChoiceGroup(
-                      label: '학년',
-                      options: const ['1학년', '2학년', '3학년'],
-                      selected: _selectedGrade,
-                      onChanged: (value) => setState(() => _selectedGrade = value),
-                    ),
-                    const SizedBox(height: 24),
-                    buildChoiceGroup(
-                      label: '반',
-                      options: const ['1반', '2반', '3반', '4반'],
-                      selected: _selectedClass,
-                      onChanged: (value) => setState(() => _selectedClass = value),
-                    ),
-                    const SizedBox(height: 24),
-                    _LabeledField(
-                      label: '번호',
-                      requiredMark: true,
-                      child: TextFormField(
-                        controller: _numberController,
-                        keyboardType: TextInputType.number,
-                        decoration: _inputDecoration('번호를 입력해주세요.'),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    _LabeledField(
-                      label: '자기소개',
-                      child: TextFormField(
-                        controller: _introController,
-                        minLines: 3,
-                        maxLines: 3,
-                        decoration: _inputDecoration('내용을 입력해주세요.'),
+                        onPressed: () {},
+                        child: const Text('변경사항 저장'),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-              SizedBox(
-                height: 52,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0D6EFD),
-                    foregroundColor: Colors.white,
-                    textStyle: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  onPressed: () {},
-                  child: const Text('변경사항 저장'),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -256,7 +301,11 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
     );
   }
 
-  Widget _buildLabel(String label, {required bool requiredMark, required double width}) {
+  Widget _buildLabel(
+    String label, {
+    required bool requiredMark,
+    required double width,
+  }) {
     return RichText(
       text: TextSpan(
         text: label,
@@ -265,14 +314,15 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
           fontWeight: FontWeight.w600,
           fontSize: width * 0.038,
         ),
-        children: requiredMark
-            ? const [
-                TextSpan(
-                  text: ' *',
-                  style: TextStyle(color: Color(0xFF0D6EFD)),
-                ),
-              ]
-            : null,
+        children:
+            requiredMark
+                ? const [
+                  TextSpan(
+                    text: ' *',
+                    style: TextStyle(color: Color(0xFF0D6EFD)),
+                  ),
+                ]
+                : null,
       ),
     );
   }
@@ -303,14 +353,15 @@ class _LabeledField extends StatelessWidget {
               fontWeight: FontWeight.w600,
               fontSize: width * 0.038,
             ),
-            children: requiredMark
-                ? const [
-                    TextSpan(
-                      text: ' *',
-                      style: TextStyle(color: Color(0xFF0D6EFD)),
-                    ),
-                  ]
-                : null,
+            children:
+                requiredMark
+                    ? const [
+                      TextSpan(
+                        text: ' *',
+                        style: TextStyle(color: Color(0xFF0D6EFD)),
+                      ),
+                    ]
+                    : null,
           ),
         ),
         const SizedBox(height: 8),
@@ -338,15 +389,16 @@ class _ChoiceChip extends StatelessWidget {
         border: Border.all(
           color: selected ? const Color(0xFF0D6EFD) : const Color(0xFFE2E8F0),
         ),
-        boxShadow: selected
-            ? const [
-                BoxShadow(
-                  color: Color(0x220D6EFD),
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
-                ),
-              ]
-            : null,
+        boxShadow:
+            selected
+                ? const [
+                  BoxShadow(
+                    color: Color(0x220D6EFD),
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
+                ]
+                : null,
       ),
       child: Text(
         label,
