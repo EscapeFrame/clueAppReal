@@ -1,5 +1,4 @@
-﻿import 'package:clue/asdf.dart';
-import 'package:clue/login.dart';
+﻿import 'package:clue/login.dart';
 import 'package:clue/pages/ClueLink.dart';
 import 'package:clue/pages/Education.dart';
 import 'package:clue/pages/HakSubSil.dart';
@@ -11,15 +10,46 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_svg/svg.dart';
 import 'dart:math' as math;
-import 'pages/welcome.dart';
+import 'auth_storage.dart';
+
+/// 전역 네비게이터 키: 어디서든 동일 루트 네비게이터 접근
+class AppNavigator {
+  static final key = GlobalKey<NavigatorState>();
+
+  /// 어디서든 메인으로 강제 진입
+  static Future<void> goMain() async {
+    final nav = key.currentState;
+    if (nav == null) {
+      debugPrint('❌ AppNavigator.key.currentState == null');
+      return;
+    }
+    try {
+      nav.pushNamedAndRemoveUntil('/main', (route) => false);
+      debugPrint('✅ AppNavigator.goMain: /main pushNamedAndRemoveUntil');
+    } catch (e, s) {
+      debugPrint('❌ AppNavigator.goMain error: $e');
+      debugPrintStack(stackTrace: s);
+    }
+  }
+}
+
+/// AuthGate 상태 접근용 전역 키(로그인 직후 토큰 재확인용)
+final GlobalKey<_AuthGateState> authGateKey = GlobalKey<_AuthGateState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 숨은 예외 로깅 강화
+  FlutterError.onError = (details) {
+    FlutterError.dumpErrorToConsole(details);
+  };
+
   try {
     await dotenv.load(fileName: ".env");
   } catch (e) {
     debugPrint('dotenv load failed: $e');
   }
+
   runApp(const MyApp());
   await AssignmentNotificationService.ensureBackgroundTaskRegistered();
 }
@@ -31,28 +61,96 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Navigation Demo',
+      navigatorKey: AppNavigator.key, // ✅ 전역 네비게이터
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const WelcomeScreen(),
-      routes: {'/main': (_) => const MainScreen()},
+      home: AuthGate(key: authGateKey), // ✅ 전역 키로 제어
+      routes: {
+        '/main': (_) => const MainScreen(),
+        '/login': (_) => const Login(), // (디버깅/직접 이동용)
+      },
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
+/// 앱 시작 시 토큰 확인 후 로그인/메인 분기
+class AuthGate extends StatefulWidget {
+  const AuthGate({super.key});
+
+  @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> {
+  String? _token;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadToken();
+  }
+
+  Future<void> _loadToken() async {
+    final token = await AuthStorage.instance.readAccessToken();
+    final t = token?.trim();
+    setState(() {
+      _token = t;
+      _loading = false;
+    });
+    debugPrint(
+      '🔑 AuthGate> token exists? ${(t ?? '').isNotEmpty} | token="$t"',
+    );
+  }
+
+  /// 외부(login.dart 등)에서 호출해 토큰 재확인
+  Future<void> reload() async {
+    debugPrint('🔄 AuthGate.reload() 호출됨');
+    await _loadToken();
+    // 토큰이 생겼다면 바로 메인으로 보내는 것도 가능(보수적으로 주석)
+    // if ((_token ?? '').isNotEmpty) {
+    //   await AppNavigator.goMain();
+    // }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) return const SizedBox.shrink();
+    // 토큰 있으면 메인, 없으면 로그인
+    if ((_token ?? '').isNotEmpty) {
+      debugPrint('➡️ AuthGate 분기: MainScreen');
+      return const MainScreen();
+    } else {
+      debugPrint('➡️ AuthGate 분기: Login');
+      return const Login();
+    }
+  }
+}
+
+/// login.dart에서 AuthGate 새로고침하고 싶을 때 호출
+class AuthGateBridge {
+  static Future<void> refresh() async {
+    debugPrint('📣 AuthGateBridge.refresh()');
+    await authGateKey.currentState?.reload();
+  }
+}
+
+/// 메인 탭 화면
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
+
   static Route<dynamic> get route =>
       MaterialPageRoute(builder: (_) => const MainScreen());
+
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  // static String code = "student";
   static String code = "teacher";
   late final List<Widget> _pages;
   late final List<GlobalKey<NavigatorState>> _navigatorKeys;
@@ -60,13 +158,12 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    debugPrint('🟩 MainScreen init');
     _pages = [
-      HomePage(),
-      code != 'teacher' ? Haksubsil() : Thaksubsilsuap(),
-      Cluelink(),
-
-      Login(),
-      Settings(),
+      HomePage(), // index 0
+      code != 'teacher' ? Haksubsil() : Thaksubsilsuap(), // index 1
+      Cluelink(), // index 2 (FAB)
+      Settings(), // index 3
     ];
     _navigatorKeys = List.generate(
       _pages.length,
@@ -111,7 +208,7 @@ class _MainScreenState extends State<MainScreen> {
             BoxShadow(
               color: Colors.black.withOpacity(0.10),
               blurRadius: 10,
-              offset: const Offset(0, 6),
+              offset: Offset(0, 6),
             ),
           ],
         ),
@@ -138,7 +235,6 @@ class _MainScreenState extends State<MainScreen> {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        // extendBody: true,
         body: IndexedStack(
           index: _selectedIndex,
           children: [
@@ -147,7 +243,6 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
 
-        // 가운데 다이아 버튼(FAB)
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton: Transform.translate(
           offset: const Offset(0, 20),
@@ -182,16 +277,16 @@ class _MainScreenState extends State<MainScreen> {
                     active: _selectedIndex == 1,
                     onTap: () => _onItemTapped(1),
                   ),
-                  const SizedBox(width: 56),
+                  const SizedBox(width: 56), // FAB 자리
                   _NavItem(
                     iconPath: 'assets/images/Union.svg',
-                    active: _selectedIndex == 3,
-                    onTap: () => _onItemTapped(3),
+                    active: _selectedIndex == 2,
+                    onTap: () => _onItemTapped(2),
                   ),
                   _NavItem(
                     iconPath: 'assets/images/Setting.svg',
-                    active: _selectedIndex == 4,
-                    onTap: () => _onItemTapped(4),
+                    active: _selectedIndex == 3,
+                    onTap: () => _onItemTapped(3),
                   ),
                 ],
               ),
@@ -207,6 +302,7 @@ class _NavItem extends StatelessWidget {
   final String iconPath;
   final bool active;
   final VoidCallback onTap;
+
   const _NavItem({
     super.key,
     required this.iconPath,

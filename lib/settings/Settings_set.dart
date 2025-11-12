@@ -1,6 +1,7 @@
 import 'package:clue/settings/Settings_ProfileSujeong.dart';
 import 'package:clue/settings/Settings_cheat.dart';
 import 'package:flutter/material.dart';
+import 'package:clue/auth_storage.dart';
 
 class SettingsSet extends StatefulWidget {
   const SettingsSet({super.key});
@@ -102,12 +103,13 @@ class _SettingsSetState extends State<SettingsSet> {
         buildSection('사용자관련', [
           buildNavigationTile(
             '사용자 정보 수정',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const SettingsProfileSujeong(),
-              ),
-            ),
+            onTap:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const SettingsProfileSujeong(),
+                  ),
+                ),
           ),
           buildNavigationTile(
             '보관된 채팅',
@@ -146,6 +148,23 @@ class _SettingsSetState extends State<SettingsSet> {
         buildSection('서비스관련', [
           buildNavigationTile('서비스 사용방법'),
           buildNavigationTile('문의사항'),
+          buildNavigationTile(
+            '로그아웃',
+            onTap: () async {
+              await AuthStorage.instance.clear();
+              if (!mounted) return;
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('로그아웃 되었습니다.')));
+              // 메인으로 돌아가 초기 상태로 전환
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.of(
+                  context,
+                  rootNavigator: true,
+                ).pushNamedAndRemoveUntil('/main', (route) => false);
+              });
+            },
+          ),
         ]),
       ],
     );

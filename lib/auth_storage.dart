@@ -6,6 +6,7 @@ class AuthStorage {
   final _storage = const FlutterSecureStorage();
 
   static const _kAccessToken = 'access_token';
+  static const _kRefreshToken = 'refresh_token';
 
   Future<void> saveAccessToken(String token) async {
     await _storage.write(key: _kAccessToken, value: token);
@@ -13,6 +14,14 @@ class AuthStorage {
 
   Future<String?> readAccessToken() async {
     return _storage.read(key: _kAccessToken);
+  }
+
+  Future<void> saveRefreshToken(String token) async {
+    await _storage.write(key: _kRefreshToken, value: token);
+  }
+
+  Future<String?> readRefreshToken() async {
+    return _storage.read(key: _kRefreshToken);
   }
 
   Future<void> clear() async {
