@@ -74,18 +74,28 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
     final filtered = _filteredNotices();
     final iconChanger = 'asdfasdf'; //임시
     if (filtered.isEmpty) {
-      return Container(
-        color: Color(0xffF7F7F7),
-        child: Center(
-          child: Text(
-            emptyMessage ?? '표시할 학습실이 없습니다.',
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: width * 0.04,
-              fontWeight: FontWeight.w500,
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Container(
+                color: const Color(0xffF7F7F7),
+                alignment: Alignment.center,
+                child: Text(
+                  emptyMessage ?? '표시할 학습실이 없습니다.',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: width * 0.04,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
             ),
-          ),
-        ),
+          );
+        },
       );
     }
 
@@ -96,6 +106,7 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
         vertical: width * 0.03,
       ),
       child: ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
         itemCount: filtered.length,
         separatorBuilder: (_, __) => SizedBox(height: width * 0.02),
         itemBuilder: (context, index) {

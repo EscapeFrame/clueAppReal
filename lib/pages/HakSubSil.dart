@@ -4,6 +4,7 @@ import 'package:clue/widgets/haksubsilPage/HakSubSilBaroGaBoJa.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'Alarm.dart';
 
 class Haksubsil extends StatefulWidget {
   const Haksubsil({super.key});
@@ -58,11 +59,16 @@ class _HaksubsilState extends State<Haksubsil> {
       '방과후 학습실이 없습니다.',
     ];
 
-    return HakSubSilBaroGaBoJa(
-      key: ValueKey(filter ?? 'all'),
-      noticeList: _classList,
-      subjectFilter: filter,
-      emptyMessage: emptyMessages[clampedIndex],
+    return RefreshIndicator(
+      onRefresh: _response,
+      color: const Color(0xFF5FA8FF),
+      backgroundColor: const Color(0xFFD6EAFF),
+      child: HakSubSilBaroGaBoJa(
+        key: ValueKey(filter ?? 'all'),
+        noticeList: _classList,
+        subjectFilter: filter,
+        emptyMessage: emptyMessages[clampedIndex],
+      ),
     );
   }
 
@@ -149,7 +155,7 @@ class _HaksubsilState extends State<Haksubsil> {
                         ),
                       ),
                     ),
-                    SizedBox(width: width*0.015),
+                    SizedBox(width: width * 0.015),
                     Expanded(
                       child: GestureDetector(
                         onTap: () {
@@ -257,9 +263,16 @@ class _HaksubsilState extends State<Haksubsil> {
                   Container(
                     child: Row(
                       children: [
-                        SvgPicture.asset(
-                          'assets/images/jong.svg',
-                          width: width * 0.055,
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const Alarm()),
+                            );
+                          },
+                          child: SvgPicture.asset(
+                            'assets/images/jong.svg',
+                            width: width * 0.055,
+                          ),
                         ),
                         SizedBox(width: width * 0.03),
                         GestureDetector(

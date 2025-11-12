@@ -1,0 +1,270 @@
+import 'package:clue/asdf.dart';
+import 'package:clue/login.dart';
+import 'package:clue/pages/ClueLink.dart';
+import 'package:clue/pages/Education.dart';
+import 'package:clue/pages/HakSubSil.dart';
+import 'package:clue/pages/HomePage.dart';
+import 'package:clue/pages/Settings.dart';
+import 'package:clue/services/assignment_notification_service.dart';
+import 'package:clue/teacher_page/tHakSubSilSuap.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_svg/svg.dart';
+import 'dart:math' as math;
+import 'pages/welcome.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint('dotenv load failed: $e');
+  }
+  runApp(const MyApp());
+  await AssignmentNotificationService.ensureBackgroundTaskRegistered();
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Navigation Demo',
+
+      theme: ThemeData(
+        scaffoldBackgroundColor: Colors.white,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+      ),
+      home: const WelcomeScreen(),
+      routes: {'/main': (_) => const MainScreen()},
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
+  static Route<dynamic> get route =>
+      MaterialPageRoute(builder: (_) => const MainScreen());
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  int _selectedIndex = 0;
+  // static String code="teacher";
+  static String code = "student";
+  late final List<Widget> _pages;
+  late final List<GlobalKey<NavigatorState>> _navigatorKeys;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      HomePage(),
+      code != 'teacher' ? Haksubsil() : Thaksubsilsuap(),
+      Cluelink(),
+      // Asdf(),
+      Login(),
+      // Education(),
+      Settings(),
+    ];
+    _navigatorKeys = List.generate(
+      _pages.length,
+      (_) => GlobalKey<NavigatorState>(),
+    );
+  }
+
+  Future<bool> _onWillPop() async {
+    final navigator = _navigatorKeys[_selectedIndex].currentState;
+    if (navigator?.canPop() ?? false) {
+      navigator!.pop();
+      return false;
+    }
+    return true;
+  }
+
+  Widget _buildTabNavigator(int index, Widget child) {
+    return Navigator(
+      key: _navigatorKeys[index],
+      onGenerateRoute:
+          (settings) =>
+              MaterialPageRoute(builder: (_) => child, settings: settings),
+    );
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  Widget _buildDiamondIcon(bool selected) {
+    const bg = Color(0xFFD6EAFF);
+    final fg = selected ? Colors.blue : const Color(0xFF5FA8FF);
+    return Transform.rotate(
+      angle: math.pi / 4,
+      child: Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Transform.rotate(
+          angle: -math.pi / 4,
+          child: Center(
+            child: SvgPicture.asset(
+              'assets/images/LinksaveIcon.svg',
+              width: 22,
+              height: 22,
+              colorFilter: ColorFilter.mode(fg, BlendMode.srcIn),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final double bottomInset = MediaQuery.of(context).padding.bottom;
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        body: IndexedStack(
+          index: _selectedIndex,
+          children: [
+            for (var i = 0; i < _pages.length; i++)
+              _buildTabNavigator(i, _pages[i]),
+          ],
+        ),
+        bottomNavigationBar: SizedBox(
+          height: kBottomNavigationBarHeight,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+                // The actual bar
+              Positioned.fill(
+                child: BottomNavigationBar(
+                  type: BottomNavigationBarType.fixed,
+                  showSelectedLabels: false,
+                  showUnselectedLabels: false,
+                  currentIndex: _selectedIndex,
+                  backgroundColor: Colors.white,
+                  iconSize: 22,
+                  onTap: _onItemTapped,
+                  items: [
+                      BottomNavigationBarItem(
+                        backgroundColor: Colors.white,
+                        icon: SvgPicture.asset(
+                          'assets/images/homen.svg',
+                          colorFilter: ColorFilter.mode(
+                            const Color.fromARGB(223, 199, 199, 199),
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        activeIcon: SvgPicture.asset(
+                          'assets/images/homen.svg',
+                          colorFilter: ColorFilter.mode(
+                            Colors.blue,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        label: 'Home',
+                      ),
+                      BottomNavigationBarItem(
+                        backgroundColor: Colors.white,
+                        icon: SvgPicture.asset(
+                          'assets/images/bookn.svg',
+                          colorFilter: ColorFilter.mode(
+                            const Color.fromARGB(223, 199, 199, 199),
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        activeIcon: SvgPicture.asset(
+                          'assets/images/bookn.svg',
+                          colorFilter: ColorFilter.mode(
+                            Colors.blue,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        label: 'Class',
+                      ),
+                      // Center item reserved as spacing placeholder
+                    const BottomNavigationBarItem(
+                      backgroundColor: Colors.white,
+                      icon: SizedBox(width: 40, height: 40),
+                      activeIcon: SizedBox(width: 40, height: 40),
+                      label: 'LinkSave',
+                    ),
+                      BottomNavigationBarItem(
+                        backgroundColor: Colors.white,
+                        icon: SvgPicture.asset(
+                          'assets/images/Union.svg',
+                          colorFilter: ColorFilter.mode(
+                            const Color.fromARGB(223, 199, 199, 199),
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        activeIcon: SvgPicture.asset(
+                          'assets/images/Union.svg',
+                          colorFilter: ColorFilter.mode(
+                            Colors.blue,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        label: 'AfterSchool',
+                      ),
+                      BottomNavigationBarItem(
+                        backgroundColor: Colors.white,
+                        icon: SvgPicture.asset(
+                          'assets/images/Setting.svg',
+                          colorFilter: ColorFilter.mode(
+                            const Color.fromARGB(223, 199, 199, 199),
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        activeIcon: SvgPicture.asset(
+                          'assets/images/Setting.svg',
+                          colorFilter: ColorFilter.mode(
+                            Colors.blue,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        label: 'Settings',
+                      ),
+                    ],
+                  ),
+                ),
+                // Overlayed centered diamond button protruding above the bar
+              Positioned(
+                top: -10, // compact pop-out without overflow
+                left: 0,
+                right: 0,
+                child: Center(
+                    child: GestureDetector(
+                      onTap: () => _onItemTapped(2),
+                      child: _buildDiamondIcon(_selectedIndex == 2),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+

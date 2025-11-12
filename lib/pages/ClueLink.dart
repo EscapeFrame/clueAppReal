@@ -6,6 +6,7 @@ import 'package:clue/linksave/LinksaveModal.dart' as link_add;
 import 'package:clue/linksave/NoLink.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'Alarm.dart';
 
 class Cluelink extends StatefulWidget {
   const Cluelink({super.key});
@@ -104,9 +105,16 @@ class _CluelinkState extends State<Cluelink> {
                     Container(
                       child: Row(
                         children: [
-                          SvgPicture.asset(
-                            'assets/images/jong.svg',
-                            width: width * 0.055,
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(builder: (_) => const Alarm()),
+                              );
+                            },
+                            child: SvgPicture.asset(
+                              'assets/images/jong.svg',
+                              width: width * 0.055,
+                            ),
                           ),
                           SizedBox(width: width * 0.03),
                           GestureDetector(

@@ -1,5 +1,7 @@
+﻿import 'package:clue/asdf.dart';
 import 'package:clue/login.dart';
 import 'package:clue/pages/ClueLink.dart';
+import 'package:clue/pages/Education.dart';
 import 'package:clue/pages/HakSubSil.dart';
 import 'package:clue/pages/HomePage.dart';
 import 'package:clue/pages/Settings.dart';
@@ -8,6 +10,8 @@ import 'package:clue/teacher_page/tHakSubSilSuap.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_svg/svg.dart';
+import 'dart:math' as math;
+import 'pages/welcome.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,12 +31,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Navigation Demo',
-
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MainScreen(),
+      home: const WelcomeScreen(),
+      routes: {'/main': (_) => const MainScreen()},
       debugShowCheckedModeBanner: false,
     );
   }
@@ -40,15 +44,16 @@ class MyApp extends StatelessWidget {
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
-
+  static Route<dynamic> get route =>
+      MaterialPageRoute(builder: (_) => const MainScreen());
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  // static String code="teacher";
-  static String code = "student";
+  // static String code = "student";
+  static String code = "teacher";
   late final List<Widget> _pages;
   late final List<GlobalKey<NavigatorState>> _navigatorKeys;
 
@@ -58,10 +63,10 @@ class _MainScreenState extends State<MainScreen> {
     _pages = [
       HomePage(),
       code != 'teacher' ? Haksubsil() : Thaksubsilsuap(),
-      Login(),
-      // Education(),
-      Settings(),
       Cluelink(),
+
+      Login(),
+      Settings(),
     ];
     _navigatorKeys = List.generate(
       _pages.length,
@@ -81,24 +86,59 @@ class _MainScreenState extends State<MainScreen> {
   Widget _buildTabNavigator(int index, Widget child) {
     return Navigator(
       key: _navigatorKeys[index],
-      onGenerateRoute: (settings) => MaterialPageRoute(
-        builder: (_) => child,
-        settings: settings,
-      ),
+      onGenerateRoute:
+          (settings) =>
+              MaterialPageRoute(builder: (_) => child, settings: settings),
     );
   }
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    setState(() => _selectedIndex = index);
+  }
+
+  Widget _diamondIcon(bool selected) {
+    const bg = Color(0xFFD6EAFF);
+    final fg = selected ? Colors.blue : const Color(0xFF5FA8FF);
+    return Transform.rotate(
+      angle: math.pi / 4,
+      child: Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.10),
+              blurRadius: 10,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Transform.rotate(
+          angle: -math.pi / 4,
+          child: Center(
+            child: SvgPicture.asset(
+              'assets/images/LinksaveIcon.svg',
+              width: 24,
+              height: 24,
+              colorFilter: ColorFilter.mode(fg, BlendMode.srcIn),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+    const barHeight = 60.0;
+
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
+        // extendBody: true,
         body: IndexedStack(
           index: _selectedIndex,
           children: [
@@ -106,89 +146,91 @@ class _MainScreenState extends State<MainScreen> {
               _buildTabNavigator(i, _pages[i]),
           ],
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.shifting,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          items: [
-            BottomNavigationBarItem(
-              backgroundColor: Colors.white,
-              icon: SvgPicture.asset(
-                'assets/images/homen.svg',
-                colorFilter: ColorFilter.mode(
-                  const Color.fromARGB(223, 199, 199, 199),
-                  BlendMode.srcIn,
-                ),
-              ),
-              activeIcon: SvgPicture.asset(
-                'assets/images/homen.svg',
-                colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
-              ),
-              label: '홈',
+
+        // 가운데 다이아 버튼(FAB)
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: Transform.translate(
+          offset: const Offset(0, 20),
+          child: SizedBox(
+            width: 50,
+            height: 50,
+            child: InkWell(
+              onTap: () => _onItemTapped(2),
+              borderRadius: BorderRadius.circular(20),
+              child: _diamondIcon(_selectedIndex == 2),
             ),
-            BottomNavigationBarItem(
-              backgroundColor: Colors.white,
-              icon: SvgPicture.asset(
-                'assets/images/bookn.svg',
-                colorFilter: ColorFilter.mode(
-                  const Color.fromARGB(223, 199, 199, 199),
-                  BlendMode.srcIn,
-                ),
+          ),
+        ),
+
+        bottomNavigationBar: SizedBox(
+          height: barHeight + bottomInset,
+          child: Material(
+            elevation: 8,
+            color: Colors.white,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: bottomInset),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _NavItem(
+                    iconPath: 'assets/images/homen.svg',
+                    active: _selectedIndex == 0,
+                    onTap: () => _onItemTapped(0),
+                  ),
+                  _NavItem(
+                    iconPath: 'assets/images/bookn.svg',
+                    active: _selectedIndex == 1,
+                    onTap: () => _onItemTapped(1),
+                  ),
+                  const SizedBox(width: 56),
+                  _NavItem(
+                    iconPath: 'assets/images/Union.svg',
+                    active: _selectedIndex == 3,
+                    onTap: () => _onItemTapped(3),
+                  ),
+                  _NavItem(
+                    iconPath: 'assets/images/Setting.svg',
+                    active: _selectedIndex == 4,
+                    onTap: () => _onItemTapped(4),
+                  ),
+                ],
               ),
-              activeIcon: SvgPicture.asset(
-                'assets/images/bookn.svg',
-                colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
-              ),
-              label: '책',
             ),
-            BottomNavigationBarItem(
-              backgroundColor: Colors.white,
-              icon: SvgPicture.asset(
-                'assets/images/Union.svg',
-                colorFilter: ColorFilter.mode(
-                  const Color.fromARGB(223, 199, 199, 199),
-                  BlendMode.srcIn,
-                ),
-              ),
-              activeIcon: SvgPicture.asset(
-                'assets/images/Union.svg',
-                colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
-              ),
-              label: '학교공지',
-            ),
-            BottomNavigationBarItem(
-              backgroundColor: Colors.white,
-              icon: SvgPicture.asset(
-                'assets/images/Setting.svg',
-                colorFilter: ColorFilter.mode(
-                  const Color.fromARGB(223, 199, 199, 199),
-                  BlendMode.srcIn,
-                ),
-              ),
-              activeIcon: SvgPicture.asset(
-                'assets/images/Setting.svg',
-                colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
-              ),
-              label: '설정',
-            ),
-            BottomNavigationBarItem(
-              backgroundColor: Colors.white,
-              icon: SvgPicture.asset(
-                'assets/images/Setting.svg',
-                colorFilter: ColorFilter.mode(
-                  const Color.fromARGB(223, 199, 199, 199),
-                  BlendMode.srcIn,
-                ),
-              ),
-              activeIcon: SvgPicture.asset(
-                'assets/images/Setting.svg',
-                colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
-              ),
-              label: '링크',
-            ),
-          ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final String iconPath;
+  final bool active;
+  final VoidCallback onTap;
+  const _NavItem({
+    super.key,
+    required this.iconPath,
+    required this.active,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color inactive = const Color.fromARGB(223, 199, 199, 199);
+    final Color activeC = Colors.blue;
+    return InkResponse(
+      onTap: onTap,
+      radius: 28,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
+        child: SvgPicture.asset(
+          iconPath,
+          width: 22,
+          height: 22,
+          colorFilter: ColorFilter.mode(
+            active ? activeC : inactive,
+            BlendMode.srcIn,
+          ),
         ),
       ),
     );

@@ -8,6 +8,8 @@ import 'package:clue/widgets/mainPage/HomepageCard.dart';
 import 'package:clue/widgets/mainPage/SuHang.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:clue/HamburgerDialog.dart';
+import 'Alarm.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -111,31 +113,35 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 16,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
                     child: SvgPicture.asset(
                       'assets/images/realLogo.svg',
-      
+
                       width: width * 0.25,
                     ),
                   ),
-      
+
                   Container(
                     child: Row(
                       children: [
-                        SvgPicture.asset(
-                          'assets/images/jong.svg',
-                          width: width * 0.055,
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const Alarm()),
+                            );
+                          },
+                          child: SvgPicture.asset(
+                            'assets/images/jong.svg',
+                            width: width * 0.055,
+                          ),
                         ),
                         SizedBox(width: width * 0.03),
                         GestureDetector(
-                          // onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+                          onTap: () => showHamburgerDialog(context),
                           child: SvgPicture.asset(
                             'assets/images/bars-3.svg',
                             width: width * 0.074,
@@ -148,7 +154,7 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-          
+
             Expanded(
               child: SingleChildScrollView(
                 child: Container(
@@ -195,20 +201,23 @@ class _HomePageState extends State<HomePage> {
                               ),
                               SizedBox(height: height * 0.014),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
                                 children: List.generate(categories.length, (
                                   index,
                                 ) {
                                   final bool isSelected =
                                       _selectedDayIndex == index;
-                          
+
                                   return GestureDetector(
                                     onTap:
                                         () => setState(
                                           () => _selectedDayIndex = index,
                                         ),
                                     child: AnimatedContainer(
-                                      duration: const Duration(milliseconds: 200),
+                                      duration: const Duration(
+                                        milliseconds: 200,
+                                      ),
                                       curve: Curves.easeInOut,
                                       width: width * 0.1,
                                       height: width * 0.1,
@@ -269,7 +278,8 @@ class _HomePageState extends State<HomePage> {
                               ),
                               SizedBox(height: height * 0.005),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     '기간 안에 과제를 제출하세요!',
@@ -304,7 +314,9 @@ class _HomePageState extends State<HomePage> {
                                               (m['title'] ?? '').toString();
                                           final String sEnd =
                                               (m['endDate'] ?? '').toString();
-                                          final int dayDiff = _calcDaysDiff(sEnd);
+                                          final int dayDiff = _calcDaysDiff(
+                                            sEnd,
+                                          );
                                           return Padding(
                                             padding: EdgeInsets.only(
                                               right: width * 0.03,
@@ -327,7 +339,7 @@ class _HomePageState extends State<HomePage> {
                             ],
                           ),
                         ),
-                          
+
                         SizedBox(height: width * 0.04 + 4),
                         Container(
                           padding: EdgeInsets.symmetric(
@@ -359,7 +371,8 @@ class _HomePageState extends State<HomePage> {
                               ),
                               SizedBox(height: height * 0.005),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     '간편하게 수행평가를 확인하세요!',
@@ -398,8 +411,10 @@ class _HomePageState extends State<HomePage> {
                             ],
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          
-                          padding: EdgeInsets.symmetric(horizontal: width * 0.06),
+
+                          padding: EdgeInsets.symmetric(
+                            horizontal: width * 0.06,
+                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -419,7 +434,7 @@ class _HomePageState extends State<HomePage> {
                                   final maxCardWidth =
                                       isWide ? 180.0 : 220.0; // 최대 카드 크기 제한
                                   final cardAspectRatio = 1.1; // 카드의 가로:세로 비율
-                          
+
                                   final homepageCards = [
                                     HomepageCard(
                                       imagePath: 'assets/images/bssm.png',
@@ -458,7 +473,7 @@ class _HomePageState extends State<HomePage> {
                                           'https://school.busanedu.net/bssm-h/main.do',
                                     ),
                                   ];
-                          
+
                                   return Center(
                                     child: ConstrainedBox(
                                       constraints: BoxConstraints(

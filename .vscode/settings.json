@@ -1,4 +1,5 @@
 {
   "java.configuration.updateBuildConfiguration": "interactive",
-  "cmake.sourceDirectory": "/Users/donald8414/Documents/paletto/clue/clue/linux"
+  "cmake.sourceDirectory": "C:/realrealrealclue/linux",
+  "dart.flutterSdkPath": "C:\\flutter"
 }

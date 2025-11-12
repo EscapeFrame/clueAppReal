@@ -26,13 +26,12 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
     });
   }
 
-  Future<List<Map<String,dynamic>>> gwaJeJeChul() async {
+  Future<List<Map<String, dynamic>>> gwaJeJeChul() async {
     try {
       final assignmentsApi = ApiClient.instance.dio;
       final String? idStr =
           (widget.notice['classRoomIdStr'] ?? widget.notice['classRoomId'])
               ?.toString();
-      
 
       final submissionsRes = await assignmentsApi.get(
         '/api/assignments/$idStr/all',
@@ -51,8 +50,6 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
       return [];
     }
   }
-
-  
 
   String markdowndata = '## HelloWorld \n --- \n ## 김한결 \n | ㅎㅇ';
   @override
@@ -97,49 +94,68 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
     final height = MediaQuery.of(context).size.height;
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        toolbarHeight: 0,
+      ),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SvgPicture.asset(
+                  'assets/images/realLogo.svg',
+                  width: width * 0.25,
+                ),
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Icon(Icons.arrow_back, size: width * 0.07),
+                    ),
+                    SizedBox(width: width * 0.03),
+                    SvgPicture.asset(
+                      'assets/images/bars-3.svg',
+                      width: width * 0.074,
+                    ),
+                    SizedBox(width: width * 0.0443),
+                  ],
+                ),
+              ],
+            ),
+          ),
           Container(
-            color: const Color(0xFFD6EAFF),
-            padding: EdgeInsets.symmetric(
-              horizontal: width * 0.06,
-              vertical: height * 0.015,
+            padding: EdgeInsets.fromLTRB(
+              width * 0.07,
+              0,
+              height * 0.01,
+              height * 0.01,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: height * 0.05),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SvgPicture.asset(
-                      'assets/images/clueLogo.svg',
-                      width: width * 0.25,
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    widget.notice['classRoomName'].toString(),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: width * 0.065,
                     ),
-                    Container(
-                      margin: EdgeInsets.only(right: width * 0.035),
-                      child: SvgPicture.asset(
-                        'assets/images/jong.svg',
-                        width: width * 0.055,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: height * 0.05),
-                Text(
-                  widget.notice['classRoomName'].toString(),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: width * 0.05,
                   ),
                 ),
-                SizedBox(height: height * 0.005),
-                Text(
-                  widget.notice['description'].toString(),
-                  style: TextStyle(fontSize: width * 0.035),
+                SizedBox(height: height * 0.003),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: Text(
+                    widget.notice['description'].toString(),
+                    style: TextStyle(fontSize: width * 0.035),
+                  ),
                 ),
-                SizedBox(height: height * 0.01),
+                SizedBox(height: height * 0.008),
                 Row(
                   children: [
                     Icon(
@@ -170,10 +186,15 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                 child: Column(
                   children: [
                     TabBar(
-                      labelColor: Colors.black,
-                      unselectedLabelColor: Colors.grey,
-                      indicatorColor: Colors.lightBlue,
+                      labelColor: Color(0xff0077FF),
+                      unselectedLabelColor: Colors.black,
+                      indicatorColor: Color(0xff0077FF),
                       indicatorWeight: 3,
+                      indicatorPadding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                      ),
+
+                      indicatorSize: TabBarIndicatorSize.tab,
                       tabs: [
                         Tab(
                           child: Text(
@@ -189,7 +210,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                         ),
                         Tab(
                           child: Text(
-                            '시험',
+                            '수행평가',
                             style: TextStyle(fontSize: width * 0.045),
                           ),
                         ),
@@ -338,30 +359,39 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                               child:
                                   showAssignmentDetail
                                       ? Haksubsilgaja(
-                                          key: const ValueKey('detail'),
-                                          assignment: selectedAssignment!,
-                                          onClose: closeAssignmentDetail,
-                                        )
-                                      : FutureBuilder<List<Map<String, dynamic>>>(
-                                          future: gwaJeJeChul(),
-                                          builder: (context, snapshot) {
-                                            if (snapshot.connectionState != ConnectionState.done) {
-                                              return const Center(child: CircularProgressIndicator());
-                                            }
-                                            final list = snapshot.data ?? const <Map<String, dynamic>>[];
-                                            return Gwajejechul(
-                                              key: const ValueKey('list'),
-                                              dataList: list,
-                                              onSubmissionChanged: updateSubmissionStatus,
-                                              onCardClick: (assignment) {
-                                                setState(() {
-                                                  selectedAssignment = assignment;
-                                                  showAssignmentDetail = true;
-                                                });
-                                              },
+                                        key: const ValueKey('detail'),
+                                        assignment: selectedAssignment!,
+                                        onClose: closeAssignmentDetail,
+                                      )
+                                      : FutureBuilder<
+                                        List<Map<String, dynamic>>
+                                      >(
+                                        future: gwaJeJeChul(),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState !=
+                                              ConnectionState.done) {
+                                            return const Center(
+                                              child:
+                                                  CircularProgressIndicator(),
                                             );
-                                          },
-                                        ),
+                                          }
+                                          final list =
+                                              snapshot.data ??
+                                              const <Map<String, dynamic>>[];
+                                          return Gwajejechul(
+                                            key: const ValueKey('list'),
+                                            dataList: list,
+                                            onSubmissionChanged:
+                                                updateSubmissionStatus,
+                                            onCardClick: (assignment) {
+                                              setState(() {
+                                                selectedAssignment = assignment;
+                                                showAssignmentDetail = true;
+                                              });
+                                            },
+                                          );
+                                        },
+                                      ),
                             ),
                           ),
                           Container(

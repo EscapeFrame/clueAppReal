@@ -21,7 +21,7 @@ Future<String?> showUrlInputDialog(BuildContext context) async {
               borderSide: BorderSide(color: brand, width: 2),
             ),
           ),
-          dialogTheme: const DialogTheme(backgroundColor: Colors.white),
+          dialogTheme: const DialogThemeData(backgroundColor: Colors.white),
         ),
         child: AlertDialog(
           backgroundColor: Colors.white,

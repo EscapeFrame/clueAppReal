@@ -86,7 +86,7 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                         headerBackgroundColor: Colors.white,
                         headerForegroundColor: Colors.black,
                       ),
-                      dialogTheme: const DialogTheme(
+                      dialogTheme: const DialogThemeData(
                         backgroundColor: Colors.white,
                       ),
                     );
@@ -111,7 +111,7 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                           surface: Colors.white,
                           onSurface: Colors.black,
                         ),
-                        dialogTheme: const DialogTheme(
+                        dialogTheme: const DialogThemeData(
                           backgroundColor: Colors.white,
                         ),
                         timePickerTheme: TimePickerThemeData(
@@ -183,7 +183,7 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                         headerBackgroundColor: Colors.white,
                         headerForegroundColor: Colors.black,
                       ),
-                      dialogTheme: const DialogTheme(
+                      dialogTheme: const DialogThemeData(
                         backgroundColor: Colors.white,
                       ),
                     );
@@ -208,7 +208,7 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                           surface: Colors.white,
                           onSurface: Colors.black,
                         ),
-                        dialogTheme: const DialogTheme(
+                        dialogTheme: const DialogThemeData(
                           backgroundColor: Colors.white,
                         ),
                         timePickerTheme: TimePickerThemeData(

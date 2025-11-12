@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'Alarm.dart';
 
 class Education extends StatefulWidget {
   const Education({super.key});
@@ -47,21 +48,25 @@ class _EducationState extends State<Education>
       body: SafeArea(
         child: Column(
           children: [
-            _EducationAppBar(width: width),
+            _TopBar(width: width),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 24,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: const [
-                    _TimetableBlock(period: '8~9교시'),
-                    SizedBox(height: 28),
-                    _TimetableBlock(period: '10~11교시'),
-                  ],
-                ),
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(child: _SectionHeader(width: width)),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 24,
+                    ),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate(const [
+                        _TimetableBlock(period: '8~9교시'),
+                        SizedBox(height: 28),
+                        _TimetableBlock(period: '10~11교시'),
+                      ]),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SafeArea(
@@ -70,6 +75,122 @@ class _EducationState extends State<Education>
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _TopBar extends StatelessWidget {
+  const _TopBar({required this.width});
+
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              child: SvgPicture.asset(
+                'assets/images/realLogo.svg',
+                width: width * 0.25,
+              ),
+            ),
+            Container(
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const Alarm()),
+                      );
+                    },
+                    child: SvgPicture.asset(
+                      'assets/images/jong.svg',
+                      width: width * 0.055,
+                    ),
+                  ),
+                  SizedBox(width: width * 0.03),
+                  GestureDetector(
+                    child: SvgPicture.asset(
+                      'assets/images/bars-3.svg',
+                      width: width * 0.074,
+                    ),
+                  ),
+                  SizedBox(width: width * 0.0443),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.width});
+
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
+      fontWeight: FontWeight.w700,
+      fontSize: width * 0.05,
+    );
+
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 20),
+          Text('수강신청', style: titleStyle),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => {},
+                child: _PeriodChip(label: '8~9교시', active: true),
+              ),
+              SizedBox(width: 12),
+              GestureDetector(
+                onTap: () => {},
+                child: _PeriodChip(label: '10~11교시', active: false),
+              ),
+            ],
+          ),
+          // const SizedBox(height: 16),
+          // Container(
+          //   padding: const EdgeInsets.all(16),
+          //   decoration: BoxDecoration(
+          //     color: const Color(0xFFE8F2FF),
+          //     borderRadius: BorderRadius.circular(16),
+          //   ),
+          //   child: Row(
+          //     crossAxisAlignment: CrossAxisAlignment.start,
+          //     children: [
+          //       const Icon(Icons.info_rounded, color: Color(0xFF3B82F6)),
+          //       const SizedBox(width: 12),
+          //       Expanded(
+          //         child: Text(
+          //           '아래 표에서 원하는 요일과 시간대의 활동을 클릭하여 선택하세요. 각 요일과 시간대별로 하나의 활동만 선택할 수 있습니다. 같은 활동을 다시 클릭하면 선택이 취소됩니다. 활동을 선택하지 않으면 자동으로 자습으로 배정됩니다.',
+          //           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          //             color: const Color(0xFF2563EB),
+          //             height: 1.4,
+          //           ),
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
+        ],
       ),
     );
   }
@@ -132,7 +253,7 @@ class _EducationAppBar extends StatelessWidget {
         Container(
           color: Colors.white,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -147,9 +268,16 @@ class _EducationAppBar extends StatelessWidget {
                 Container(
                   child: Row(
                     children: [
-                      SvgPicture.asset(
-                        'assets/images/jong.svg',
-                        width: width * 0.055,
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const Alarm()),
+                          );
+                        },
+                        child: SvgPicture.asset(
+                          'assets/images/jong.svg',
+                          width: width * 0.055,
+                        ),
                       ),
                       SizedBox(width: width * 0.03),
                       GestureDetector(
