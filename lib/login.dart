@@ -62,35 +62,39 @@ class _LoginState extends State<Login> {
 
       debugPrint('OAuth 시작: request=$requestUri redirect=$redirectUri');
 
+      // 브라우저(커스텀 탭) 열림
       final resultUri = await FlutterWebAuth2.authenticate(
         url: requestUri.toString(),
         callbackUrlScheme: Login._callbackScheme,
         options: const FlutterWebAuth2Options(preferEphemeral: false),
       );
 
+      // 콜백 URI 수신
       final returnedUri = Uri.parse(resultUri);
       debugPrint('✅ OAuth 콜백 수신: uri=$returnedUri');
 
-      // --- 토큰 파싱
-      final token =
+      // --- 토큰 파싱 (query 우선, 없으면 fragment fallback)
+      String token =
           returnedUri.queryParameters['token'] ??
           returnedUri.queryParameters['access_token'] ??
           returnedUri.queryParameters['code'] ??
-          returnedUri.fragment
-              .split('&')
-              .map((pair) {
-                final parts = pair.split('=');
-                return parts.length == 2 ? MapEntry(parts[0], parts[1]) : null;
-              })
-              .whereType<MapEntry<String, String>>()
-              .firstWhere(
-                (e) =>
-                    e.key == 'token' ||
-                    e.key == 'access_token' ||
-                    e.key == 'code',
-                orElse: () => const MapEntry('', ''),
-              )
-              .value;
+          '';
+
+      if (token.isEmpty && (returnedUri.fragment.isNotEmpty)) {
+        // fragment: token=...&refresh_token=...
+        final fragPairs = returnedUri.fragment.split('&');
+        for (final p in fragPairs) {
+          final parts = p.split('=');
+          if (parts.length == 2) {
+            final k = parts[0];
+            final v = parts[1];
+            if (k == 'token' || k == 'access_token' || k == 'code') {
+              token = v;
+              break;
+            }
+          }
+        }
+      }
 
       if (token.isEmpty) {
         debugPrint('❌ OAuth callback missing token. uri=$returnedUri');
@@ -102,6 +106,7 @@ class _LoginState extends State<Login> {
       // --- 저장
       final bearer = token.startsWith('Bearer ') ? token : 'Bearer $token';
       await AuthStorage.instance.saveAccessToken(bearer);
+
       final rt = returnedUri.queryParameters['refresh_token'];
       if (rt != null && rt.isNotEmpty) {
         await AuthStorage.instance.saveRefreshToken(rt);
@@ -111,18 +116,15 @@ class _LoginState extends State<Login> {
       // 커스텀탭 → 액티비티 복귀 안정화를 위해 아주 짧게 대기
       await Future.delayed(const Duration(milliseconds: 120));
 
-      // AuthGate에 토큰 재확인 요청
+      // AuthGate에 토큰 재확인 요청 (첫 화면 분기 상태 갱신)
       await AuthGateBridge.refresh();
       debugPrint('✅ AuthGateBridge.refresh() 완료');
 
-      // --- 전역 네비게이터로 전환 (항상 같은 루트)
+      // --- 전역 네비게이터로 전환 (항상 같은 루트로 이동)
       if (!_navigated) {
         _navigated = true;
-        AppNavigator.key.currentState?.pushNamedAndRemoveUntil(
-          '/main',
-          (route) => false,
-        );
-        debugPrint('✅ /main pushNamedAndRemoveUntil 완료');
+        await AppNavigator.goMain();
+        debugPrint('✅ AppNavigator.goMain() 완료');
       }
     } on MissingPluginException {
       debugPrint('❌ flutter_web_auth_2 플러그인 미등록');
@@ -183,11 +185,9 @@ class _LoginStyledUi extends StatelessWidget {
       }
       await AuthStorage.instance.saveAccessToken(token);
       debugPrint('token saved');
-      // 전역 네비게이터로 바로 이동해도 됨:
-      AppNavigator.key.currentState?.pushNamedAndRemoveUntil(
-        '/main',
-        (r) => false,
-      );
+
+      // 전역 네비게이터로 바로 이동 (테스트 전용)
+      await AppNavigator.goMain();
     } catch (e) {
       debugPrint('DevToken error: $e');
     }
@@ -308,14 +308,13 @@ class _LoginStyledUi extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.asset(
-                              'assets/images/google.png',
-                              width: 30,
-                              height: 30,
-                            ),
-                            const SizedBox(width: 15),
-                            const Text(
+                          children: const [
+                            // 로고는 assets 로컬 사용
+                            // Image.asset('assets/images/google.png', width: 30, height: 30),
+                            // 간단화: 텍스트만
+                            // 위 행을 다시 쓰고 싶다면 주석 해제
+                            // SizedBox(width: 15),
+                            Text(
                               'Google 계정으로 로그인하기',
                               style: TextStyle(color: Color(0xFF111111)),
                             ),
