@@ -174,6 +174,27 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                     ),
                   ],
                 ),
+                SizedBox(height: 6),
+                Row(
+                  children: [
+                    Text(
+                      '수업코드',
+                      style: TextStyle(
+                        fontSize: width * 0.035,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xff0077FF),
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      widget.notice['code'].toString(),
+                      style: TextStyle(
+                        fontSize: width * 0.035,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -304,13 +325,13 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                                               EdgeInsets.only(
                                                                 left:
                                                                     width *
-                                                                    0.035,
+                                                                    0.028,
                                                                 right:
                                                                     width *
-                                                                    0.035,
+                                                                    0.028,
                                                                 bottom:
                                                                     height *
-                                                                    0.016,
+                                                                    0.012,
                                                               ),
                                                           decoration: BoxDecoration(
                                                             color: Color(

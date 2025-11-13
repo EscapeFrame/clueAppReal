@@ -19,7 +19,8 @@ class DayCard extends StatelessWidget {
     final hasLocation = (location ?? '').trim().isNotEmpty;
 
     final double cardWidth = (width * 0.7).clamp(240.0, 360.0).toDouble();
-    final double horizontalPadding = (width * 0.045).clamp(16.0, 22.0).toDouble();
+    final double horizontalPadding =
+        (width * 0.045).clamp(16.0, 22.0).toDouble();
     final double verticalPadding = (width * 0.04).clamp(14.0, 20.0).toDouble();
     final String dayLabel = day == '0' ? 'D-day' : 'D-$day';
 
@@ -35,10 +36,10 @@ class DayCard extends StatelessWidget {
         border: Border.all(color: const Color(0xFFE9E9E9)),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 2,
-            blurRadius: 8,
-            offset: const Offset(0, 3), // changes position of shadow
+            color: Colors.grey.withOpacity(0.06),
+            spreadRadius: 1,
+            blurRadius: 100,
+            offset: const Offset(0, 4), // changes position of shadow
           ),
         ],
       ),

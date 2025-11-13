@@ -6,6 +6,7 @@ import 'package:clue/widgets/mainPage/Gonji_/IlJeongGongji.dart';
 import 'package:clue/widgets/mainPage/Gonji_/ServiceGongji.dart';
 import 'package:clue/widgets/mainPage/HomepageCard.dart';
 import 'package:clue/widgets/mainPage/SuHang.dart';
+import 'package:clue/widgets/mainPage/TimetableStyledPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:clue/HamburgerDialog.dart';
@@ -209,38 +210,44 @@ class _HomePageState extends State<HomePage> {
                                   final bool isSelected =
                                       _selectedDayIndex == index;
 
-                                  return GestureDetector(
-                                    onTap:
-                                        () => setState(
-                                          () => _selectedDayIndex = index,
+                                  return Column(
+                                    children: [
+                                      GestureDetector(
+                                        onTap:
+                                            () => setState(
+                                              () => _selectedDayIndex = index,
+                                            ),
+                                        child: AnimatedContainer(
+                                          duration: const Duration(
+                                            milliseconds: 200,
+                                          ),
+                                          curve: Curves.easeInOut,
+                                          width: width * 0.1,
+                                          height: width * 0.1,
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                            color:
+                                                isSelected
+                                                    ? const Color(0xFF0077FF)
+                                                    : Colors.transparent,
+                                            borderRadius: BorderRadius.circular(
+                                              14,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            categories[index],
+                                            style: TextStyle(
+                                              color:
+                                                  isSelected
+                                                      ? Colors.white
+                                                      : const Color(0xFF7A7A7A),
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
                                         ),
-                                    child: AnimatedContainer(
-                                      duration: const Duration(
-                                        milliseconds: 200,
                                       ),
-                                      curve: Curves.easeInOut,
-                                      width: width * 0.1,
-                                      height: width * 0.1,
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                        color:
-                                            isSelected
-                                                ? const Color(0xFF0077FF)
-                                                : Colors.transparent,
-                                        borderRadius: BorderRadius.circular(14),
-                                      ),
-                                      child: Text(
-                                        categories[index],
-                                        style: TextStyle(
-                                          color:
-                                              isSelected
-                                                  ? Colors.white
-                                                  : const Color(0xFF7A7A7A),
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
+                                    ],
                                   );
                                 }),
                               ),
