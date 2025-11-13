@@ -165,33 +165,6 @@ class _LoginStyledUi extends StatelessWidget {
   final bool loggingIn;
 
   // (선택) 개발용 토큰 버튼
-  Future<void> _requestDevToken() async {
-    try {
-      final base = ApiClient.instance.dio.options.baseUrl;
-      final dio = Dio(BaseOptions(baseUrl: base));
-      final res = await dio.post(
-        '/test',
-        queryParameters: {
-          'userId': '3d571e58-2cee-43cf-8f90-8d8ee3a5fa11',
-          'username': 'admin2',
-          'role': 'TEACHER',
-        },
-        options: Options(validateStatus: (_) => true),
-      );
-      final token = res.headers.value('Authorization');
-      if (token == null || token.isEmpty) {
-        debugPrint('⚠️ 토큰 없음. headers=${res.headers.map} body=${res.data}');
-        return;
-      }
-      await AuthStorage.instance.saveAccessToken(token);
-      debugPrint('token saved');
-
-      // 전역 네비게이터로 바로 이동 (테스트 전용)
-      await AppNavigator.goMain();
-    } catch (e) {
-      debugPrint('DevToken error: $e');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -240,34 +213,7 @@ class _LoginStyledUi extends StatelessWidget {
                       ),
                     ],
                   ),
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: _requestDevToken,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: width * 0.05,
-                        vertical: height * 0.028,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xffF3F3F3),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Image.network(
-                            'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/800px-Google_%22G%22_logo.svg.png',
-                            width: width * 0.07,
-                          ),
-                          SizedBox(width: width * 0.045),
-                          const Text(
-                            'google 계정으로 로그인하기',
-                            style: TextStyle(color: Color(0xff111111)),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+
                   const Spacer(),
                   GestureDetector(
                     onTap: onGoogle,
@@ -308,12 +254,14 @@ class _LoginStyledUi extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            // 로고는 assets 로컬 사용
-                            // Image.asset('assets/images/google.png', width: 30, height: 30),
-                            // 간단화: 텍스트만
-                            // 위 행을 다시 쓰고 싶다면 주석 해제
-                            // SizedBox(width: 15),
+                          children: [
+                            Image.asset(
+                              'assets/images/google.png',
+                              width: 30,
+                              height: 30,
+                            ),
+
+                            SizedBox(width: 15),
                             Text(
                               'Google 계정으로 로그인하기',
                               style: TextStyle(color: Color(0xFF111111)),
