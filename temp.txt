@@ -1,4 +1,4 @@
-ï»¿import 'package:clue/login.dart';
+import 'package:clue/login.dart';
 import 'package:clue/pages/ClueLink.dart';
 import 'package:clue/pages/Education.dart';
 import 'package:clue/pages/HakSubSil.dart';
@@ -12,34 +12,34 @@ import 'package:flutter_svg/svg.dart';
 import 'dart:math' as math;
 import 'auth_storage.dart';
 
-/// ì „ì—­ ë„¤ë¹„ê²Œì´í„° í‚¤: ì–´ë””ì„œë“  ë™ì¼ ë£¨íŠ¸ ë„¤ë¹„ê²Œì´í„° ì ‘ê·¼
+/// Àü¿ª ³×ºñ°ÔÀÌÅÍ Å°: ¾îµğ¼­µç µ¿ÀÏ ·çÆ® ³×ºñ°ÔÀÌÅÍ Á¢±Ù
 class AppNavigator {
   static final key = GlobalKey<NavigatorState>();
 
-  /// ì–´ë””ì„œë“  ë©”ì¸ìœ¼ë¡œ ê°•ì œ ì§„ì…
+  /// ¾îµğ¼­µç ¸ŞÀÎÀ¸·Î °­Á¦ ÁøÀÔ
   static Future<void> goMain() async {
     final nav = key.currentState;
     if (nav == null) {
-      debugPrint('âŒ AppNavigator.key.currentState == null');
+      debugPrint('? AppNavigator.key.currentState == null');
       return;
     }
     try {
       nav.pushNamedAndRemoveUntil('/main', (route) => false);
-      debugPrint('âœ… AppNavigator.goMain: /main pushNamedAndRemoveUntil');
+      debugPrint('? AppNavigator.goMain: /main pushNamedAndRemoveUntil');
     } catch (e, s) {
-      debugPrint('âŒ AppNavigator.goMain error: $e');
+      debugPrint('? AppNavigator.goMain error: $e');
       debugPrintStack(stackTrace: s);
     }
   }
 }
 
-/// AuthGate ìƒíƒœ ì ‘ê·¼ìš© ì „ì—­ í‚¤(ë¡œê·¸ì¸ ì§í›„ í† í° ì¬í™•ì¸ìš©)
+/// AuthGate »óÅÂ Á¢±Ù¿ë Àü¿ª Å°(·Î±×ÀÎ Á÷ÈÄ ÅäÅ« ÀçÈ®ÀÎ¿ë)
 final GlobalKey<_AuthGateState> authGateKey = GlobalKey<_AuthGateState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ìˆ¨ì€ ì˜ˆì™¸ ë¡œê¹… ê°•í™”
+  // ¼ûÀº ¿¹¿Ü ·Î±ë °­È­
   FlutterError.onError = (details) {
     FlutterError.dumpErrorToConsole(details);
   };
@@ -61,22 +61,22 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Navigation Demo',
-      navigatorKey: AppNavigator.key, // âœ… ì „ì—­ ë„¤ë¹„ê²Œì´í„°
+      navigatorKey: AppNavigator.key, // ? Àü¿ª ³×ºñ°ÔÀÌÅÍ
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: AuthGate(key: authGateKey), // âœ… ì „ì—­ í‚¤ë¡œ ì œì–´
+      home: AuthGate(key: authGateKey), // ? Àü¿ª Å°·Î Á¦¾î
       routes: {
         '/main': (_) => const MainScreen(),
-        '/login': (_) => const Login(), // (ë””ë²„ê¹…/ì§ì ‘ ì´ë™ìš©)
+        '/login': (_) => const Login(), // (µğ¹ö±ë/Á÷Á¢ ÀÌµ¿¿ë)
       },
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
-/// ì•± ì‹œì‘ ì‹œ í† í° í™•ì¸ í›„ ë¡œê·¸ì¸/ë©”ì¸ ë¶„ê¸°
+/// ¾Û ½ÃÀÛ ½Ã ÅäÅ« È®ÀÎ ÈÄ ·Î±×ÀÎ/¸ŞÀÎ ºĞ±â
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
 
@@ -102,15 +102,15 @@ class _AuthGateState extends State<AuthGate> {
       _loading = false;
     });
     debugPrint(
-      'ğŸ”‘ AuthGate> token exists? ${(t ?? '').isNotEmpty} | token="$t"',
+      '?? AuthGate> token exists? ${(t ?? '').isNotEmpty} | token="$t"',
     );
   }
 
-  /// ì™¸ë¶€(login.dart ë“±)ì—ì„œ í˜¸ì¶œí•´ í† í° ì¬í™•ì¸
+  /// ¿ÜºÎ(login.dart µî)¿¡¼­ È£ÃâÇØ ÅäÅ« ÀçÈ®ÀÎ
   Future<void> reload() async {
-    debugPrint('ğŸ”„ AuthGate.reload() í˜¸ì¶œë¨');
+    debugPrint('?? AuthGate.reload() È£ÃâµÊ');
     await _loadToken();
-    // í† í°ì´ ìƒê²¼ë‹¤ë©´ ë°”ë¡œ ë©”ì¸ìœ¼ë¡œ ë³´ë‚´ëŠ” ê²ƒë„ ê°€ëŠ¥(ë³´ìˆ˜ì ìœ¼ë¡œ ì£¼ì„)
+    // ÅäÅ«ÀÌ »ı°å´Ù¸é ¹Ù·Î ¸ŞÀÎÀ¸·Î º¸³»´Â °Íµµ °¡´É(º¸¼öÀûÀ¸·Î ÁÖ¼®)
     // if ((_token ?? '').isNotEmpty) {
     //   await AppNavigator.goMain();
     // }
@@ -119,26 +119,26 @@ class _AuthGateState extends State<AuthGate> {
   @override
   Widget build(BuildContext context) {
     if (_loading) return const SizedBox.shrink();
-    // í† í° ìˆìœ¼ë©´ ë©”ì¸, ì—†ìœ¼ë©´ ë¡œê·¸ì¸
+    // ÅäÅ« ÀÖÀ¸¸é ¸ŞÀÎ, ¾øÀ¸¸é ·Î±×ÀÎ
     if ((_token ?? '').isNotEmpty) {
-      debugPrint('â¡ï¸ AuthGate ë¶„ê¸°: MainScreen');
+      debugPrint('?? AuthGate ºĞ±â: MainScreen');
       return const MainScreen();
     } else {
-      debugPrint('â¡ï¸ AuthGate ë¶„ê¸°: Login');
+      debugPrint('?? AuthGate ºĞ±â: Login');
       return const Login();
     }
   }
 }
 
-/// login.dartì—ì„œ AuthGate ìƒˆë¡œê³ ì¹¨í•˜ê³  ì‹¶ì„ ë•Œ í˜¸ì¶œ
+/// login.dart¿¡¼­ AuthGate »õ·Î°íÄ§ÇÏ°í ½ÍÀ» ¶§ È£Ãâ
 class AuthGateBridge {
   static Future<void> refresh() async {
-    debugPrint('ğŸ“£ AuthGateBridge.refresh()');
+    debugPrint('?? AuthGateBridge.refresh()');
     await authGateKey.currentState?.reload();
   }
 }
 
-/// ë©”ì¸ íƒ­ í™”ë©´
+/// ¸ŞÀÎ ÅÇ È­¸é
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -158,7 +158,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    debugPrint('ğŸŸ© MainScreen init');
+    debugPrint('?? MainScreen init');
     _pages = [
       const HomePage(), // index 0
       code != 'teacher' ? Haksubsil() : Thaksubsilsuap(), // index 1
@@ -265,7 +265,7 @@ class _MainScreenState extends State<MainScreen> {
                     onTap: () => _onItemTapped(1),
                   ),
                   Transform.translate(
-                    offset: const Offset(0, -10),
+                    offset: const Offset(0, 20),
                     child: SizedBox(
                       width: 56,
                       height: 56,
@@ -330,3 +330,5 @@ class _NavItem extends StatelessWidget {
     );
   }
 }
+
+
