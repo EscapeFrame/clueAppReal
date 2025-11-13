@@ -18,18 +18,6 @@ class _HaksubsilState extends State<Haksubsil> {
   final List<String> categories = ['전체', '인문과목', '전공과목', '방과후'];
   int selectedIndex = 0; //기본선택 : 전체
   bool _isLoading = true;
-  Future<void> classJoin() async {
-    try {
-      final dio = ApiClient.instance.dio;
-      final res = dio.post('/api/class/PC8EiH/members');
-      debugPrint("postres : ${res.toString()}");
-    } on DioException catch (e) {
-      debugPrint("RERERERROEROER : ${e.error}");
-      debugPrint("RERERERROEROER : ${e.message}");
-    } catch (e) {
-      debugPrint("error:$e");
-    }
-  }
 
   Future<void> haksubsilJoin(String code) async {
     debugPrint("ccooddee : $code");

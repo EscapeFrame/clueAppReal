@@ -51,7 +51,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
     }
   }
 
-  String markdowndata = '## HelloWorld \n --- \n ## 김한결 \n | ㅎㅇ';
+  String markdowndata = '## HelloWorld \n --- \n ## 김한결 \n | ㅎㅇh';
   @override
   void initState() {
     super.initState();
@@ -238,17 +238,25 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                     const {};
                                 return Column(
                                   children: [
-                                    // SizedBox(height: height * 0.006),
+                                    SizedBox(height: height * 0.01),
                                     Container(
                                       margin: EdgeInsets.symmetric(
                                         horizontal: width * 0.05,
                                         vertical: height * 0.003,
                                       ),
                                       decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.only(
-                                          topLeft: Radius.circular(10),
-                                          topRight: Radius.circular(10),
-                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.grey.withOpacity(0.1),
+                                            spreadRadius: 5,
+                                            blurRadius: 7,
+                                            offset: Offset(
+                                              0,
+                                              3,
+                                            ), // changes position of shadow
+                                          ),
+                                        ],
+                                        borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
                                           width: 0.25,
                                           color: Color(0xffCCCCCC),
@@ -292,27 +300,71 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                                           );
                                                         },
                                                         child: Container(
+                                                          margin:
+                                                              EdgeInsets.only(
+                                                                left:
+                                                                    width *
+                                                                    0.035,
+                                                                right:
+                                                                    width *
+                                                                    0.035,
+                                                                bottom:
+                                                                    height *
+                                                                    0.016,
+                                                              ),
                                                           decoration: BoxDecoration(
                                                             color: Color(
                                                               0xffF5F5F5,
                                                             ),
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  12,
+                                                                ),
+                                                            // boxShadow: [
+                                                            //   BoxShadow(
+                                                            //     color: Colors
+                                                            //         .black
+                                                            //         .withOpacity(
+                                                            //           0.05,
+                                                            //         ),
+                                                            //     blurRadius: 6,
+                                                            //     offset: Offset(
+                                                            //       0,
+                                                            //       2,
+                                                            //     ),
+                                                            //   ),
+                                                            // ],
                                                             // color: const Color.fromARGB(255, 245, 245, 245),
                                                             border: Border.all(
-                                                              width: 0.25,
+                                                              width: 0.01,
                                                               color: Color(
                                                                 0xffCCCCCC,
                                                               ),
                                                             ),
                                                           ),
                                                           child: ListTile(
-                                                            title: Container(
-                                                              child: Text(
-                                                                item.toString(),
-                                                                style: TextStyle(
-                                                                  fontSize:
+                                                            shape: RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    12,
+                                                                  ),
+                                                            ),
+                                                            contentPadding:
+                                                                EdgeInsets.symmetric(
+                                                                  horizontal:
                                                                       width *
-                                                                      0.035,
+                                                                      0.04,
                                                                 ),
+                                                            title: Text(
+                                                              item['title']
+                                                                  .toString(),
+                                                              style: TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                fontSize:
+                                                                    width *
+                                                                    0.035,
                                                               ),
                                                             ),
                                                           ),
