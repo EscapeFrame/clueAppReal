@@ -4,15 +4,13 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'auth_storage.dart';
 
 class ApiClient {
-
   static const bool useAltBase = false; // true면 BASE_URL_ALT 사용
 
   ApiClient._internal() {
-    final selectedBase = ((useAltBase
-            ? dotenv.env['BASE_URL_ALT']
-            : dotenv.env['BASE_URL']) ??
-        '')
-        .trim();
+    final selectedBase =
+        ((useAltBase ? dotenv.env['BASE_URL_ALT'] : dotenv.env['BASE_URL']) ??
+                '')
+            .trim();
 
     _dio = Dio(
       BaseOptions(
@@ -28,7 +26,8 @@ class ApiClient {
         onRequest: (options, handler) async {
           final token = await AuthStorage.instance.readAccessToken();
           if (token != null && token.isNotEmpty) {
-            options.headers['Authorization'] = token; // "Bearer ..." 형태로 저장돼있다면 그대로
+            options.headers['Authorization'] =
+                token; // "Bearer ..." 형태로 저장돼있다면 그대로
           }
           handler.next(options);
         },

@@ -1,3 +1,4 @@
+import 'package:clue/HamburgerDialog.dart';
 import 'package:clue/config/app_data_.dart';
 import 'package:clue/services/assignment_notification_service.dart';
 import 'package:clue/widgets/mainPage/DayCard.dart';
@@ -6,10 +7,9 @@ import 'package:clue/widgets/mainPage/Gonji_/IlJeongGongji.dart';
 import 'package:clue/widgets/mainPage/Gonji_/ServiceGongji.dart';
 import 'package:clue/widgets/mainPage/HomepageCard.dart';
 import 'package:clue/widgets/mainPage/SuHang.dart';
-import 'package:clue/widgets/mainPage/TimetableStyledPage.dart';
+import 'package:clue/widgets/mainPage/Timetable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:clue/HamburgerDialog.dart';
 import 'Alarm.dart';
 
 class HomePage extends StatefulWidget {
@@ -34,7 +34,6 @@ class _HomePageState extends State<HomePage> {
   ];
 
   int index = 0;
-  int _selectedDayIndex = 0;
 
   DateTime? _parseDate(String? s) {
     if (s == null || s.isEmpty) return null;
@@ -91,6 +90,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+
   @override
   void initState() {
     super.initState();
@@ -99,7 +99,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> categories = ['월', '화', '수', '목', '금'];
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
@@ -164,96 +163,7 @@ class _HomePageState extends State<HomePage> {
                     padding: EdgeInsets.all(width * 0.04 + 4),
                     child: Column(
                       children: [
-                        Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.09),
-                                blurRadius: 12,
-                                spreadRadius: 1,
-                                offset: Offset.zero,
-                              ),
-                            ],
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: width * 0.055,
-                            vertical: width * 0.055,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '나의 일과보기',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: width * 0.042,
-                                ),
-                              ),
-                              SizedBox(height: height * 0.0000008),
-                              Text(
-                                '빠르게 나의 수업을 확인해보세요!',
-                                style: TextStyle(
-                                  fontSize: width * 0.035,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              SizedBox(height: height * 0.014),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: List.generate(categories.length, (
-                                  index,
-                                ) {
-                                  final bool isSelected =
-                                      _selectedDayIndex == index;
-
-                                  return Column(
-                                    children: [
-                                      GestureDetector(
-                                        onTap:
-                                            () => setState(
-                                              () => _selectedDayIndex = index,
-                                            ),
-                                        child: AnimatedContainer(
-                                          duration: const Duration(
-                                            milliseconds: 200,
-                                          ),
-                                          curve: Curves.easeInOut,
-                                          width: width * 0.1,
-                                          height: width * 0.1,
-                                          alignment: Alignment.center,
-                                          decoration: BoxDecoration(
-                                            color:
-                                                isSelected
-                                                    ? const Color(0xFF0077FF)
-                                                    : Colors.transparent,
-                                            borderRadius: BorderRadius.circular(
-                                              14,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            categories[index],
-                                            style: TextStyle(
-                                              color:
-                                                  isSelected
-                                                      ? Colors.white
-                                                      : const Color(0xFF7A7A7A),
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                }),
-                              ),
-                            ],
-                          ),
-                        ),
+                        const HomeTimetableSection(),
                         SizedBox(height: width * 0.04 + 4),
                         Container(
                           padding: EdgeInsets.symmetric(
@@ -529,3 +439,4 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+
