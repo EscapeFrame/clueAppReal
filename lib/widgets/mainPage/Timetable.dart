@@ -20,6 +20,15 @@ class _HomeTimetableSectionState extends State<HomeTimetableSection> {
     7: '15:20 ~ 16:10',
   };
   static const String _lunchTimeRange = '12:30 ~ 13:20';
+  static const Map<int, _PeriodClockRange> _periodClockRanges = {
+    1: _PeriodClockRange(8, 40, 9, 30),
+    2: _PeriodClockRange(9, 40, 10, 30),
+    3: _PeriodClockRange(10, 40, 11, 30),
+    4: _PeriodClockRange(11, 40, 12, 30),
+    5: _PeriodClockRange(13, 20, 14, 10),
+    6: _PeriodClockRange(14, 20, 15, 10),
+    7: _PeriodClockRange(15, 20, 16, 10),
+  };
 
   final Map<String, List<_TimetableEntry>> _weeklyTimetable = {
     for (final day in _weekdayTabs) day: <_TimetableEntry>[],
@@ -97,7 +106,10 @@ class _HomeTimetableSectionState extends State<HomeTimetableSection> {
     for (final day in _weekdayTabs) {
       final existing = List<_TimetableEntry>.from(grouped[day]!);
       existing.sort((a, b) => a.period.compareTo(b.period));
-      for (final period in _periodTimeRanges.keys) {
+      final periods = _periodTimeRanges.keys.where(
+        (p) => !(day == '금' && p == 7),
+      );
+      for (final period in periods) {
         final match = existing.firstWhere(
           (entry) => entry.period == period,
           orElse: () => _TimetableEntry.selfStudy(period),
@@ -106,6 +118,27 @@ class _HomeTimetableSectionState extends State<HomeTimetableSection> {
       }
     }
     return normalized;
+  }
+
+  String? _currentDayLabel() {
+    final weekday = DateTime.now().weekday;
+    if (weekday < DateTime.monday || weekday > DateTime.friday) {
+      return null;
+    }
+    final index = weekday - DateTime.monday;
+    if (index < 0 || index >= _weekdayTabs.length) return null;
+    return _weekdayTabs[index];
+  }
+
+  bool _isCurrentPeriod(String dayLabel, int period) {
+    final currentDayLabel = _currentDayLabel();
+    if (currentDayLabel == null || currentDayLabel != dayLabel) return false;
+    final range = _periodClockRanges[period];
+    if (range == null) return false;
+    final now = DateTime.now();
+    final start = range.startOn(now);
+    final end = range.endOn(now);
+    return !now.isBefore(start) && now.isBefore(end);
   }
 
   String? _normalizeDay(dynamic value) {
@@ -207,7 +240,7 @@ class _HomeTimetableSectionState extends State<HomeTimetableSection> {
             '빠르게 나의 수업을 확인해보세요!',
             style: TextStyle(fontSize: width * 0.035, color: Colors.grey[600]),
           ),
-          // SizedBox(height: height * 0.014),
+          SizedBox(height: height * 0.014),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: List.generate(_weekdayTabs.length, (index) {
@@ -240,7 +273,7 @@ class _HomeTimetableSectionState extends State<HomeTimetableSection> {
               );
             }),
           ),
-          SizedBox(height: height * 0.02),
+          SizedBox(height: height * 0.015),
           SizedBox(
             height: timetableHeight,
             child: AnimatedSwitcher(
@@ -302,7 +335,7 @@ class _HomeTimetableSectionState extends State<HomeTimetableSection> {
     final children = <Widget>[];
     var addedLunch = false;
     for (final entry in entries) {
-      children.add(_buildPeriodCard(entry, width, height));
+      children.add(_buildPeriodCard(entry, width, height, selectedDay));
       if (entry.period == 4 && !addedLunch) {
         addedLunch = true;
         children.add(_buildLunchCard(width, height));
@@ -315,10 +348,25 @@ class _HomeTimetableSectionState extends State<HomeTimetableSection> {
     );
   }
 
-  Widget _buildPeriodCard(_TimetableEntry entry, double width, double height) {
+  Widget _buildPeriodCard(
+    _TimetableEntry entry,
+    double width,
+    double height,
+    String dayLabel,
+  ) {
     final isSelfStudy = entry.isSelfStudy;
     final timeText = _periodTimeRanges[entry.period] ?? '시간 정보 없음';
     final detail = _getEntryDetail(entry);
+    final bool isCurrent = _isCurrentPeriod(dayLabel, entry.period);
+    final Color backgroundColor =
+        isCurrent
+            ? const Color(0xFFEBF6FF)
+            : (isSelfStudy ? const Color(0xFFF2F6FF) : Colors.white);
+    final Color borderColor =
+        isCurrent
+            ? const Color(0xFF86C1FF)
+            : (isSelfStudy ? const Color(0xFFD1E2FF) : const Color(0xFFE6E6E6));
+
     return Container(
       margin: EdgeInsets.only(bottom: height * 0.012),
       padding: EdgeInsets.symmetric(
@@ -326,12 +374,9 @@ class _HomeTimetableSectionState extends State<HomeTimetableSection> {
         vertical: height * 0.016,
       ),
       decoration: BoxDecoration(
-        color: isSelfStudy ? const Color(0xFFF2F6FF) : Colors.white,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color:
-              isSelfStudy ? const Color(0xFFD1E2FF) : const Color(0xFFE6E6E6),
-        ),
+        border: Border.all(color: borderColor),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -459,4 +504,34 @@ class _TimetableEntry {
   factory _TimetableEntry.selfStudy(int period) {
     return _TimetableEntry(period: period, subject: '자습', isSelfStudy: true);
   }
+}
+
+class _PeriodClockRange {
+  final int startHour;
+  final int startMinute;
+  final int endHour;
+  final int endMinute;
+
+  const _PeriodClockRange(
+    this.startHour,
+    this.startMinute,
+    this.endHour,
+    this.endMinute,
+  );
+
+  DateTime startOn(DateTime reference) => DateTime(
+    reference.year,
+    reference.month,
+    reference.day,
+    startHour,
+    startMinute,
+  );
+
+  DateTime endOn(DateTime reference) => DateTime(
+    reference.year,
+    reference.month,
+    reference.day,
+    endHour,
+    endMinute,
+  );
 }
