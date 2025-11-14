@@ -172,7 +172,7 @@ class _HomeTimetableSectionState extends State<HomeTimetableSection> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
-    final timetableHeight = height * 0.42;
+    final timetableHeight = height * 0.33;
 
     return Container(
       width: double.infinity,
@@ -343,7 +343,7 @@ class _HomeTimetableSectionState extends State<HomeTimetableSection> {
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: width * 0.042,
-                color: isSelfStudy ? const Color(0xFF1D4ED8) : Colors.black87,
+                color: const Color(0xFF0077FF),
               ),
             ),
           ),
