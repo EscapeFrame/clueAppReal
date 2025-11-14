@@ -79,7 +79,10 @@ class _HomeTimetableSectionState extends State<HomeTimetableSection> {
         period: period,
         subject: (map['subject'] ?? '자습').toString(),
         location:
-            (map['location'] ?? map['room'] ?? map['place'] ?? map['description'])
+            (map['location'] ??
+                    map['room'] ??
+                    map['place'] ??
+                    map['description'])
                 ?.toString(),
         teacher: map['teacher']?.toString(),
         date: _parseYmd(map['date']),
@@ -202,12 +205,9 @@ class _HomeTimetableSectionState extends State<HomeTimetableSection> {
           SizedBox(height: height * 0.0000008),
           Text(
             '빠르게 나의 수업을 확인해보세요!',
-            style: TextStyle(
-              fontSize: width * 0.035,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: width * 0.035, color: Colors.grey[600]),
           ),
-          SizedBox(height: height * 0.014),
+          // SizedBox(height: height * 0.014),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: List.generate(_weekdayTabs.length, (index) {
@@ -222,13 +222,16 @@ class _HomeTimetableSectionState extends State<HomeTimetableSection> {
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color:
-                        isSelected ? const Color(0xFF0077FF) : Colors.transparent,
+                        isSelected
+                            ? const Color(0xFF0077FF)
+                            : Colors.transparent,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Text(
                     _weekdayTabs[index],
                     style: TextStyle(
-                      color: isSelected ? Colors.white : const Color(0xFF7A7A7A),
+                      color:
+                          isSelected ? Colors.white : const Color(0xFF7A7A7A),
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -246,9 +249,7 @@ class _HomeTimetableSectionState extends State<HomeTimetableSection> {
                 key: ValueKey(
                   'timetable-$_selectedDayIndex-${_timetableError ?? 'ok'}-$_isLoadingTimetable',
                 ),
-                child: ClipRect(
-                  child: _buildTimetableContent(width, height),
-                ),
+                child: ClipRect(child: _buildTimetableContent(width, height)),
               ),
             ),
           ),
@@ -314,11 +315,7 @@ class _HomeTimetableSectionState extends State<HomeTimetableSection> {
     );
   }
 
-  Widget _buildPeriodCard(
-    _TimetableEntry entry,
-    double width,
-    double height,
-  ) {
+  Widget _buildPeriodCard(_TimetableEntry entry, double width, double height) {
     final isSelfStudy = entry.isSelfStudy;
     final timeText = _periodTimeRanges[entry.period] ?? '시간 정보 없음';
     final detail = _getEntryDetail(entry);
