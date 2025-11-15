@@ -420,8 +420,7 @@ class _AlarmState extends State<Alarm> {
 
   Widget _buildEmptyNoticeMessage() {
     final label = _currentCategoryLabel();
-    final text =
-        label.isEmpty ? '그 타입에 맞는 공지가 없습니다.' : '$label 타입에 맞는 공지가 없습니다.';
+    final text = label.isEmpty ? '공지가 없습니다.' : '$label 공지가 없습니다.';
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 60),
       alignment: Alignment.center,
