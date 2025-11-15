@@ -354,18 +354,13 @@ class _HomeTimetableSectionState extends State<HomeTimetableSection> {
     double height,
     String dayLabel,
   ) {
-    final isSelfStudy = entry.isSelfStudy;
     final timeText = _periodTimeRanges[entry.period] ?? '시간 정보 없음';
     final detail = _getEntryDetail(entry);
     final bool isCurrent = _isCurrentPeriod(dayLabel, entry.period);
     final Color backgroundColor =
-        isCurrent
-            ? const Color(0xFFEBF6FF)
-            : (isSelfStudy ? const Color(0xFFF2F6FF) : Colors.white);
+        isCurrent ? const Color(0xFFEBF6FF) : Colors.white;
     final Color borderColor =
-        isCurrent
-            ? const Color(0xFF86C1FF)
-            : (isSelfStudy ? const Color(0xFFD1E2FF) : const Color(0xFFE6E6E6));
+        isCurrent ? const Color(0xFF86C1FF) : const Color(0xFFE6E6E6);
 
     return Container(
       margin: EdgeInsets.only(bottom: height * 0.012),
@@ -476,9 +471,6 @@ class _HomeTimetableSectionState extends State<HomeTimetableSection> {
       if (candidate != null && candidate.trim().isNotEmpty) {
         return candidate.trim();
       }
-    }
-    if (entry.isSelfStudy) {
-      return '스스로 학습해보는 시간';
     }
     return null;
   }
