@@ -1,9 +1,11 @@
+import 'package:clue/api_client.dart';
 import 'package:clue/settings/Settings_set.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'Alarm.dart';
 
-class Settings extends StatelessWidget {
+class Settings extends StatefulWidget {
   const Settings({super.key});
 
   static const _backgroundColor = Color(0xffF5F5F5);
@@ -12,13 +14,36 @@ class Settings extends StatelessWidget {
   ];
 
   @override
+  State<Settings> createState() => _SettingsState();
+}
+
+class _SettingsState extends State<Settings> {
+  @override
+  void initState() {
+    super.initState();
+    _SayongjaInformation();
+  }
+
+  Future<void> _SayongjaInformation() async {
+    try {
+      final dio = ApiClient.instance.dio;
+      final res = await dio.get('/api/user/me');
+      debugPrint('사용자 정보: ${res.data}');
+    } on DioException catch (e) {
+      debugPrint('사용자 정보 요청 실패: ${e.response?.data ?? e.message}');
+    } catch (e) {
+      debugPrint('알 수 없는 오류: $e');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final media = MediaQuery.of(context);
     final width = media.size.width;
 
     return Scaffold(
-      backgroundColor: _backgroundColor,
+      backgroundColor: Settings._backgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -30,25 +55,30 @@ class Settings extends StatelessWidget {
             Container(
               color: Colors.white,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
                       child: SvgPicture.asset(
                         'assets/images/realLogo.svg',
-              
+
                         width: width * 0.25,
                       ),
                     ),
-              
+
                     Container(
                       child: Row(
                         children: [
                           GestureDetector(
                             onTap: () {
                               Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => const Alarm()),
+                                MaterialPageRoute(
+                                  builder: (_) => const Alarm(),
+                                ),
                               );
                             },
                             child: SvgPicture.asset(
@@ -89,7 +119,7 @@ class Settings extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
-                        boxShadow: _cardShadow,
+                        boxShadow: Settings._cardShadow,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

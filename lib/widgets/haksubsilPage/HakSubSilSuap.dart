@@ -155,7 +155,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                     style: TextStyle(fontSize: width * 0.035),
                   ),
                 ),
-                SizedBox(height: height * 0.008),
+                SizedBox(height: height * 0.004),
                 Row(
                   children: [
                     Icon(
@@ -163,7 +163,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                       size: width * 0.06,
                       color: Colors.black54,
                     ),
-                    SizedBox(width: width * 0.01),
+                    SizedBox(width: width * 0.005),
                     Text(
                       widget.notice['teacherNames'][0].toString(),
                       style: TextStyle(
@@ -174,7 +174,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                     ),
                   ],
                 ),
-                SizedBox(height: 6),
+                SizedBox(height: 12),
                 Row(
                   children: [
                     Text(

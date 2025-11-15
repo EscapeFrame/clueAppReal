@@ -1,3 +1,5 @@
+import 'package:clue/api_client.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -10,14 +12,101 @@ class Alarm extends StatefulWidget {
 
 class _AlarmState extends State<Alarm> {
   int _selectedCategory = 0;
-  final List<String> _categories = const ['학교공지', '일정안내', '서비스공지', '기타'];
-
-  final List<Map<String, dynamic>> _items = const [
-    {'title': '2025학교공지', 'date': '2025-12-31', 'disabled': false},
-    {'title': '2025학교공지', 'date': '2025-12-31', 'disabled': false},
-    {'title': '2025학교공지', 'date': '2025-12-31', 'disabled': false},
-    {'title': '2025학교공지', 'date': '2025-12-31', 'disabled': true},
+  final List<_NoticeCategory> _categories = const [
+    _NoticeCategory(label: '학교공지', type: 'SCHOOL'),
+    _NoticeCategory(label: '설정안내', type: 'SETTING'),
+    _NoticeCategory(label: '개별공지', type: 'PERSONAL'),
+    _NoticeCategory(label: '기타', type: 'ETC'),
   ];
+
+  List<Map<String, dynamic>> _notices = [];
+  List<Map<String, dynamic>> _filteredNotices = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchNotices();
+  }
+
+  Future<void> _fetchNotices() async {
+    try {
+      final dio = ApiClient.instance.dio;
+      final res = await dio.get('/api/notice');
+      debugPrint('공지 목록: ${res.data}');
+      final data = res.data;
+      final List<Map<String, dynamic>> fetched = [];
+      if (data is List) {
+        for (final item in data) {
+          if (item is Map<String, dynamic>) {
+            fetched.add(Map<String, dynamic>.from(item));
+          } else if (item is Map) {
+            fetched.add(
+              Map<String, dynamic>.from(
+                item.map((key, value) => MapEntry(key.toString(), value)),
+              ),
+            );
+          }
+        }
+      }
+      if (!mounted) return;
+      setState(() {
+        _notices = fetched;
+        _applyCategoryFilter();
+      });
+    } on DioException catch (e) {
+      debugPrint('공지 요청 실패: ${e.response?.data ?? e.message}');
+    } catch (e) {
+      debugPrint('공지 알 수 없는 오류: $e');
+    }
+  }
+
+  Future<void> _fetchNoticeDetail(String noticeId) async {
+    if (noticeId.isEmpty) {
+      debugPrint('공지 상세 요청: noticeId가 비어있음');
+      return;
+    }
+    try {
+      final dio = ApiClient.instance.dio;
+      final res = await dio.get('/api/notice/$noticeId');
+      debugPrint('공지 상세($noticeId): ${res.data}');
+    } on DioException catch (e) {
+      debugPrint('공지 상세 요청 실패($noticeId): ${e.response?.data ?? e.message}');
+    } catch (e) {
+      debugPrint('공지 상세 알 수 없는 오류($noticeId): $e');
+    }
+  }
+
+  void _applyCategoryFilter() {
+    if (_categories.isEmpty) {
+      _filteredNotices = List<Map<String, dynamic>>.from(_notices);
+      return;
+    }
+    final int safeIndex = _selectedCategory.clamp(0, _categories.length - 1);
+    final targetType = _categories[safeIndex].type.toUpperCase();
+    _filteredNotices =
+        _notices.where((notice) {
+          final type = (notice['type'] ?? '').toString().toUpperCase();
+          return type == targetType;
+        }).toList();
+  }
+
+  String _formatNoticeDate(String? value) {
+    if (value == null || value.isEmpty) return '-';
+    try {
+      final date = DateTime.parse(value).toLocal();
+      final month = date.month.toString().padLeft(2, '0');
+      final day = date.day.toString().padLeft(2, '0');
+      return '${date.year}-$month-$day';
+    } catch (_) {
+      return value;
+    }
+  }
+
+  String _currentCategoryLabel() {
+    if (_categories.isEmpty) return '';
+    final index = _selectedCategory.clamp(0, _categories.length - 1);
+    return _categories[index].label;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,13 +162,22 @@ class _AlarmState extends State<Alarm> {
                     children: [
                       _buildCategoryChips(context),
                       const SizedBox(height: 12),
-                      ..._items.map(
-                        (e) => _buildNoticeItem(
-                          title: e['title'] as String,
-                          date: e['date'] as String,
-                          disabled: e['disabled'] as bool,
-                        ),
-                      ),
+                      if (_filteredNotices.isEmpty) _buildEmptyNoticeMessage(),
+                      if (_filteredNotices.isNotEmpty)
+                        ..._filteredNotices.map((notice) {
+                          final noticeId =
+                              (notice['noticeId'] ?? '').toString();
+                          return _buildNoticeItem(
+                            title: (notice['title'] ?? '').toString(),
+                            date: _formatNoticeDate(
+                              notice['createdAt']?.toString(),
+                            ),
+                            onTap:
+                                noticeId.isEmpty || noticeId == 'null'
+                                    ? null
+                                    : () => _fetchNoticeDetail(noticeId),
+                          );
+                        }),
                       const SizedBox(height: 12),
                     ],
                   ),
@@ -134,8 +232,8 @@ class _AlarmState extends State<Alarm> {
           final testFont = baseFont * mid;
           final testHPad = baseHPad * mid;
           double total = 0.0;
-          for (final label in _categories) {
-            total += measureTextWidth(label, testFont) + 2 * testHPad;
+          for (final category in _categories) {
+            total += measureTextWidth(category.label, testFont) + 2 * testHPad;
           }
           final gaps = baseGap * (_categories.length - 1);
           total += gaps;
@@ -159,8 +257,8 @@ class _AlarmState extends State<Alarm> {
         List<double> widths() =>
             _categories
                 .map(
-                  (label) =>
-                      measureTextWidth(label, fontSize) +
+                  (category) =>
+                      measureTextWidth(category.label, fontSize) +
                       2 * hPad +
                       safeBufferPerChip,
                 )
@@ -215,7 +313,7 @@ class _AlarmState extends State<Alarm> {
                 width: w[index],
                 child: ChoiceChip(
                   label: Text(
-                    _categories[index],
+                    _categories[index].label,
                     maxLines: 1, // single line; width is guaranteed to fit
                     softWrap: false,
                     textAlign: TextAlign.center,
@@ -229,8 +327,12 @@ class _AlarmState extends State<Alarm> {
                     ),
                   ),
                   selected: _selectedCategory == index,
-                  onSelected: (val) {
-                    setState(() => _selectedCategory = index);
+                  onSelected: (selected) {
+                    if (!selected) return;
+                    setState(() {
+                      _selectedCategory = index;
+                      _applyCategoryFilter();
+                    });
                   },
                   shape: RoundedRectangleBorder(
                     side: BorderSide(
@@ -267,42 +369,78 @@ class _AlarmState extends State<Alarm> {
     required String title,
     required String date,
     bool disabled = false,
+    VoidCallback? onTap,
   }) {
     final Color border = Color(0xffE9E9E9);
     final Color bg = disabled ? Colors.grey.shade100 : Colors.white;
     final Color titleColor = disabled ? Colors.grey.shade500 : Colors.black87;
     final Color dateColor =
         disabled ? Colors.grey.shade500 : Colors.grey.shade700;
+    final borderRadius = BorderRadius.circular(10);
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 3),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: border),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: titleColor,
+    return InkWell(
+      onTap: disabled ? null : onTap,
+      borderRadius: borderRadius,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 3),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: borderRadius,
+          border: Border.all(color: border),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: titleColor,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-          Text(
-            date,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: dateColor,
+            const SizedBox(width: 12),
+            Text(
+              date,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: dateColor,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+
+  Widget _buildEmptyNoticeMessage() {
+    final label = _currentCategoryLabel();
+    final text =
+        label.isEmpty ? '그 타입에 맞는 공지가 없습니다.' : '$label 타입에 맞는 공지가 없습니다.';
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 60),
+      alignment: Alignment.center,
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF94A3B8),
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+}
+
+class _NoticeCategory {
+  final String label;
+  final String type;
+
+  const _NoticeCategory({required this.label, required this.type});
 }

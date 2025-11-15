@@ -1,9 +1,11 @@
+import 'package:clue/api_client.dart';
 import 'package:clue/config/app_data_.dart';
 import 'package:clue/linksave/LinkList.dart';
 import 'package:clue/linksave/LinkSuccessDialog.dart';
 import 'package:clue/linksave/LinkSujeong.dart' as link_edit;
 import 'package:clue/linksave/LinksaveModal.dart' as link_add;
 import 'package:clue/linksave/NoLink.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'Alarm.dart';
@@ -48,6 +50,24 @@ class _CluelinkState extends State<Cluelink> {
     final month = date.month.toString().padLeft(2, '0');
     final day = date.day.toString().padLeft(2, '0');
     return '$year-$month-$day';
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLinkSave();
+  }
+
+  Future<void> _fetchLinkSave() async {
+    try {
+      final dio = ApiClient.instance.dio;
+      final res = await dio.get('/api/linksave');
+      debugPrint('링크 저장 데이터: ${res.data}');
+    } on DioException catch (e) {
+      debugPrint('링크 저장 요청 실패: ${e.response?.data ?? e.message}');
+    } catch (e) {
+      debugPrint('링크 저장 알 수 없는 오류: $e');
+    }
   }
 
   @override
@@ -108,7 +128,9 @@ class _CluelinkState extends State<Cluelink> {
                           GestureDetector(
                             onTap: () {
                               Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => const Alarm()),
+                                MaterialPageRoute(
+                                  builder: (_) => const Alarm(),
+                                ),
                               );
                             },
                             child: SvgPicture.asset(

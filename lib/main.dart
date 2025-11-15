@@ -1,4 +1,5 @@
 ﻿import 'package:clue/login.dart';
+import 'package:clue/api_client.dart';
 import 'package:clue/pages/ClueLink.dart';
 import 'package:clue/pages/Education.dart';
 import 'package:clue/pages/HakSubSil.dart';
@@ -6,6 +7,7 @@ import 'package:clue/pages/HomePage.dart';
 import 'package:clue/pages/Settings.dart';
 import 'package:clue/services/assignment_notification_service.dart';
 import 'package:clue/teacher_page/tHakSubSilSuap.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_svg/svg.dart';
@@ -151,18 +153,22 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  static String code = "student";
-  // static String code = "teacher";
-  late final List<Widget> _pages;
-  late final List<GlobalKey<NavigatorState>> _navigatorKeys;
+  String _roleCode = "student";
+  List<Widget> _pages = const [];
+  List<GlobalKey<NavigatorState>> _navigatorKeys = const [];
 
   @override
   void initState() {
     super.initState();
     debugPrint('🟩 MainScreen init');
+    _initPages();
+    _loadUserRole();
+  }
+
+  void _initPages() {
     _pages = [
       const HomePage(), // index 0
-      code != 'teacher' ? Haksubsil() : Thaksubsilsuap(), // index 1
+      _roleCode == 'teacher' ? Thaksubsilsuap() : Haksubsil(), // index 1
       const Cluelink(), // index 2 (center diamond)
       const Education(), // index 3
       const Settings(), // index 4
@@ -171,6 +177,27 @@ class _MainScreenState extends State<MainScreen> {
       _pages.length,
       (_) => GlobalKey<NavigatorState>(),
     );
+  }
+
+  Future<void> _loadUserRole() async {
+    try {
+      final dio = ApiClient.instance.dio;
+      final res = await dio.get('/api/user/me');
+      debugPrint('사용자 정보: ${res.data}');
+      final role = (res.data?['role'] ?? '').toString().toUpperCase();
+      final nextCode = role == 'TEACHER' ? 'teacher' : 'student';
+      if (nextCode != _roleCode) {
+        if (!mounted) return;
+        setState(() {
+          _roleCode = nextCode;
+          _initPages();
+        });
+      }
+    } on DioException catch (e) {
+      debugPrint('사용자 정보 요청 실패: ${e.response?.data ?? e.message}');
+    } catch (e) {
+      debugPrint('사용자 정보 알 수 없는 오류: $e');
+    }
   }
 
   Future<bool> _onWillPop() async {
