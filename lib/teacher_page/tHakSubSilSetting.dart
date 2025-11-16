@@ -1,8 +1,6 @@
-//학습실 채팅 허용 주석 나중에 해제하기. 잊지 말자 
 import 'package:clue/api_client.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class Thaksubsilsetting extends StatefulWidget {
   final Map<String, dynamic> tsuap;
@@ -30,7 +28,6 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
   @override
   void initState() {
     super.initState();
-    debugPrint('[Thaksubsilsetting] initState with tsuap: ${widget.tsuap}');
     final String targetValue = (widget.tsuap['target'] ?? '').toString();
     final List<String> targetParts = targetValue.split('-');
 
@@ -50,7 +47,9 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
       text: targetParts.length > 1 ? targetParts[1] : '',
     );
 
-    _isActivated = (widget.tsuap['activation'] == true) || (widget.tsuap['isActivation'] == true);
+    _isActivated =
+        (widget.tsuap['activation'] == true) ||
+        (widget.tsuap['isActivation'] == true);
     isChatAllowed = (widget.tsuap['chatAllowed'] == true);
   }
 
@@ -67,275 +66,326 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
   void _updateClassFromParts({String? grade, String? ban}) {
     final String nextGrade = grade ?? _gradeController.text;
     final String nextBan = ban ?? _banController.text;
-
-    final String _ = [nextGrade, nextBan].where((e) => e.isNotEmpty).join('-');
+    [nextGrade, nextBan].where((e) => e.isNotEmpty).join('-');
   }
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
-    // final double inputHeight = height * 0.045;
     final double inputFontSize = width * 0.038;
-    // final double vPad = ((inputHeight - inputFontSize) / 2);
+    final accent = const Color(0xff0077FF);
+    final borderColor = const Color(0xffE1E8F0);
 
-    return SingleChildScrollView(
-      child: Container(
-        color: const Color(0xffffffff),
-        padding: EdgeInsets.symmetric(
-          horizontal: width * 0.06,
-          vertical: height * 0.015,
+    InputDecoration buildInputDecoration(String hint) => InputDecoration(
+      hintText: hint,
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: borderColor),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: borderColor),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: accent, width: 1.4),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    );
+
+    Widget buildLabel(String text) => Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: Color(0xff4C5674),
+        ),
+      ),
+    );
+
+    Widget buildSection({
+      required String title,
+      String? subtitle,
+      required List<Widget> children,
+    }) {
+      return Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(top: 20),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xffE5EBF3)),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xff0F172A).withOpacity(0.03),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '기본정보',
-              style: TextStyle(
-                fontSize: width * 0.065,
-                fontWeight: FontWeight.bold,
+              title,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: Color(0xff1F2A44),
               ),
             ),
-            Text(
-              '학습실에 기본 정보를 설정합니다',
-              style: TextStyle(fontSize: width * 0.03, color: Colors.black54),
-            ),
-            SizedBox(height: height * 0.025),
-            TextFormField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: '학습실 이름',
-                border: OutlineInputBorder(),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xff578FCA)),
-                ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: const TextStyle(fontSize: 13, color: Color(0xff6D768E)),
               ),
-              style: TextStyle(fontSize: inputFontSize),
-            ),
-            SizedBox(height: height * 0.02),
-            TextFormField(
-              controller: _languageController,
-              decoration: const InputDecoration(
-                labelText: '분류(sort)',
-                border: OutlineInputBorder(),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xff578FCA)),
-                ),
+            ],
+            const SizedBox(height: 16),
+            ...children,
+          ],
+        ),
+      );
+    }
+
+    Widget buildToggleTile({
+      required IconData icon,
+      required String title,
+      required String description,
+      required bool value,
+      required ValueChanged<bool> onChanged,
+    }) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xffE5EBF3)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: const Color(0xffE5F0FF),
+                borderRadius: BorderRadius.circular(14),
               ),
-              style: TextStyle(fontSize: inputFontSize),
+              child: Icon(icon, color: accent),
             ),
-            SizedBox(height: height * 0.02),
-            TextFormField(
-              controller: _descriptionController,
-              minLines: 3,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: '설명',
-                border: OutlineInputBorder(),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xff578FCA)),
-                ),
-              ),
-              style: TextStyle(fontSize: width * 0.038),
-            ),
-            SizedBox(height: height * 0.02),
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextFormField(
-                        controller: _gradeController,
-                        decoration: const InputDecoration(
-                          labelText: '학년',
-                          border: OutlineInputBorder(),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xff578FCA)),
-                          ),
-                        ),
-                        keyboardType: TextInputType.text,
-                        style: TextStyle(fontSize: inputFontSize),
-                        onChanged: (v) => _updateClassFromParts(grade: v),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(width: width * 0.02),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextFormField(
-                        controller: _banController,
-                        decoration: const InputDecoration(
-                          labelText: '반',
-                          border: OutlineInputBorder(),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xff578FCA)),
-                          ),
-                        ),
-                        keyboardType: TextInputType.text,
-                        style: TextStyle(fontSize: inputFontSize),
-                        onChanged: (v) => _updateClassFromParts(ban: v),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            SizedBox(height: height * 0.05),
-            Text(
-              '학습실 설정',
-              style: TextStyle(
-                fontSize: width * 0.065,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(
-              '학습실의 기능과 접근 권한을 설정합니다',
-              style: TextStyle(fontSize: width * 0.03, color: Colors.black54),
-            ),
-
-            SizedBox(height: height * 0.03),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SizedBox(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '학습실 활성화',
-                        style: GoogleFonts.roboto(
-                          color: Colors.black,
-                          fontSize: width * 0.048,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        '학습실을 활성화하면 학생들이 접근할 수 있습니다',
-                        style: TextStyle(
-                          fontSize: width * 0.028,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Transform.scale(
-                  scale: width * 0.002,
-                  child: Switch(
-                    activeTrackColor: const Color(0xff578FCA),
-                    inactiveThumbColor: Colors.white,
-                    inactiveTrackColor: const Color(0xffcccccc),
-                    value: _isActivated,
-
-                    onChanged: (v) => setState(() => _isActivated = v),
-                  ),
-                ),
-              ],
-            ),
-
-            SizedBox(height: height * 0.025),
-
-            // Row(
-            //   crossAxisAlignment: CrossAxisAlignment.end,
-            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //   children: [
-            //     SizedBox(
-            //       child: Column(
-            //         crossAxisAlignment: CrossAxisAlignment.start,
-            //         children: [
-            //           Text(
-            //             '채팅 허용',
-            //             style: TextStyle(
-            //               color: Colors.black,
-            //               fontSize: width * 0.048,
-            //               fontWeight: FontWeight.w500,
-            //             ),
-            //           ),
-            //           Text(
-            //             '학생들이 학습실 내에서 채팅할 수 있도록 허용합니다',
-            //             style: TextStyle(
-            //               fontSize: width * 0.028,
-            //               color: Colors.black87,
-            //             ),
-            //           ),
-            //         ],
-            //       ),
-            //     ),
-            //     Transform.scale(
-            //       scale: width * 0.002,
-            //       child: Switch(
-            //         activeTrackColor: const Color(0xff578FCA),
-            //         inactiveThumbColor: Colors.white,
-            //         inactiveTrackColor: const Color(0xffcccccc),
-            //         value: _isChatAllowed,
-
-            //         onChanged: (v) => setState(() => _isChatAllowed = v),
-            //       ),
-            //     ),
-            //   ],
-            // ),
-            SizedBox(height: height * 0.015),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '학습실 삭제하기',
-                        style: TextStyle(
-                          fontSize: width * 0.048,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        '학습실을 삭제하면 모든 데이터가 영구적으로 삭제됩니다',
-                        style: TextStyle(
-                          fontSize: width * 0.028,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xffE0E0E0),
-                    foregroundColor: Colors.black,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: width * 0.04,
-                      vertical: height * 0.012,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xff1B2741),
                     ),
                   ),
-                  child: const Text('삭제하기'),
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xff6D768E),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Switch(
+              value: value,
+              activeColor: Colors.white,
+              activeTrackColor: accent,
+              onChanged: onChanged,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      child: Container(
+        color: const Color(0xfff5f5f5),
+        padding: EdgeInsets.symmetric(
+          horizontal: width * 0.06,
+          vertical: height * 0.02,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '수업 설정',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: Color(0xff14213D),
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              '수업 정보를 정리하고 접근 권한을 관리해 보세요.',
+              style: TextStyle(fontSize: 13, color: Color(0xff6D768E)),
+            ),
+            const SizedBox(height: 16),
+            Container(height: 1, color: const Color(0xffE5EBF3)),
+            buildSection(
+              title: '기본 정보',
+              subtitle: '수업 이름, 분류, 설명을 입력합니다.',
+              children: [
+                buildLabel('수업 이름'),
+                TextField(
+                  controller: _titleController,
+                  decoration: buildInputDecoration('예) 2학년 자바 수업'),
+                  style: TextStyle(fontSize: inputFontSize),
+                ),
+                const SizedBox(height: 16),
+                buildLabel('분류 (sort)'),
+                TextField(
+                  controller: _languageController,
+                  decoration: buildInputDecoration('예) 프로그래밍'),
+                  style: TextStyle(fontSize: inputFontSize),
+                ),
+                const SizedBox(height: 16),
+                buildLabel('설명'),
+                TextField(
+                  controller: _descriptionController,
+                  minLines: 3,
+                  maxLines: 4,
+                  decoration: buildInputDecoration('수업 소개를 입력해 주세요.'),
+                  style: TextStyle(fontSize: width * 0.038),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          buildLabel('대상 학년'),
+                          TextField(
+                            controller: _gradeController,
+                            keyboardType: TextInputType.text,
+                            decoration: buildInputDecoration('예) 2학년'),
+                            style: TextStyle(fontSize: inputFontSize),
+                            onChanged: (v) => _updateClassFromParts(grade: v),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          buildLabel('대상 반'),
+                          TextField(
+                            controller: _banController,
+                            keyboardType: TextInputType.text,
+                            decoration: buildInputDecoration('예) A반'),
+                            style: TextStyle(fontSize: inputFontSize),
+                            onChanged: (v) => _updateClassFromParts(ban: v),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            SizedBox(height: height * 0.04),
+            buildSection(
+              title: '권한 및 기능',
+              subtitle: '학생 접근과 커뮤니케이션 옵션을 관리합니다.',
+              children: [
+                buildToggleTile(
+                  icon: Icons.play_circle_fill,
+                  title: '수업 활성화',
+                  description: '학생들이 수업에 참여할 수 있도록 허용합니다.',
+                  value: _isActivated,
+                  onChanged: (v) => setState(() => _isActivated = v),
+                ),
+                const SizedBox(height: 16),
+                buildToggleTile(
+                  icon: Icons.chat_bubble_outline,
+                  title: '채팅 허용',
+                  description: '수업 내 채팅 기능 사용 여부를 설정합니다.',
+                  value: isChatAllowed,
+                  onChanged: (v) => setState(() => isChatAllowed = v),
+                ),
+              ],
+            ),
+            buildSection(
+              title: '위험 구역',
+              subtitle: '수업 삭제 시 모든 구성원이 접근할 수 없습니다.',
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            '수업 삭제',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xffB3261E),
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            '삭제하면 모든 기록이 복구되지 않습니다.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xff8C1D18),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    OutlinedButton(
+                      onPressed: () {},
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xffB3261E)),
+                        foregroundColor: const Color(0xffB3261E),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('삭제하기'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 28),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xff86C1FF),
-                  foregroundColor: Colors.black,
+                  elevation: 0,
+                  backgroundColor: accent,
+                  foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(
                     horizontal: width * 0.04,
-                    vertical: height * 0.016,
+                    vertical: height * 0.018,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
                 onPressed: () async {
@@ -362,7 +412,7 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('학습실 ID를 찾을 수 없습니다.'),
+                          content: Text('수업 ID를 찾을 수 없어요.'),
                           behavior: SnackBarBehavior.floating,
                         ),
                       );
@@ -380,14 +430,13 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('저장되었습니다.'),
+                          content: Text('변경사항이 저장되었습니다.'),
                           behavior: SnackBarBehavior.floating,
                           duration: Duration(seconds: 1),
                         ),
                       );
                     } else {
                       if (!mounted) return;
-                      debugPrint('[Thaksubsilsetting] Save failed: ${res.statusCode} ${res.data}');
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text('저장 실패: ${res.statusCode}'),
@@ -398,8 +447,10 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
                   } on DioException catch (e) {
                     if (!mounted) return;
                     final code = e.response?.statusCode;
-                    final msg = e.response?.data?.toString() ?? e.message ?? 'unknown error';
-                    debugPrint('[Thaksubsilsetting] DioException: $code $msg');
+                    final msg =
+                        e.response?.data?.toString() ??
+                        e.message ??
+                        'unknown error';
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('오류: $code $msg'),
@@ -416,12 +467,13 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
                     );
                   }
                 },
-                child: Text(
+                child: const Text(
                   '변경사항 저장',
-                  style: TextStyle(fontSize: width * 0.04),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
+            const SizedBox(height: 16),
           ],
         ),
       ),

@@ -1,6 +1,5 @@
-// 과제 수정 모달창.
-// 기존 값 바인딩 후 변경 입력을 받아 API PATCH 호출, 변경 결과를 부모 위젯으로 전달.
 import 'package:clue/api_client.dart';
+import 'package:clue/teacher_page/teacher_gwaJe_Jechul/sheets/widgets/assignment_sheet_widgets.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/utils/date_time.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +14,7 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
   final contentController = TextEditingController(
     text: (assignment['content'] ?? '').toString(),
   );
+  final formKey = GlobalKey<FormState>();
 
   DateTime? startDate;
   DateTime? endDate;
@@ -33,6 +33,7 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
       tryParse(assignment['endDate']?.toString()) ??
       tryParse(assignment['due']?.toString());
 
+  var isSubmitting = false;
   Map<String, dynamic>? result;
 
   await showModalBottomSheet(
@@ -57,13 +58,8 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
       );
       return Theme(
         data: sheetTheme,
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(ctx).viewInsets.bottom,
-            left: 16,
-            right: 16,
-            top: 12,
-          ),
+        child: FractionallySizedBox(
+          heightFactor: 0.95,
           child: StatefulBuilder(
             builder: (context, setSheetState) {
               Future<void> pickStartDate() async {
@@ -290,242 +286,162 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                 }
               }
 
-              return SafeArea(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+              final bottomInset = MediaQuery.of(ctx).viewInsets.bottom;
+
+              return AssignmentSheetScaffold(
+                title: '과제 수정',
+                subtitle: '이미 공지된 과제를 빠르게 업데이트하세요.',
+                onClose: () {
+                  if (Navigator.of(ctx).canPop()) {
+                    Navigator.of(ctx).pop();
+                  }
+                },
+                child: Form(
+                  key: formKey,
+                  child: ListView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(12, 8, 12, bottomInset + 24),
                     children: [
-                      const SizedBox(height: 8),
-                      Center(
-                        child: Container(
-                          width: 48,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        '과제 수정',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: titleController,
-                        decoration: const InputDecoration(
-                          labelText: 'title',
-                          border: OutlineInputBorder(),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xff0077FF)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: contentController,
-                        minLines: 3,
-                        maxLines: 5,
-                        decoration: const InputDecoration(
-                          labelText: 'content',
-                          border: OutlineInputBorder(),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xff0077FF)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: InkWell(
-                              onTap: pickStartDate,
-                              splashColor: const Color(
-                                0xff0077FF,
-                              ).withOpacity(0.2),
-                              highlightColor: const Color(
-                                0xff0077FF,
-                              ).withOpacity(0.1),
-                              overlayColor: WidgetStateProperty.resolveWith(
-                                (states) => const Color(0xff0077FF).withOpacity(
-                                  states.contains(WidgetState.pressed)
-                                      ? 0.2
-                                      : 0.1,
-                                ),
-                              ),
-                              child: InputDecorator(
-                                decoration: const InputDecoration(
-                                  labelText: 'start (날짜/시간)',
-                                  border: OutlineInputBorder(),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: Color(0xff0077FF),
-                                    ),
-                                  ),
-                                ),
-                                child: Text(
-                                  startDate == null
-                                      ? '날짜/시간 선택'
-                                      : formatDateTimeReadable(startDate),
-                                  style: const TextStyle(fontSize: 14),
-                                ),
+                      const SizedBox(height: 4),
+                      AssignmentSectionCard(
+                        title: '기본 정보',
+                        icon: Icons.edit_note_outlined,
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              child: AssignmentFilledTextField(
+                                controller: titleController,
+                                label: 'title',
+                                hint: '과제 제목',
+                                icon: Icons.title_outlined,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return '과제 제목을 입력해 주세요';
+                                  }
+                                  return null;
+                                },
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: InkWell(
-                              onTap: pickEndDate,
-                              splashColor: const Color(
-                                0xff0077FF,
-                              ).withOpacity(0.2),
-                              highlightColor: const Color(
-                                0xff0077FF,
-                              ).withOpacity(0.1),
-                              overlayColor: WidgetStateProperty.resolveWith(
-                                (states) => const Color(0xff0077FF).withOpacity(
-                                  states.contains(WidgetState.pressed)
-                                      ? 0.2
-                                      : 0.1,
-                                ),
-                              ),
-                              child: InputDecorator(
-                                decoration: const InputDecoration(
-                                  labelText: 'end (날짜/시간)',
-                                  border: OutlineInputBorder(),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: Color(0xff0077FF),
-                                    ),
-                                  ),
-                                ),
-                                child: Text(
-                                  endDate == null
-                                      ? '날짜/시간 선택'
-                                      : formatDateTimeReadable(endDate),
-                                  style: const TextStyle(fontSize: 14),
-                                ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              child: AssignmentFilledTextField(
+                                controller: contentController,
+                                label: 'content',
+                                hint: '학생들에게 보여질 안내 내용을 수정하세요',
+                                icon: Icons.notes_outlined,
+                                minLines: 3,
+                                maxLines: 5,
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () => Navigator.of(ctx).pop(),
-                              child: const Text(
-                                '취소',
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xff0077FF),
-                                foregroundColor: Colors.black,
-                              ),
-                              onPressed: () async {
-                                final id =
-                                    (assignment['assignmentId'] ?? '')
-                                        .toString();
-                                final title = titleController.text.trim();
-                                final content = contentController.text.trim();
-                                final end = formatApiDateTime(endDate);
-                                final start =
-                                    startDate == null
-                                        ? end
-                                        : formatApiDateTime(startDate);
-
-                                if (id.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('과제 ID를 찾을 수 없습니다.'),
-                                    ),
-                                  );
-                                  return;
-                                }
-                                if (title.isEmpty ||
-                                    end.isEmpty ||
-                                    start.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        '제목, 시작/마감 날짜·시간을 입력해 주세요.',
-                                      ),
-                                    ),
-                                  );
-                                  return;
-                                }
-                                if (startDate != null &&
-                                    endDate != null &&
-                                    startDate!.isAfter(endDate!)) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        '시작 시각은 마감 시각보다 이전이어야 합니다.',
-                                      ),
-                                    ),
-                                  );
-                                  return;
-                                }
-
-                                final body = {
-                                  'title': title,
-                                  'content': content,
-                                  'start_date': start,
-                                  'end_date': end,
-                                };
-
-                                try {
-                                  final dio = ApiClient.instance.dio;
-                                  await dio.patch(
-                                    '/api/assignments/$id',
-                                    data: body,
-                                  );
-
-                                  result = {
-                                    'title': title,
-                                    'content': content,
-                                    'startDate': start,
-                                    'endDate': end,
-                                    'due': formatDate(endDate),
-                                    'timeLeft': formatTimeLeftFrom(endDate),
-                                  };
-
-                                  if (Navigator.of(ctx).canPop())
-                                    Navigator.of(ctx).pop(result);
-                                } on DioException catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        '수정 실패: ${e.response?.statusCode ?? ''}',
-                                      ),
-                                    ),
-                                  );
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('오류: $e')),
-                                  );
-                                }
-                              },
-                              child: const Text('저장'),
-                            ),
-                          ),
-                        ],
+                      AssignmentSectionCard(
+                        title: '기간 설정',
+                        icon: Icons.schedule_outlined,
+                        child: AssignmentDateRangeSelector(
+                          startLabel: 'start (날짜/시간)',
+                          startValue:
+                              startDate == null
+                                  ? '시작 일시 선택'
+                                  : formatDateTimeReadable(startDate),
+                          onTapStart: pickStartDate,
+                          endLabel: 'end (날짜/시간)',
+                          endValue:
+                              endDate == null
+                                  ? '마감 일시 선택'
+                                  : formatDateTimeReadable(endDate),
+                          onTapEnd: pickEndDate,
+                        ),
                       ),
-                      const SizedBox(height: 12),
                     ],
                   ),
+                ),
+                bottomAction: AssignmentSheetActionBar(
+                  primaryLabel: '저장',
+                  secondaryLabel: '취소',
+                  isBusy: isSubmitting,
+                  onSecondary: () => Navigator.of(ctx).pop(),
+                  onPrimary: () async {
+                    final id = (assignment['assignmentId'] ?? '').toString();
+                    if (id.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('과제 ID를 찾을 수 없습니다.')),
+                      );
+                      return;
+                    }
+                    if (!(formKey.currentState?.validate() ?? false)) {
+                      return;
+                    }
+                    final title = titleController.text.trim();
+                    final content = contentController.text.trim();
+                    final end = formatApiDateTime(endDate);
+                    final start =
+                        startDate == null ? end : formatApiDateTime(startDate);
+
+                    if (end.isEmpty || start.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('시작/마감 일시를 선택해 주세요.')),
+                      );
+                      return;
+                    }
+                    if (startDate != null &&
+                        endDate != null &&
+                        startDate!.isAfter(endDate!)) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('시작 시각이 마감 시각보다 빠를 수 있어야 해요.'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    final body = {
+                      'title': title,
+                      'content': content,
+                      'start_date': start,
+                      'end_date': end,
+                    };
+
+                    setSheetState(() {
+                      isSubmitting = true;
+                    });
+
+                    try {
+                      final dio = ApiClient.instance.dio;
+                      await dio.patch('/api/assignments/$id', data: body);
+
+                      result = {
+                        'title': title,
+                        'content': content,
+                        'startDate': start,
+                        'endDate': end,
+                        'due': formatDate(endDate),
+                        'timeLeft': formatTimeLeftFrom(endDate),
+                      };
+
+                      if (Navigator.of(ctx).canPop()) {
+                        Navigator.of(ctx).pop(result);
+                      }
+                    } on DioException catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            '수정 실패: ${e.response?.statusCode ?? ''}',
+                          ),
+                        ),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text('오류: $e')));
+                    } finally {
+                      setSheetState(() {
+                        isSubmitting = false;
+                      });
+                    }
+                  },
                 ),
               );
             },

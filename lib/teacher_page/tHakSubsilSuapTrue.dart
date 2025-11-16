@@ -293,7 +293,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                                     (directoryList[index] as Map?) ?? const {};
                                 final List<dynamic> documents =
                                     (lesson['documentList'] as List?) ??
-                                        const [];
+                                    const [];
                                 return Column(
                                   children: [
                                     SizedBox(height: height * 0.01),
@@ -332,60 +332,62 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                                               fontSize: width * 0.045,
                                             ),
                                           ),
-                                          children: documents
-                                              .map<Widget>((docItem) {
-                                            final doc =
-                                                (docItem as Map?) ?? const {};
-                                            return Column(
-                                              children: [
-                                                Container(
-                                                  margin: EdgeInsets.only(
-                                                    left: width * 0.028,
-                                                    right: width * 0.028,
-                                                    bottom: height * 0.012,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    color:
-                                                        const Color(0xffF5F5F5),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                      12,
-                                                    ),
-                                                    border: Border.all(
-                                                      width: 0.01,
-                                                      color: const Color(
-                                                        0xffCCCCCC,
+                                          children:
+                                              documents.map<Widget>((docItem) {
+                                                final doc =
+                                                    (docItem as Map?) ??
+                                                    const {};
+                                                return Column(
+                                                  children: [
+                                                    Container(
+                                                      margin: EdgeInsets.only(
+                                                        left: width * 0.028,
+                                                        right: width * 0.028,
+                                                        bottom: height * 0.012,
+                                                      ),
+                                                      decoration: BoxDecoration(
+                                                        color: const Color(
+                                                          0xffF5F5F5,
+                                                        ),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              12,
+                                                            ),
+                                                        border: Border.all(
+                                                          width: 0.01,
+                                                          color: const Color(
+                                                            0xffCCCCCC,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      child: ListTile(
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                12,
+                                                              ),
+                                                        ),
+                                                        contentPadding:
+                                                            EdgeInsets.symmetric(
+                                                              horizontal:
+                                                                  width * 0.04,
+                                                            ),
+                                                        title: Text(
+                                                          doc['title']
+                                                                  ?.toString() ??
+                                                              '',
+                                                          style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize:
+                                                                width * 0.035,
+                                                          ),
+                                                        ),
                                                       ),
                                                     ),
-                                                  ),
-                                                  child: ListTile(
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                        12,
-                                                      ),
-                                                    ),
-                                                    contentPadding:
-                                                        EdgeInsets.symmetric(
-                                                      horizontal: width * 0.04,
-                                                    ),
-                                                    title: Text(
-                                                      doc['title']
-                                                              ?.toString() ??
-                                                          '',
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize:
-                                                            width * 0.035,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            );
-                                          }).toList(),
+                                                  ],
+                                                );
+                                              }).toList(),
                                         ),
                                       ),
                                     ),
@@ -397,7 +399,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
 
                           Container(
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF1F3F5),
+                              color: const Color(0xffffffff),
                             ),
                             child: TeacherGwajeJechul(
                               dataList: assignments,

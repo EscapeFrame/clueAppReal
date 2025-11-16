@@ -1,7 +1,5 @@
-// 과제 생성 모달
-// 제목/내용/날짜를 입력받고 유효성 검증 후 POST 요청
-
 import 'package:clue/api_client.dart';
+import 'package:clue/teacher_page/teacher_gwaJe_Jechul/sheets/widgets/assignment_sheet_widgets.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/utils/date_time.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -12,8 +10,10 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
 }) async {
   final titleController = TextEditingController();
   final contentController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
   DateTime? startDate;
   DateTime? endDate;
+  var isSubmitting = false;
 
   Map<String, dynamic>? result;
 
@@ -39,13 +39,8 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
       );
       return Theme(
         data: sheetTheme,
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(ctx).viewInsets.bottom,
-            left: 16,
-            right: 16,
-            top: 12,
-          ),
+        child: FractionallySizedBox(
+          heightFactor: 0.95,
           child: StatefulBuilder(
             builder: (context, setSheetState) {
               Future<void> pickStartDate() async {
@@ -199,11 +194,6 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                       dialogTheme: const DialogThemeData(
                         backgroundColor: Colors.white,
                       ),
-                      textButtonTheme: TextButtonThemeData(
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.black,
-                        ),
-                      ),
                     );
                     return Theme(data: themed, child: child!);
                   },
@@ -277,261 +267,159 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                 }
               }
 
-              return SafeArea(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+              final bottomInset = MediaQuery.of(ctx).viewInsets.bottom;
+
+              return AssignmentSheetScaffold(
+                title: '과제 만들기',
+                subtitle: '학생에게 안내할 과제 정보를 입력하세요.',
+                onClose: () {
+                  if (Navigator.of(ctx).canPop()) {
+                    Navigator.of(ctx).pop();
+                  }
+                },
+                child: Form(
+                  key: formKey,
+                  child: ListView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(12, 8, 12, bottomInset + 24),
                     children: [
-                      const SizedBox(height: 8),
-                      Center(
-                        child: Container(
-                          width: 48,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        '과제 만들기',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: titleController,
-                        decoration: const InputDecoration(
-                          labelText: 'title',
-                          border: OutlineInputBorder(),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xff0077FF)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: contentController,
-                        minLines: 3,
-                        maxLines: 5,
-                        decoration: const InputDecoration(
-                          labelText: 'content',
-                          border: OutlineInputBorder(),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xff0077FF)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: InkWell(
-                              onTap: pickStartDate,
-                              splashColor: const Color(
-                                0xff0077FF,
-                              ).withOpacity(0.2),
-                              highlightColor: const Color(
-                                0xff0077FF,
-                              ).withOpacity(0.1),
-                              overlayColor: WidgetStateProperty.resolveWith(
-                                (states) => const Color(0xff0077FF).withOpacity(
-                                  states.contains(WidgetState.pressed)
-                                      ? 0.2
-                                      : 0.1,
-                                ),
-                              ),
-                              child: InputDecorator(
-                                decoration: const InputDecoration(
-                                  labelText: 'start (날짜/시간)',
-                                  border: OutlineInputBorder(),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: Color(0xff0077FF),
-                                    ),
-                                  ),
-                                ),
-                                child: Text(
-                                  startDate == null
-                                      ? '날짜/시간 선택'
-                                      : formatDateTimeReadable(startDate),
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: InkWell(
-                              onTap: pickEndDate,
-                              splashColor: const Color(
-                                0xff0077FF,
-                              ).withOpacity(0.2),
-                              highlightColor: const Color(
-                                0xff0077FF,
-                              ).withOpacity(0.1),
-                              overlayColor: WidgetStateProperty.resolveWith(
-                                (states) => const Color(0xff0077FF).withOpacity(
-                                  states.contains(WidgetState.pressed)
-                                      ? 0.2
-                                      : 0.1,
-                                ),
-                              ),
-                              child: InputDecorator(
-                                decoration: const InputDecoration(
-                                  labelText: 'end (날짜/시간)',
-                                  border: OutlineInputBorder(),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: Color(0xff0077FF),
-                                    ),
-                                  ),
-                                ),
-                                child: Text(
-                                  endDate == null
-                                      ? '날짜/시간 선택'
-                                      : formatDateTimeReadable(endDate),
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () => Navigator.of(ctx).pop(),
-                              child: const Text(
-                                '취소',
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xff0077FF),
-                                foregroundColor: Colors.black,
-                              ),
-                              onPressed: () async {
-                                final title = titleController.text.trim();
-                                final content = contentController.text.trim();
-                                final start = formatApiDateTime(startDate);
-                                final end = formatApiDateTime(endDate);
-
-                                if (title.isEmpty || end.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('제목과 마감일을 입력해 주세요'),
-                                    ),
-                                  );
-                                  return;
-                                }
-                                if (start.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('시작 날짜/시간을 선택해 주세요'),
-                                    ),
-                                  );
-                                  return;
-                                }
-                                if (startDate != null &&
-                                    endDate != null &&
-                                    startDate!.isAfter(endDate!)) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        '시작 시각이 마감 시각보다 빠르게 선택되어야 합니다',
-                                      ),
-                                    ),
-                                  );
-                                  return;
-                                }
-
-                                final body = {
-                                  'class_id': classRoomId,
-                                  'title': title,
-                                  'content': content,
-                                  'start_date': start,
-                                  'end_date': end,
-                                };
-
-                                try {
-                                  final dio = ApiClient.instance.dio;
-                                  final res = await dio.post(
-                                    '/api/assignments',
-                                    data: body,
-                                  );
-                                  final status = res.statusCode ?? 500;
-                                  if (status < 200 || status >= 300) {
-                                    // 실패로 간주되지만, 로컬에서는 즉시 반영하는 기존 UX 유지
-                                    result = {
-                                      'assignmentId':
-                                          res.data is Map
-                                              ? (res.data['assignmentId'] ?? '')
-                                              : '',
-                                      'title': title,
-                                      'content': content,
-                                      'startDate': start,
-                                      'endDate': end,
-                                      'status': '미제출',
-                                      'submitted': false,
-                                      'due': formatDate(endDate),
-                                      'timeLeft': formatTimeLeftFrom(endDate),
-                                      'files': <Map<String, dynamic>>[],
-                                    };
-                                    // 결과 반환
-                                    if (Navigator.of(ctx).canPop())
-                                      Navigator.of(ctx).pop(result);
-                                    return;
+                      const SizedBox(height: 4),
+                      AssignmentSectionCard(
+                        title: '기본 정보',
+                        icon: Icons.assignment_outlined,
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              child: AssignmentFilledTextField(
+                                controller: titleController,
+                                label: 'title',
+                                hint: '예: 주간 독서 보고서',
+                                icon: Icons.title_outlined,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return '과제 제목을 입력해 주세요';
                                   }
-
-                                  result = {
-                                    'assignmentId':
-                                        res.data is Map
-                                            ? (res.data['assignmentId'] ?? '')
-                                            : '',
-                                    'title': title,
-                                    'content': content,
-                                    'startDate': start,
-                                    'endDate': end,
-                                    'status': '미제출,',
-                                    'submitted': false,
-                                    'due': formatDate(endDate),
-                                    'timeLeft': formatTimeLeftFrom(endDate),
-                                    'files': <Map<String, dynamic>>[],
-                                  };
-
-                                  if (Navigator.of(ctx).canPop())
-                                    Navigator.of(ctx).pop(result);
-                                } on DioException catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('네트워크 오류: ${e.message}'),
-                                    ),
-                                  );
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('오류: $e')),
-                                  );
-                                }
-                              },
-                              child: const Text('등록'),
+                                  return null;
+                                },
+                              ),
                             ),
-                          ),
-                        ],
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              child: AssignmentFilledTextField(
+                                controller: contentController,
+                                label: 'content',
+                                hint: '학생들에게 전달할 세부 내용을 입력하세요',
+                                icon: Icons.notes_outlined,
+                                minLines: 3,
+                                maxLines: 5,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 12),
+                      AssignmentSectionCard(
+                        title: '기간 설정',
+                        icon: Icons.schedule_outlined,
+                        child: AssignmentDateRangeSelector(
+                          startLabel: 'start (날짜/시간)',
+                          startValue:
+                              startDate == null
+                                  ? '시작 일시 선택'
+                                  : formatDateTimeReadable(startDate),
+                          onTapStart: pickStartDate,
+                          endLabel: 'end (날짜/시간)',
+                          endValue:
+                              endDate == null
+                                  ? '마감 일시 선택'
+                                  : formatDateTimeReadable(endDate),
+                          onTapEnd: pickEndDate,
+                        ),
+                      ),
                     ],
                   ),
+                ),
+                bottomAction: AssignmentSheetActionBar(
+                  primaryLabel: '등록',
+                  secondaryLabel: '취소',
+                  isBusy: isSubmitting,
+                  onSecondary: () => Navigator.of(ctx).pop(),
+                  onPrimary: () async {
+                    if (!(formKey.currentState?.validate() ?? false)) {
+                      return;
+                    }
+                    final title = titleController.text.trim();
+                    final content = contentController.text.trim();
+                    final start = formatApiDateTime(startDate);
+                    final end = formatApiDateTime(endDate);
+
+                    if (start.isEmpty || end.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('시작/마감 일시를 모두 선택해 주세요.')),
+                      );
+                      return;
+                    }
+                    if (startDate != null &&
+                        endDate != null &&
+                        startDate!.isAfter(endDate!)) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('시작 시각이 마감 시각보다 늦을 수 없어요.'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    final body = {
+                      'class_room_id': classRoomId,
+                      'title': title,
+                      'content': content,
+                      'start_date': start,
+                      'end_date': end,
+                    };
+
+                    setSheetState(() {
+                      isSubmitting = true;
+                    });
+
+                    try {
+                      final dio = ApiClient.instance.dio;
+                      final response = await dio.post(
+                        '/api/assignments',
+                        data: body,
+                      );
+
+                      result = {
+                        'id': response.data['assignmentId'],
+                        'title': title,
+                        'content': content,
+                        'startDate': start,
+                        'endDate': end,
+                        'due': formatDate(endDate),
+                        'timeLeft': formatTimeLeftFrom(endDate),
+                      };
+
+                      if (Navigator.of(ctx).canPop()) {
+                        Navigator.of(ctx).pop(result);
+                      }
+                    } on DioException catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            '생성 실패: ${e.response?.statusCode ?? ''}',
+                          ),
+                        ),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text('오류: $e')));
+                    } finally {
+                      setSheetState(() {
+                        isSubmitting = false;
+                      });
+                    }
+                  },
                 ),
               );
             },
