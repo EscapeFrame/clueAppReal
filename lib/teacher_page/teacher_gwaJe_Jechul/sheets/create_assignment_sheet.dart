@@ -1,5 +1,5 @@
-// 과제 생성 모달창
-// 제목/내용/날짜 입력을 받고 유효성 검사 후 post로 전달.
+// 과제 생성 모달
+// 제목/내용/날짜를 입력받고 유효성 검증 후 POST 요청
 
 import 'package:clue/api_client.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/utils/date_time.dart';
@@ -28,13 +28,13 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
       final base = Theme.of(ctx);
       final sheetTheme = base.copyWith(
         colorScheme: base.colorScheme.copyWith(
-          primary: const Color(0xff578FCA),
-          secondary: const Color(0xff578FCA),
+          primary: const Color(0xff0077FF),
+          secondary: const Color(0xff0077FF),
         ),
-        textSelectionTheme: const TextSelectionThemeData(
-          cursorColor: Color(0xff578FCA),
-          selectionColor: Color(0x33578FCA),
-          selectionHandleColor: Color(0xff578FCA),
+        textSelectionTheme: TextSelectionThemeData(
+          cursorColor: Colors.black,
+          selectionColor: Colors.black.withOpacity(0.2),
+          selectionHandleColor: Colors.black,
         ),
       );
       return Theme(
@@ -60,8 +60,8 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                     final cs = base.colorScheme;
                     final themed = ThemeData.light().copyWith(
                       colorScheme: cs.copyWith(
-                        primary: const Color(0xff578FCA),
-                        secondary: const Color(0xff578FCA),
+                        primary: const Color(0xff0077FF),
+                        secondary: const Color(0xff0077FF),
                         surface: Colors.white,
                         onSurface: Colors.black,
                       ),
@@ -69,10 +69,20 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                         bodyColor: Colors.black,
                         displayColor: Colors.black,
                       ),
-                      datePickerTheme: const DatePickerThemeData(
+                      datePickerTheme: DatePickerThemeData(
                         backgroundColor: Colors.white,
                         headerBackgroundColor: Colors.white,
                         headerForegroundColor: Colors.black,
+                        cancelButtonStyle: ButtonStyle(
+                          foregroundColor: MaterialStateProperty.all(
+                            Colors.black,
+                          ),
+                        ),
+                        confirmButtonStyle: ButtonStyle(
+                          foregroundColor: MaterialStateProperty.all(
+                            const Color(0xff0077FF),
+                          ),
+                        ),
                       ),
                       dialogTheme: const DialogThemeData(
                         backgroundColor: Colors.white,
@@ -82,9 +92,10 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                   },
                 );
                 if (picked != null) {
-                  final initialTime = startDate != null
-                      ? TimeOfDay.fromDateTime(startDate!)
-                      : TimeOfDay.now();
+                  final initialTime =
+                      startDate != null
+                          ? TimeOfDay.fromDateTime(startDate!)
+                          : TimeOfDay.now();
                   final t = await showTimePicker(
                     context: context,
                     initialTime: initialTime,
@@ -94,8 +105,8 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                       final cs = base.colorScheme;
                       final themed = ThemeData.light().copyWith(
                         colorScheme: cs.copyWith(
-                          primary: const Color(0xff578FCA),
-                          secondary: const Color(0xff86C1FF),
+                          primary: const Color(0xff0077FF),
+                          secondary: const Color(0xff0077FF),
                           surface: Colors.white,
                           onSurface: Colors.black,
                         ),
@@ -104,16 +115,20 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                         ),
                         timePickerTheme: TimePickerThemeData(
                           backgroundColor: Colors.white,
-                          hourMinuteColor: WidgetStateColor.resolveWith((states) {
+                          hourMinuteColor: WidgetStateColor.resolveWith((
+                            states,
+                          ) {
                             if (states.contains(WidgetState.selected) ||
                                 states.contains(WidgetState.focused)) {
                               return const Color(0xFFE0E0E0);
                             }
                             return Colors.white;
                           }),
-                          dayPeriodColor: WidgetStateColor.resolveWith((states) {
+                          dayPeriodColor: WidgetStateColor.resolveWith((
+                            states,
+                          ) {
                             if (states.contains(WidgetState.selected)) {
-                              return const Color(0xff86C1FF);
+                              return const Color(0xff0077FF);
                             }
                             return Colors.white;
                           }),
@@ -121,7 +136,7 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                         ),
                         inputDecorationTheme: const InputDecorationTheme(
                           focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xff86C1FF)),
+                            borderSide: BorderSide(color: Color(0xff0077FF)),
                           ),
                         ),
                         textTheme: base.textTheme.apply(
@@ -157,8 +172,8 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                     final cs = base.colorScheme;
                     final themed = ThemeData.light().copyWith(
                       colorScheme: cs.copyWith(
-                        primary: const Color(0xff578FCA),
-                        secondary: const Color(0xff578FCA),
+                        primary: const Color(0xff0077FF),
+                        secondary: const Color(0xff0077FF),
                         surface: Colors.white,
                         onSurface: Colors.black,
                       ),
@@ -166,22 +181,38 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                         bodyColor: Colors.black,
                         displayColor: Colors.black,
                       ),
-                      datePickerTheme: const DatePickerThemeData(
+                      datePickerTheme: DatePickerThemeData(
                         backgroundColor: Colors.white,
                         headerBackgroundColor: Colors.white,
                         headerForegroundColor: Colors.black,
+                        cancelButtonStyle: ButtonStyle(
+                          foregroundColor: MaterialStateProperty.all(
+                            Colors.black,
+                          ),
+                        ),
+                        confirmButtonStyle: ButtonStyle(
+                          foregroundColor: MaterialStateProperty.all(
+                            const Color(0xff0077FF),
+                          ),
+                        ),
                       ),
                       dialogTheme: const DialogThemeData(
                         backgroundColor: Colors.white,
+                      ),
+                      textButtonTheme: TextButtonThemeData(
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.black,
+                        ),
                       ),
                     );
                     return Theme(data: themed, child: child!);
                   },
                 );
                 if (picked != null) {
-                  final initialTime = endDate != null
-                      ? TimeOfDay.fromDateTime(endDate!)
-                      : const TimeOfDay(hour: 23, minute: 59);
+                  final initialTime =
+                      endDate != null
+                          ? TimeOfDay.fromDateTime(endDate!)
+                          : const TimeOfDay(hour: 23, minute: 59);
                   final t = await showTimePicker(
                     context: context,
                     initialTime: initialTime,
@@ -191,8 +222,8 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                       final cs = base.colorScheme;
                       final themed = ThemeData.light().copyWith(
                         colorScheme: cs.copyWith(
-                          primary: const Color(0xff578FCA),
-                          secondary: const Color(0xff86C1FF),
+                          primary: const Color(0xff0077FF),
+                          secondary: const Color(0xff0077FF),
                           surface: Colors.white,
                           onSurface: Colors.black,
                         ),
@@ -201,16 +232,20 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                         ),
                         timePickerTheme: TimePickerThemeData(
                           backgroundColor: Colors.white,
-                          hourMinuteColor: WidgetStateColor.resolveWith((states) {
+                          hourMinuteColor: WidgetStateColor.resolveWith((
+                            states,
+                          ) {
                             if (states.contains(WidgetState.selected) ||
                                 states.contains(WidgetState.focused)) {
                               return const Color(0xFFE0E0E0);
                             }
                             return Colors.white;
                           }),
-                          dayPeriodColor: WidgetStateColor.resolveWith((states) {
+                          dayPeriodColor: WidgetStateColor.resolveWith((
+                            states,
+                          ) {
                             if (states.contains(WidgetState.selected)) {
-                              return const Color(0xff86C1FF);
+                              return const Color(0xff0077FF);
                             }
                             return Colors.white;
                           }),
@@ -218,7 +253,7 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                         ),
                         inputDecorationTheme: const InputDecorationTheme(
                           focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xff86C1FF)),
+                            borderSide: BorderSide(color: Color(0xff0077FF)),
                           ),
                         ),
                         textTheme: base.textTheme.apply(
@@ -274,7 +309,7 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                           labelText: 'title',
                           border: OutlineInputBorder(),
                           focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xff578FCA)),
+                            borderSide: BorderSide(color: Color(0xff0077FF)),
                           ),
                         ),
                       ),
@@ -287,7 +322,7 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                           labelText: 'content',
                           border: OutlineInputBorder(),
                           focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xff578FCA)),
+                            borderSide: BorderSide(color: Color(0xff0077FF)),
                           ),
                         ),
                       ),
@@ -297,18 +332,27 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                           Expanded(
                             child: InkWell(
                               onTap: pickStartDate,
-                              splashColor: const Color(0xff578FCA).withOpacity(0.2),
-                              highlightColor: const Color(0xff578FCA).withOpacity(0.1),
+                              splashColor: const Color(
+                                0xff0077FF,
+                              ).withOpacity(0.2),
+                              highlightColor: const Color(
+                                0xff0077FF,
+                              ).withOpacity(0.1),
                               overlayColor: WidgetStateProperty.resolveWith(
-                                (states) => const Color(0xff578FCA)
-                                    .withOpacity(states.contains(WidgetState.pressed) ? 0.2 : 0.1),
+                                (states) => const Color(0xff0077FF).withOpacity(
+                                  states.contains(WidgetState.pressed)
+                                      ? 0.2
+                                      : 0.1,
+                                ),
                               ),
                               child: InputDecorator(
                                 decoration: const InputDecoration(
                                   labelText: 'start (날짜/시간)',
                                   border: OutlineInputBorder(),
                                   focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Color(0xff86C1FF)),
+                                    borderSide: BorderSide(
+                                      color: Color(0xff0077FF),
+                                    ),
                                   ),
                                 ),
                                 child: Text(
@@ -324,18 +368,27 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                           Expanded(
                             child: InkWell(
                               onTap: pickEndDate,
-                              splashColor: const Color(0xff578FCA).withOpacity(0.2),
-                              highlightColor: const Color(0xff578FCA).withOpacity(0.1),
+                              splashColor: const Color(
+                                0xff0077FF,
+                              ).withOpacity(0.2),
+                              highlightColor: const Color(
+                                0xff0077FF,
+                              ).withOpacity(0.1),
                               overlayColor: WidgetStateProperty.resolveWith(
-                                (states) => const Color(0xff578FCA)
-                                    .withOpacity(states.contains(WidgetState.pressed) ? 0.2 : 0.1),
+                                (states) => const Color(0xff0077FF).withOpacity(
+                                  states.contains(WidgetState.pressed)
+                                      ? 0.2
+                                      : 0.1,
+                                ),
                               ),
                               child: InputDecorator(
                                 decoration: const InputDecoration(
                                   labelText: 'end (날짜/시간)',
                                   border: OutlineInputBorder(),
                                   focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Color(0xff86C1FF)),
+                                    borderSide: BorderSide(
+                                      color: Color(0xff0077FF),
+                                    ),
                                   ),
                                 ),
                                 child: Text(
@@ -355,14 +408,17 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                           Expanded(
                             child: OutlinedButton(
                               onPressed: () => Navigator.of(ctx).pop(),
-                              child: const Text('취소', style: TextStyle(color: Colors.black)),
+                              child: const Text(
+                                '취소',
+                                style: TextStyle(color: Colors.black),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xff86C1FF),
+                                backgroundColor: const Color(0xff0077FF),
                                 foregroundColor: Colors.black,
                               ),
                               onPressed: () async {
@@ -373,19 +429,29 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
 
                                 if (title.isEmpty || end.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('제목과 마감일을 입력해 주세요.')),
+                                    const SnackBar(
+                                      content: Text('제목과 마감일을 입력해 주세요'),
+                                    ),
                                   );
                                   return;
                                 }
                                 if (start.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('시작 날짜/시간을 선택해 주세요.')),
+                                    const SnackBar(
+                                      content: Text('시작 날짜/시간을 선택해 주세요'),
+                                    ),
                                   );
                                   return;
                                 }
-                                if (startDate != null && endDate != null && startDate!.isAfter(endDate!)) {
+                                if (startDate != null &&
+                                    endDate != null &&
+                                    startDate!.isAfter(endDate!)) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('시작 시각은 마감 시각보다 이전이어야 합니다.')),
+                                    const SnackBar(
+                                      content: Text(
+                                        '시작 시각이 마감 시각보다 빠르게 선택되어야 합니다',
+                                      ),
+                                    ),
                                   );
                                   return;
                                 }
@@ -400,12 +466,18 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
 
                                 try {
                                   final dio = ApiClient.instance.dio;
-                                  final res = await dio.post('/api/assignments', data: body);
+                                  final res = await dio.post(
+                                    '/api/assignments',
+                                    data: body,
+                                  );
                                   final status = res.statusCode ?? 500;
                                   if (status < 200 || status >= 300) {
-                                    // 실패로 간주하되, 로컬에 즉시 반영하는 기존 UX 유지
+                                    // 실패로 간주되지만, 로컬에서는 즉시 반영하는 기존 UX 유지
                                     result = {
-                                      'assignmentId': res.data is Map ? (res.data['assignmentId'] ?? '') : '',
+                                      'assignmentId':
+                                          res.data is Map
+                                              ? (res.data['assignmentId'] ?? '')
+                                              : '',
                                       'title': title,
                                       'content': content,
                                       'startDate': start,
@@ -417,27 +489,34 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                                       'files': <Map<String, dynamic>>[],
                                     };
                                     // 결과 반환
-                                    if (Navigator.of(ctx).canPop()) Navigator.of(ctx).pop(result);
+                                    if (Navigator.of(ctx).canPop())
+                                      Navigator.of(ctx).pop(result);
                                     return;
                                   }
 
                                   result = {
-                                    'assignmentId': res.data is Map ? (res.data['assignmentId'] ?? '') : '',
+                                    'assignmentId':
+                                        res.data is Map
+                                            ? (res.data['assignmentId'] ?? '')
+                                            : '',
                                     'title': title,
                                     'content': content,
                                     'startDate': start,
                                     'endDate': end,
-                                    'status': '미제출',
+                                    'status': '미제출,',
                                     'submitted': false,
                                     'due': formatDate(endDate),
                                     'timeLeft': formatTimeLeftFrom(endDate),
                                     'files': <Map<String, dynamic>>[],
                                   };
 
-                                  if (Navigator.of(ctx).canPop()) Navigator.of(ctx).pop(result);
+                                  if (Navigator.of(ctx).canPop())
+                                    Navigator.of(ctx).pop(result);
                                 } on DioException catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('네트워크 오류: ${e.message}')),
+                                    SnackBar(
+                                      content: Text('네트워크 오류: ${e.message}'),
+                                    ),
                                   );
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(

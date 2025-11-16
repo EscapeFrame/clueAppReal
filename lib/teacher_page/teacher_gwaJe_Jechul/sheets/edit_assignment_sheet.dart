@@ -9,8 +9,12 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
   required BuildContext context,
   required Map<String, dynamic> assignment,
 }) async {
-  final titleController = TextEditingController(text: (assignment['title'] ?? '').toString());
-  final contentController = TextEditingController(text: (assignment['content'] ?? '').toString());
+  final titleController = TextEditingController(
+    text: (assignment['title'] ?? '').toString(),
+  );
+  final contentController = TextEditingController(
+    text: (assignment['content'] ?? '').toString(),
+  );
 
   DateTime? startDate;
   DateTime? endDate;
@@ -25,7 +29,9 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
   }
 
   startDate = tryParse(assignment['startDate']?.toString());
-  endDate = tryParse(assignment['endDate']?.toString()) ?? tryParse(assignment['due']?.toString());
+  endDate =
+      tryParse(assignment['endDate']?.toString()) ??
+      tryParse(assignment['due']?.toString());
 
   Map<String, dynamic>? result;
 
@@ -40,13 +46,13 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
       final base = Theme.of(ctx);
       final sheetTheme = base.copyWith(
         colorScheme: base.colorScheme.copyWith(
-          primary: const Color(0xff578FCA),
-          secondary: const Color(0xff578FCA),
+          primary: const Color(0xff0077FF),
+          secondary: const Color(0xff0077FF),
         ),
-        textSelectionTheme: const TextSelectionThemeData(
-          cursorColor: Color(0xff578FCA),
-          selectionColor: Color(0x33578FCA),
-          selectionHandleColor: Color(0xff578FCA),
+        textSelectionTheme: TextSelectionThemeData(
+          cursorColor: Colors.black,
+          selectionColor: Colors.black.withOpacity(0.2),
+          selectionHandleColor: Colors.black,
         ),
       );
       return Theme(
@@ -72,8 +78,8 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                     final cs = base.colorScheme;
                     final themed = ThemeData.light().copyWith(
                       colorScheme: cs.copyWith(
-                        primary: const Color(0xff578FCA),
-                        secondary: const Color(0xff578FCA),
+                        primary: const Color(0xff0077FF),
+                        secondary: const Color(0xff0077FF),
                         surface: Colors.white,
                         onSurface: Colors.black,
                       ),
@@ -81,10 +87,20 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                         bodyColor: Colors.black,
                         displayColor: Colors.black,
                       ),
-                      datePickerTheme: const DatePickerThemeData(
+                      datePickerTheme: DatePickerThemeData(
                         backgroundColor: Colors.white,
                         headerBackgroundColor: Colors.white,
                         headerForegroundColor: Colors.black,
+                        cancelButtonStyle: ButtonStyle(
+                          foregroundColor: MaterialStateProperty.all(
+                            Colors.black,
+                          ),
+                        ),
+                        confirmButtonStyle: ButtonStyle(
+                          foregroundColor: MaterialStateProperty.all(
+                            const Color(0xff0077FF),
+                          ),
+                        ),
                       ),
                       dialogTheme: const DialogThemeData(
                         backgroundColor: Colors.white,
@@ -94,9 +110,10 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                   },
                 );
                 if (picked != null) {
-                  final initialTime = startDate != null
-                      ? TimeOfDay.fromDateTime(startDate!)
-                      : TimeOfDay.now();
+                  final initialTime =
+                      startDate != null
+                          ? TimeOfDay.fromDateTime(startDate!)
+                          : TimeOfDay.now();
                   final t = await showTimePicker(
                     context: context,
                     initialTime: initialTime,
@@ -106,8 +123,8 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                       final cs = base.colorScheme;
                       final themed = ThemeData.light().copyWith(
                         colorScheme: cs.copyWith(
-                          primary: const Color(0xff578FCA),
-                          secondary: const Color(0xff86C1FF),
+                          primary: const Color(0xff0077FF),
+                          secondary: const Color(0xff0077FF),
                           surface: Colors.white,
                           onSurface: Colors.black,
                         ),
@@ -116,16 +133,20 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                         ),
                         timePickerTheme: TimePickerThemeData(
                           backgroundColor: Colors.white,
-                          hourMinuteColor: WidgetStateColor.resolveWith((states) {
+                          hourMinuteColor: WidgetStateColor.resolveWith((
+                            states,
+                          ) {
                             if (states.contains(WidgetState.selected) ||
                                 states.contains(WidgetState.focused)) {
                               return const Color(0xFFE0E0E0);
                             }
                             return Colors.white;
                           }),
-                          dayPeriodColor: WidgetStateColor.resolveWith((states) {
+                          dayPeriodColor: WidgetStateColor.resolveWith((
+                            states,
+                          ) {
                             if (states.contains(WidgetState.selected)) {
-                              return const Color(0xff86C1FF);
+                              return const Color(0xff0077FF);
                             }
                             return Colors.white;
                           }),
@@ -133,7 +154,7 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                         ),
                         inputDecorationTheme: const InputDecorationTheme(
                           focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xff86C1FF)),
+                            borderSide: BorderSide(color: Color(0xff0077FF)),
                           ),
                         ),
                         textTheme: base.textTheme.apply(
@@ -169,8 +190,8 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                     final cs = base.colorScheme;
                     final themed = ThemeData.light().copyWith(
                       colorScheme: cs.copyWith(
-                        primary: const Color(0xff578FCA),
-                        secondary: const Color(0xff578FCA),
+                        primary: const Color(0xff0077FF),
+                        secondary: const Color(0xff0077FF),
                         surface: Colors.white,
                         onSurface: Colors.black,
                       ),
@@ -178,10 +199,20 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                         bodyColor: Colors.black,
                         displayColor: Colors.black,
                       ),
-                      datePickerTheme: const DatePickerThemeData(
+                      datePickerTheme: DatePickerThemeData(
                         backgroundColor: Colors.white,
                         headerBackgroundColor: Colors.white,
                         headerForegroundColor: Colors.black,
+                        cancelButtonStyle: ButtonStyle(
+                          foregroundColor: MaterialStateProperty.all(
+                            Colors.black,
+                          ),
+                        ),
+                        confirmButtonStyle: ButtonStyle(
+                          foregroundColor: MaterialStateProperty.all(
+                            const Color(0xff0077FF),
+                          ),
+                        ),
                       ),
                       dialogTheme: const DialogThemeData(
                         backgroundColor: Colors.white,
@@ -191,9 +222,10 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                   },
                 );
                 if (picked != null) {
-                  final initialTime = endDate != null
-                      ? TimeOfDay.fromDateTime(endDate!)
-                      : const TimeOfDay(hour: 23, minute: 59);
+                  final initialTime =
+                      endDate != null
+                          ? TimeOfDay.fromDateTime(endDate!)
+                          : const TimeOfDay(hour: 23, minute: 59);
                   final t = await showTimePicker(
                     context: context,
                     initialTime: initialTime,
@@ -203,8 +235,8 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                       final cs = base.colorScheme;
                       final themed = ThemeData.light().copyWith(
                         colorScheme: cs.copyWith(
-                          primary: const Color(0xff578FCA),
-                          secondary: const Color(0xff86C1FF),
+                          primary: const Color(0xff0077FF),
+                          secondary: const Color(0xff0077FF),
                           surface: Colors.white,
                           onSurface: Colors.black,
                         ),
@@ -213,16 +245,20 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                         ),
                         timePickerTheme: TimePickerThemeData(
                           backgroundColor: Colors.white,
-                          hourMinuteColor: WidgetStateColor.resolveWith((states) {
+                          hourMinuteColor: WidgetStateColor.resolveWith((
+                            states,
+                          ) {
                             if (states.contains(WidgetState.selected) ||
                                 states.contains(WidgetState.focused)) {
                               return const Color(0xFFE0E0E0);
                             }
                             return Colors.white;
                           }),
-                          dayPeriodColor: WidgetStateColor.resolveWith((states) {
+                          dayPeriodColor: WidgetStateColor.resolveWith((
+                            states,
+                          ) {
                             if (states.contains(WidgetState.selected)) {
-                              return const Color(0xff86C1FF);
+                              return const Color(0xff0077FF);
                             }
                             return Colors.white;
                           }),
@@ -230,7 +266,7 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                         ),
                         inputDecorationTheme: const InputDecorationTheme(
                           focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xff86C1FF)),
+                            borderSide: BorderSide(color: Color(0xff0077FF)),
                           ),
                         ),
                         textTheme: base.textTheme.apply(
@@ -274,7 +310,10 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                       const SizedBox(height: 12),
                       const Text(
                         '과제 수정',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       TextField(
@@ -283,7 +322,7 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                           labelText: 'title',
                           border: OutlineInputBorder(),
                           focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xff578FCA)),
+                            borderSide: BorderSide(color: Color(0xff0077FF)),
                           ),
                         ),
                       ),
@@ -296,7 +335,7 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                           labelText: 'content',
                           border: OutlineInputBorder(),
                           focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xff578FCA)),
+                            borderSide: BorderSide(color: Color(0xff0077FF)),
                           ),
                         ),
                       ),
@@ -306,18 +345,27 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                           Expanded(
                             child: InkWell(
                               onTap: pickStartDate,
-                              splashColor: const Color(0xff578FCA).withOpacity(0.2),
-                              highlightColor: const Color(0xff578FCA).withOpacity(0.1),
+                              splashColor: const Color(
+                                0xff0077FF,
+                              ).withOpacity(0.2),
+                              highlightColor: const Color(
+                                0xff0077FF,
+                              ).withOpacity(0.1),
                               overlayColor: WidgetStateProperty.resolveWith(
-                                (states) => const Color(0xff578FCA)
-                                    .withOpacity(states.contains(WidgetState.pressed) ? 0.2 : 0.1),
+                                (states) => const Color(0xff0077FF).withOpacity(
+                                  states.contains(WidgetState.pressed)
+                                      ? 0.2
+                                      : 0.1,
+                                ),
                               ),
                               child: InputDecorator(
                                 decoration: const InputDecoration(
                                   labelText: 'start (날짜/시간)',
                                   border: OutlineInputBorder(),
                                   focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Color(0xff578FCA)),
+                                    borderSide: BorderSide(
+                                      color: Color(0xff0077FF),
+                                    ),
                                   ),
                                 ),
                                 child: Text(
@@ -333,18 +381,27 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                           Expanded(
                             child: InkWell(
                               onTap: pickEndDate,
-                              splashColor: const Color(0xff578FCA).withOpacity(0.2),
-                              highlightColor: const Color(0xff578FCA).withOpacity(0.1),
+                              splashColor: const Color(
+                                0xff0077FF,
+                              ).withOpacity(0.2),
+                              highlightColor: const Color(
+                                0xff0077FF,
+                              ).withOpacity(0.1),
                               overlayColor: WidgetStateProperty.resolveWith(
-                                (states) => const Color(0xff578FCA)
-                                    .withOpacity(states.contains(WidgetState.pressed) ? 0.2 : 0.1),
+                                (states) => const Color(0xff0077FF).withOpacity(
+                                  states.contains(WidgetState.pressed)
+                                      ? 0.2
+                                      : 0.1,
+                                ),
                               ),
                               child: InputDecorator(
                                 decoration: const InputDecoration(
                                   labelText: 'end (날짜/시간)',
                                   border: OutlineInputBorder(),
                                   focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Color(0xff578FCA)),
+                                    borderSide: BorderSide(
+                                      color: Color(0xff0077FF),
+                                    ),
                                   ),
                                 ),
                                 child: Text(
@@ -364,38 +421,60 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                           Expanded(
                             child: OutlinedButton(
                               onPressed: () => Navigator.of(ctx).pop(),
-                              child: const Text('취소', style: TextStyle(color: Colors.black)),
+                              child: const Text(
+                                '취소',
+                                style: TextStyle(color: Colors.black),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xff86C1FF),
+                                backgroundColor: const Color(0xff0077FF),
                                 foregroundColor: Colors.black,
                               ),
                               onPressed: () async {
-                                final id = (assignment['assignmentId'] ?? '').toString();
+                                final id =
+                                    (assignment['assignmentId'] ?? '')
+                                        .toString();
                                 final title = titleController.text.trim();
                                 final content = contentController.text.trim();
                                 final end = formatApiDateTime(endDate);
-                                final start = startDate == null ? end : formatApiDateTime(startDate);
+                                final start =
+                                    startDate == null
+                                        ? end
+                                        : formatApiDateTime(startDate);
 
                                 if (id.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('과제 ID를 찾을 수 없습니다.')),
+                                    const SnackBar(
+                                      content: Text('과제 ID를 찾을 수 없습니다.'),
+                                    ),
                                   );
                                   return;
                                 }
-                                if (title.isEmpty || end.isEmpty || start.isEmpty) {
+                                if (title.isEmpty ||
+                                    end.isEmpty ||
+                                    start.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('제목, 시작/마감 날짜·시간을 입력해 주세요.')),
+                                    const SnackBar(
+                                      content: Text(
+                                        '제목, 시작/마감 날짜·시간을 입력해 주세요.',
+                                      ),
+                                    ),
                                   );
                                   return;
                                 }
-                                if (startDate != null && endDate != null && startDate!.isAfter(endDate!)) {
+                                if (startDate != null &&
+                                    endDate != null &&
+                                    startDate!.isAfter(endDate!)) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('시작 시각은 마감 시각보다 이전이어야 합니다.')),
+                                    const SnackBar(
+                                      content: Text(
+                                        '시작 시각은 마감 시각보다 이전이어야 합니다.',
+                                      ),
+                                    ),
                                   );
                                   return;
                                 }
@@ -409,7 +488,10 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
 
                                 try {
                                   final dio = ApiClient.instance.dio;
-                                  await dio.patch('/api/assignments/$id', data: body);
+                                  await dio.patch(
+                                    '/api/assignments/$id',
+                                    data: body,
+                                  );
 
                                   result = {
                                     'title': title,
@@ -420,10 +502,15 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                                     'timeLeft': formatTimeLeftFrom(endDate),
                                   };
 
-                                  if (Navigator.of(ctx).canPop()) Navigator.of(ctx).pop(result);
+                                  if (Navigator.of(ctx).canPop())
+                                    Navigator.of(ctx).pop(result);
                                 } on DioException catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('수정 실패: ${e.response?.statusCode ?? ''}')),
+                                    SnackBar(
+                                      content: Text(
+                                        '수정 실패: ${e.response?.statusCode ?? ''}',
+                                      ),
+                                    ),
                                   );
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -450,5 +537,3 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
 
   return result;
 }
-
- 

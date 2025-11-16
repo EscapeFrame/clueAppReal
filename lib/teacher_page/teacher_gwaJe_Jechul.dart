@@ -105,8 +105,11 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                   );
                 }
               },
-              backgroundColor: const Color(0xff86C1FF),
-              child: const Icon(Icons.add),
+              backgroundColor: const Color(0xff0077FF),
+              child: const Icon(
+                Icons.add,
+                color: Colors.white,
+              ),
             ),
       body: Container(
         decoration: const BoxDecoration(

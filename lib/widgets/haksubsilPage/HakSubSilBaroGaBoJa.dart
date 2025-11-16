@@ -20,7 +20,8 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
     final validNotices =
         noticeList
             .where(
-              (notice) => (notice['classRoomId'] ?? '').toString().trim().isNotEmpty,
+              (notice) =>
+                  (notice['classRoomId'] ?? '').toString().trim().isNotEmpty,
             )
             .map((notice) {
               final copy = Map<String, dynamic>.from(notice);
@@ -203,7 +204,6 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
                         ),
                       ),
                       SizedBox(width: width * 0.01),
-                      
                     ],
                   ),
                   SizedBox(height: width * 0.008),
@@ -217,7 +217,6 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
                 ],
               ),
             ),

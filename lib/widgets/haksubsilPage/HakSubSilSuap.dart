@@ -92,6 +92,16 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
+    final teacherNames = widget.notice['teacherNames'];
+    String teacherNameText = '';
+    if (teacherNames is List && teacherNames.isNotEmpty) {
+      teacherNameText = teacherNames
+          .where((name) => name != null)
+          .map((name) => name.toString())
+          .join(', ');
+    } else if (widget.notice['teacherName'] != null) {
+      teacherNameText = widget.notice['teacherName'].toString();
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -165,7 +175,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                     ),
                     SizedBox(width: width * 0.005),
                     Text(
-                      widget.notice['teacherNames'][0].toString(),
+                      teacherNameText,
                       style: TextStyle(
                         fontSize: width * 0.035,
                         fontWeight: FontWeight.w600,

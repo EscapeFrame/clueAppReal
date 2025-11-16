@@ -23,7 +23,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
       final id =
           (widget.tsuap['classRoomId'] ?? widget.tsuap['classRoomIdStr'])
               ?.toString();
-      
+
       final res = await api.get('/api/class/$id/all');
       final data = res.data;
       debugPrint('teacher detail: $data');
@@ -33,7 +33,8 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
         setState(() {
           _detail = m;
           // Fetch된 상세 데이터를 화면의 기본 데이터로 반영
-          widget.tsuap['name'] = (m['classRoomName'] ?? widget.tsuap['name'] ?? '').toString();
+          widget.tsuap['name'] =
+              (m['classRoomName'] ?? widget.tsuap['name'] ?? '').toString();
           if (m['description'] != null) {
             widget.tsuap['description'] = m['description'].toString();
           }
@@ -104,49 +105,132 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
     final height = MediaQuery.of(context).size.height;
     final header = _detail.isNotEmpty ? _detail : widget.tsuap;
     final title =
-        (header['classRoomName'] ?? header['title'])?.toString() ?? '';
+        (header['classRoomName'] ?? header['title'] ?? header['name'])
+            ?.toString() ??
+        '';
     final description = header['description']?.toString() ?? '';
+    final teacherNames = header['teacherNames'];
+    String teacherName = '';
+    if (teacherNames is List && teacherNames.isNotEmpty) {
+      teacherName = teacherNames
+          .where((name) => name != null)
+          .map((name) => name.toString())
+          .join(', ');
+    } else if (header['teacherName'] != null) {
+      teacherName = header['teacherName'].toString();
+    }
+    final dynamic classCodeValue =
+        header['code'] ??
+        header['classRoomCode'] ??
+        header['classCode'] ??
+        header['classRoomIdStr'] ??
+        header['classRoomId'];
+    final classCode = classCodeValue?.toString() ?? '';
+    final List<dynamic> directoryList =
+        (header['directoryList'] as List?) ?? const [];
     return Scaffold(
-      
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        toolbarHeight: 0,
+      ),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SvgPicture.asset(
+                  'assets/images/realLogo.svg',
+                  width: width * 0.25,
+                ),
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Icon(Icons.arrow_back, size: width * 0.07),
+                    ),
+                    SizedBox(width: width * 0.03),
+                    SvgPicture.asset(
+                      'assets/images/bars-3.svg',
+                      width: width * 0.074,
+                    ),
+                    SizedBox(width: width * 0.0443),
+                  ],
+                ),
+              ],
+            ),
+          ),
           Container(
-            color: const Color(0xFFD6EAFF),
-            padding: EdgeInsets.symmetric(
-              horizontal: width * 0.06,
-              vertical: height * 0.015,
+            padding: EdgeInsets.fromLTRB(
+              width * 0.07,
+              0,
+              height * 0.01,
+              height * 0.01,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: height * 0.05),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SvgPicture.asset(
-                      'assets/images/clueLogo.svg',
-                      width: width * 0.25,
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: width * 0.065,
                     ),
-                    Container(
-                      margin: EdgeInsets.only(right: width * 0.035),
-                      child: SvgPicture.asset(
-                        'assets/images/jong.svg',
-                        width: width * 0.055,
+                  ),
+                ),
+                SizedBox(height: height * 0.003),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: Text(
+                    description,
+                    style: TextStyle(fontSize: width * 0.035),
+                  ),
+                ),
+                SizedBox(height: height * 0.004),
+                if (teacherName.isNotEmpty)
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.person,
+                        size: width * 0.06,
+                        color: Colors.black54,
+                      ),
+                      SizedBox(width: width * 0.005),
+                      Text(
+                        teacherName,
+                        style: TextStyle(
+                          fontSize: width * 0.035,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black45,
+                        ),
+                      ),
+                    ],
+                  ),
+                SizedBox(height: 12),
+                Row(
+                  children: [
+                    Text(
+                      '수업코드',
+                      style: TextStyle(
+                        fontSize: width * 0.035,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xff0077FF),
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      classCode.isEmpty ? '-' : classCode,
+                      style: TextStyle(
+                        fontSize: width * 0.035,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: height * 0.05),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: width * 0.05,
-                  ),
-                ),
-                SizedBox(height: height * 0.005),
-                Text(description, style: TextStyle(fontSize: width * 0.035)),
-                SizedBox(height: height * 0.025),
               ],
             ),
           ),
@@ -159,10 +243,14 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                 child: Column(
                   children: [
                     TabBar(
-                      labelColor: Colors.black,
-                      unselectedLabelColor: Colors.grey,
-                      indicatorColor: Colors.lightBlue,
+                      labelColor: const Color(0xff0077FF),
+                      unselectedLabelColor: Colors.black,
+                      indicatorColor: const Color(0xff0077FF),
                       indicatorWeight: 3,
+                      indicatorPadding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                      ),
+                      indicatorSize: TabBarIndicatorSize.tab,
                       tabs: [
                         Tab(
                           child: Text(
@@ -199,32 +287,34 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                               // color:Colors.white,
                             ),
                             child: ListView.builder(
-                              itemCount:
-                                  ((widget.tsuap['directoryList'] as List?) ??
-                                          const [])
-                                      .length,
+                              itemCount: directoryList.length,
                               itemBuilder: (context, index) {
                                 final lesson =
-                                    ((widget.tsuap['directoryList'] as List?) ??
-                                            const [])[index]
-                                        as Map? ??
-                                    const {};
+                                    (directoryList[index] as Map?) ?? const {};
+                                final List<dynamic> documents =
+                                    (lesson['documentList'] as List?) ??
+                                        const [];
                                 return Column(
                                   children: [
-                                    // SizedBox(height: height * 0.006),
+                                    SizedBox(height: height * 0.01),
                                     Container(
                                       margin: EdgeInsets.symmetric(
                                         horizontal: width * 0.05,
                                         vertical: height * 0.003,
                                       ),
                                       decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.only(
-                                          topLeft: Radius.circular(10),
-                                          topRight: Radius.circular(10),
-                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.grey.withOpacity(0.1),
+                                            spreadRadius: 5,
+                                            blurRadius: 7,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ],
+                                        borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
                                           width: 0.25,
-                                          color: Color(0xffCCCCCC),
+                                          color: const Color(0xffCCCCCC),
                                         ),
                                         color: Colors.white,
                                       ),
@@ -234,66 +324,68 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                                         ),
                                         child: ExpansionTile(
                                           title: Text(
-                                            lesson['directoryName'].toString(),
+                                            lesson['directoryName']
+                                                    ?.toString() ??
+                                                '',
                                             style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: width * 0.045,
                                             ),
                                           ),
-                                          children: [
-                                            ...(((lesson['documentList']
-                                                        as List?) ??
-                                                    const []))
-                                                .map<Widget>(
-                                                  (item) => Column(
-                                                    children: [
-                                                      GestureDetector(
-                                                        onTap: () {
-                                                          // Navigator.push(
-                                                          //   context,
-                                                          //   MaterialPageRoute(
-                                                          //     builder:
-                                                          //         (
-                                                          //           context,
-                                                          //         ) =>
-                                                          //         Markdown_(
-                                                          //           markdowndata:
-                                                          //               markdowndata,
-                                                          //         ),
-                                                          //   ),
-                                                          // );
-                                                        },
-                                                        child: Container(
-                                                          decoration: BoxDecoration(
-                                                            color: Color(
-                                                              0xffF5F5F5,
-                                                            ),
-                                                            // color: const Color.fromARGB(255, 245, 245, 245),
-                                                            border: Border.all(
-                                                              width: 0.25,
-                                                              color: Color(
-                                                                0xffCCCCCC,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          child: ListTile(
-                                                            title: Container(
-                                                              child: Text(
-                                                                item.toString(),
-                                                                style: TextStyle(
-                                                                  fontSize:
-                                                                      width *
-                                                                      0.035,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
+                                          children: documents
+                                              .map<Widget>((docItem) {
+                                            final doc =
+                                                (docItem as Map?) ?? const {};
+                                            return Column(
+                                              children: [
+                                                Container(
+                                                  margin: EdgeInsets.only(
+                                                    left: width * 0.028,
+                                                    right: width * 0.028,
+                                                    bottom: height * 0.012,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        const Color(0xffF5F5F5),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                      12,
+                                                    ),
+                                                    border: Border.all(
+                                                      width: 0.01,
+                                                      color: const Color(
+                                                        0xffCCCCCC,
                                                       ),
-                                                    ],
+                                                    ),
+                                                  ),
+                                                  child: ListTile(
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                        12,
+                                                      ),
+                                                    ),
+                                                    contentPadding:
+                                                        EdgeInsets.symmetric(
+                                                      horizontal: width * 0.04,
+                                                    ),
+                                                    title: Text(
+                                                      doc['title']
+                                                              ?.toString() ??
+                                                          '',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize:
+                                                            width * 0.035,
+                                                      ),
+                                                    ),
                                                   ),
                                                 ),
-                                          ],
+                                              ],
+                                            );
+                                          }).toList(),
                                         ),
                                       ),
                                     ),
@@ -310,8 +402,10 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                             child: TeacherGwajeJechul(
                               dataList: assignments,
                               onSubmissionChanged: updateSubmissionStatus,
-                              classRoomId: (header['classRoomId'] ?? header['classRoomIdStr'])
-                                  ?.toString() ??
+                              classRoomId:
+                                  (header['classRoomId'] ??
+                                          header['classRoomIdStr'])
+                                      ?.toString() ??
                                   '',
                             ),
                           ),
@@ -319,15 +413,18 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                           Container(
                             child: Theme(
                               data: Theme.of(context).copyWith(
-                                colorScheme: Theme.of(context).colorScheme.copyWith(
+                                colorScheme: Theme.of(
+                                  context,
+                                ).colorScheme.copyWith(
                                   primary: const Color(0xff578FCA),
                                   secondary: const Color(0xff578FCA),
                                 ),
-                                textSelectionTheme: const TextSelectionThemeData(
-                                  cursorColor: Color(0xff578FCA),
-                                  selectionColor: Color(0x33578FCA),
-                                  selectionHandleColor: Color(0xff578FCA),
-                                ),
+                                textSelectionTheme:
+                                    const TextSelectionThemeData(
+                                      cursorColor: Color(0xff578FCA),
+                                      selectionColor: Color(0x33578FCA),
+                                      selectionHandleColor: Color(0xff578FCA),
+                                    ),
                               ),
                               child: Thaksubsilsetting(
                                 tsuap: widget.tsuap,
@@ -339,10 +436,12 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                                     widget.tsuap.addAll(updated);
                                     if (_detail.isNotEmpty) {
                                       if (updated['name'] != null) {
-                                        _detail['classRoomName'] = updated['name'];
+                                        _detail['classRoomName'] =
+                                            updated['name'];
                                       }
                                       if (updated['description'] != null) {
-                                        _detail['description'] = updated['description'];
+                                        _detail['description'] =
+                                            updated['description'];
                                       }
                                       if (updated['sort'] != null) {
                                         _detail['sort'] = updated['sort'];
