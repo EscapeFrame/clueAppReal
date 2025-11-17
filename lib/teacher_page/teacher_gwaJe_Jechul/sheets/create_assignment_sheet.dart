@@ -371,7 +371,7 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                     }
 
                     final body = {
-                      'class_room_id': classRoomId,
+                      'class_id': classRoomId,
                       'title': title,
                       'content': content,
                       'start_date': start,
@@ -403,12 +403,18 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                         Navigator.of(ctx).pop(result);
                       }
                     } on DioException catch (e) {
+                      final status = e.response?.statusCode ?? 0;
+                      final data = e.response?.data;
+                      String detail;
+                      if (data is Map && data['message'] != null) {
+                        detail = data['message'].toString();
+                      } else if (data is String) {
+                        detail = data;
+                      } else {
+                        detail = e.message ?? '알 수 없는 오류';
+                      }
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            '생성 실패: ${e.response?.statusCode ?? ''}',
-                          ),
-                        ),
+                        SnackBar(content: Text('생성 실패($status): $detail')),
                       );
                     } catch (e) {
                       ScaffoldMessenger.of(

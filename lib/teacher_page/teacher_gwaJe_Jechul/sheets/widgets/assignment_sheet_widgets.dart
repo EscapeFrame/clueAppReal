@@ -215,7 +215,27 @@ class AssignmentFilledTextField extends StatelessWidget {
         filled: true,
         fillColor: Colors.grey.shade100,
         contentPadding: const EdgeInsets.symmetric(vertical: 18),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(18)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(
+            color: Colors.grey.shade400,
+            width: 0.8,
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(
+            color: Colors.grey.shade400,
+            width: 0.8,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+            width: 1.1,
+          ),
+        ),
       ),
     );
   }
