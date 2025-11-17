@@ -3,88 +3,60 @@ import 'package:clue/teacher_page/teacher_check.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/data/assignment_service.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/sheets/create_assignment_sheet.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/sheets/edit_assignment_sheet.dart';
-import 'package:clue/teacher_page/teacher_gwaJe_Jechul/utils/file_utils.dart';
-import 'package:clue/teacher_page/teacher_gwaJe_Jechul/widgets/file_item_row.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-
 class TeacherGwajeJechul extends StatefulWidget {
   final List<Map<String, dynamic>> dataList;
   final Function(int index, bool submitted)? onSubmissionChanged;
   final String classRoomId; // path param for API
-
   const TeacherGwajeJechul({
     super.key,
     required this.dataList,
     this.onSubmissionChanged,
     required this.classRoomId,
   });
-
   @override
   State<TeacherGwajeJechul> createState() => TeacherGwajeJechulState();
 }
-
 class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
   late List<Map<String, dynamic>> dataList;
-  List<bool> isEditMode = [];
   bool showTeacherCheck = false;
   bool showAssignmentDetail = false;
   Map<String, dynamic>? selectedAssignment;
-
   void _closeAssignmentDetail() {
     setState(() {
       showAssignmentDetail = false;
       selectedAssignment = null;
     });
   }
-
-  @override
-  void initState() {
-    super.initState();
-    gwaJeJeChul();
-    dataList = List.from(widget.dataList);
-    isEditMode = List.generate(dataList.length, (index) => false);
-    for (var data in dataList) {
+  void _normalizeAssignments() {
+    for (final data in dataList) {
       if (data['files'] == null || data['files'] is! List) {
         data['files'] = [];
       }
-      data['files'].removeWhere((f) => f == null);
+      if (data['files'] is List) {
+        (data['files'] as List).removeWhere((element) => element == null);
+      }
     }
   }
-
+  @override
+  void initState() {
+    super.initState();
+    dataList = List.from(widget.dataList);
+    _normalizeAssignments();
+    gwaJeJeChul();
+  }
   Future<void> gwaJeJeChul() async {
     final parsed = await AssignmentService.fetchAssignments(widget.classRoomId);
     if (!mounted) return;
     setState(() {
       dataList = parsed;
-      isEditMode = List.generate(dataList.length, (index) => false);
+      _normalizeAssignments();
     });
   }
-
-  Future<void> pickFile(int index) async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-    if (result != null && result.files.isNotEmpty) {
-      final file = result.files.first;
-      setState(() {
-        dataList[index]['files'].add({
-          'name': file.name,
-          'size': formatFileSize(file.size),
-        });
-      });
-    }
-  }
-
-  void removeFile(int dataIndex, int fileIndex) {
-    setState(() {
-      dataList[dataIndex]['files'].removeAt(fileIndex);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
-
     return Scaffold(
       floatingActionButton: showAssignmentDetail
           ? null
@@ -97,7 +69,7 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                 if (created != null) {
                   setState(() {
                     dataList.insert(0, created);
-                    isEditMode = List.generate(dataList.length, (index) => false);
+                    _normalizeAssignments();
                   });
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -140,9 +112,9 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
               : showTeacherCheck
                   ? TeacherCheck(
                       key: const ValueKey('teacherCheck'),
-                      assignmentId: ((selectedAssignment?['assignmentId'] ??
-                                  selectedAssignment?['id'] ??
-                                  selectedAssignment?['assignment_id'] ??
+                      assignmentId: ((selectedAssignment?['assignmentId'] 제목 없음
+                                  selectedAssignment?['id'] 제목 없음
+                                  selectedAssignment?['assignment_id'] 제목 없음
                                   '')
                               .toString()),
                       onBack: () {
@@ -156,7 +128,6 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
       ),
     );
   }
-
   Widget _buildAssignmentList(BuildContext context, double width, double height) {
     return ListView(
       key: const ValueKey('assignmentList'),
@@ -164,39 +135,58 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
       children: dataList.asMap().entries.map((entry) {
         final index = entry.key;
         final data = entry.value;
+        final Color accent = const Color(0xff4F68FF);
+        final String title = (data['title'] 제목 없음 '제목 없음').toString();
+        final DateTime? startDate = _parseDate(data['startDate']?.toString());
+        final DateTime? endDate = _parseDate(data['endDate']?.toString());
+        final String? dDayLabel = _buildDDayLabel(endDate);
+        final String periodText = _formatPeriod(startDate, endDate);
+
         return GestureDetector(
           onTap: () {
             setState(() {
               final mapped = Map<String, dynamic>.from(data);
-              if (!(mapped.containsKey('file')) && mapped['files'] is List && (mapped['files'] as List).isNotEmpty) {
+              if (!(mapped.containsKey('file')) &&
+                  mapped['files'] is List &&
+                  (mapped['files'] as List).isNotEmpty) {
                 mapped['file'] = (mapped['files'] as List).first;
               } else if (!mapped.containsKey('file')) {
                 mapped['file'] = {'name': ''};
               }
               if (mapped['assignmentId'] == null) {
-                final dynamic altId = mapped['id'] ?? mapped['assignment_id'];
+                final dynamic altId = mapped['id'] 제목 없음 mapped['assignment_id'];
                 if (altId != null) {
                   final parsed = int.tryParse(altId.toString());
-                  mapped['assignmentId'] = parsed ?? altId;
+                  mapped['assignmentId'] = parsed 제목 없음 altId;
                 }
               }
               selectedAssignment = mapped;
               showAssignmentDetail = true;
             });
           },
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 240),
+            curve: Curves.easeOutCubic,
             margin: EdgeInsets.symmetric(
               horizontal: width * 0.04,
               vertical: height * 0.012,
             ),
             padding: EdgeInsets.all(width * 0.04),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(width * 0.04),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white,
+                  Color(0xfff7f9ff),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(width * 0.045),
+              border: Border.all(color: accent.withOpacity(0.15)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: width * 0.02,
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: width * 0.04,
                   offset: Offset(0, width * 0.01),
                 ),
               ],
@@ -205,101 +195,78 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
                       child: Text(
-                        data['title'],
+                        title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: width * 0.045,
-                          fontWeight: FontWeight.bold,
+                          fontSize: width * 0.048,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xff1F2937),
                         ),
                       ),
                     ),
-                    SizedBox(width: width * 0.02),
-                  ],
-                ),
-                SizedBox(height: height * 0.012),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today,
-                      size: width * 0.04,
-                      color: Colors.grey,
-                    ),
-                    SizedBox(width: width * 0.015),
-                    Text(
-                      "마감일:  ${data['due']}",
-                      style: TextStyle(fontSize: width * 0.03),
-                    ),
-                  ],
-                ),
-                SizedBox(height: height * 0.008),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.access_time,
-                      size: width * 0.04,
-                      color: Colors.blue,
-                    ),
-                    SizedBox(width: width * 0.015),
-                    Text(
-                      data['timeLeft'],
-                      style: TextStyle(
-                        fontSize: width * 0.03,
-                        color: Colors.blue,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: height * 0.018),
-
-                ...List.generate(data['files'].length, (fileIdx) {
-                  final file = data['files'][fileIdx];
-                  return FileItemRow(
-                    width: width,
-                    file: file,
-                    onTapDownload: () {
-                      if (file['url'] != null && file['url'].toString().isNotEmpty) {
-                        downloadAndOpenFile(context, file['url'], file['name']);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('다운로드 URL이 없습니다.')),
-                        );
-                      }
-                    },
-                    onRemove: () => removeFile(index, fileIdx),
-                  );
-                }),
-
-                if (isEditMode[index]) ...[
-                  SizedBox(height: height * 0.012),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => pickFile(index),
-                      icon: const Icon(Icons.attach_file),
-                      label: Text(
-                        '파일 추가',
-                        style: TextStyle(fontSize: width * 0.032),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange[100],
-                        foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(width * 0.025),
+                    if (dDayLabel != null) ...[
+                      SizedBox(width: width * 0.02),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: accent.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(999),
                         ),
-                        padding: EdgeInsets.symmetric(
-                          vertical: height * 0.012,
-                          horizontal: width * 0.04,
+                        child: Text(
+                          dDayLabel,
+                          style: TextStyle(
+                            color: accent,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
+                    ],
+                  ],
+                ),
+                if (periodText.isNotEmpty) ...[
+                  SizedBox(height: height * 0.01),
+                  Text(
+                    periodText,
+                    style: TextStyle(
+                      fontSize: width * 0.034,
+                      color: const Color(0xff475467),
                     ),
                   ),
                 ],
+                SizedBox(height: height * 0.016),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildMetaTile(
+                        icon: Icons.calendar_today,
+                        label: '시작일',
+                        value: _formatDate(startDate),
+                        color: const Color(0xff4C5674),
+                        width: width,
+                      ),
+                    ),
+                    SizedBox(width: width * 0.02),
+                    Expanded(
+                      child: _buildMetaTile(
+                        icon: Icons.flag,
+                        label: '마감일',
+                        value: _formatDate(endDate),
+                        color: accent,
+                        width: width,
+                      ),
+                    ),
+                  ],
+                ),
+                    ),
+                  ],
+                ),
                 SizedBox(height: height * 0.018),
+                const Divider(height: 1, color: Color(0xffE2E8F0)),
+                SizedBox(height: height * 0.012),
                 Row(
                   children: [
                     Expanded(
@@ -322,20 +289,26 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                               await gwaJeJeChul();
                               if (!mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('과제를 수정했어요.')),
+                                const SnackBar(content: Text('내용이 업데이트됐어요.')),
                               );
                             }
                           },
                           label: Text(
                             '내용수정',
-                            style: TextStyle(fontSize: width * 0.035),
+                            style: TextStyle(
+                              fontSize: width * 0.035,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                          icon: const Icon(Icons.edit),
+                          icon: const Icon(Icons.brush),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[300],
-                            foregroundColor: Colors.black,
+                            backgroundColor: const Color(0xffEEF2FF),
+                            foregroundColor: const Color(0xff1E3A8A),
+                            surfaceTintColor: Colors.transparent,
+                            elevation: 0,
+                            side: const BorderSide(color: Color(0xffCBD5F5)),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(width * 0.025),
+                              borderRadius: BorderRadius.circular(width * 0.028),
                             ),
                             padding: EdgeInsets.symmetric(
                               vertical: height * 0.018,
@@ -352,10 +325,10 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                             setState(() {
                               final mapped = Map<String, dynamic>.from(dataList[index]);
                               if (mapped['assignmentId'] == null) {
-                                final altId = mapped['id'] ?? mapped['assignment_id'];
+                                final altId = mapped['id'] 제목 없음 mapped['assignment_id'];
                                 if (altId != null) {
                                   final parsed = int.tryParse(altId.toString());
-                                  mapped['assignmentId'] = parsed ?? altId;
+                                  mapped['assignmentId'] = parsed 제목 없음 altId;
                                 }
                               }
                               selectedAssignment = mapped;
@@ -364,14 +337,19 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                           },
                           label: Text(
                             '확인/채점',
-                            style: TextStyle(fontSize: width * 0.035),
+                            style: TextStyle(
+                              fontSize: width * 0.035,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                          icon: const Icon(Icons.check),
+                          icon: const Icon(Icons.assignment_turned_in_outlined),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFB9DCFF),
-                            foregroundColor: Colors.black,
+                            backgroundColor: const Color(0xffDBEAFE),
+                            foregroundColor: const Color(0xff1D4ED8),
+                            elevation: 0,
+                            shadowColor: Colors.transparent,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(width * 0.025),
+                              borderRadius: BorderRadius.circular(width * 0.028),
                             ),
                             padding: EdgeInsets.symmetric(
                               vertical: height * 0.018,
@@ -389,5 +367,79 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
       }).toList(),
     );
   }
+  String? _buildDDayLabel(DateTime? endDate) {
+    if (endDate == null) return null;
+    final now = DateTime.now();
+    final diff = endDate.difference(now).inDays;
+    if (diff > 0) return 'D-' + diff.toString();
+    if (diff == 0) return 'D-DAY';
+    return '종료';
+  }
+  String _formatPeriod(DateTime? start, DateTime? end) {
+    if (start == null || end == null) return '';
+    return _formatDate(start) + ' ~ ' + _formatDate(end);
+  }
+  String _formatDate(DateTime? date) {
+    if (date == null) return '정보 없음';
+    final d = date.toLocal();
+    final mm = d.month.toString().padLeft(2, '0');
+    final dd = d.day.toString().padLeft(2, '0');
+    final hh = d.hour.toString().padLeft(2, '0');
+    final min = d.minute.toString().padLeft(2, '0');
+    return '${d.year}.$mm.$dd $hh:$min';
+  }
+  DateTime? _parseDate(String? value) {
+    if (value == null || value.isEmpty) return null;
+    try {
+      return DateTime.parse(value);
+    } catch (_) {
+      return null;
+    }
+  }
+  Widget _buildMetaTile({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+    required double width,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: width * 0.025,
+        vertical: 12,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xffE2E8F0)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: width * 0.05),
+          SizedBox(width: width * 0.02),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(fontSize: width * 0.03, color: const Color(0xff6B7280)),
+                ),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: width * 0.035,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xff111827),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
-
