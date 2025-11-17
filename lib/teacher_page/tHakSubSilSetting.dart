@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 class Thaksubsilsetting extends StatefulWidget {
   final Map<String, dynamic> tsuap;
   final void Function(Map<String, dynamic> updated) onApply;
+  final Future<void> Function()? onDeleteClass;
 
   const Thaksubsilsetting({
     super.key,
     required this.tsuap,
     required this.onApply,
+    this.onDeleteClass,
   });
 
   @override
@@ -354,7 +356,11 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
                       ),
                     ),
                     OutlinedButton(
-                      onPressed: () {},
+                      onPressed: widget.onDeleteClass == null
+                          ? null
+                          : () {
+                              widget.onDeleteClass!.call();
+                            },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Color(0xffB3261E)),
                         foregroundColor: const Color(0xffB3261E),

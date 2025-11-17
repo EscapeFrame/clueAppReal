@@ -1,6 +1,7 @@
 import 'package:clue/api_client.dart';
 import 'package:clue/teacher_page/tHakSubSilSetting.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -122,6 +123,77 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
     final name = await _promptLessonName();
     if (name == null || name.trim().isEmpty) return;
     await _createDirectory(name.trim());
+  }
+
+  Future<void> _confirmAndDeleteClass() async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('수업 삭제'),
+          content: const Text('정말로 이 수업을 삭제할까요? 삭제 후에는 되돌릴 수 없습니다.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+              child: const Text('삭제'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final String? id =
+        (widget.tsuap['classRoomId'] ?? widget.tsuap['classRoomIdStr'])
+            ?.toString();
+    if (id == null || id.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('수업 ID를 찾을 수 없습니다.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    try {
+      final api = ApiClient.instance.dio;
+      await api.delete('/api/class/$id');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('수업이 삭제되었습니다.'),
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 1),
+        ),
+      );
+      Navigator.of(context).pop(true);
+    } on DioException catch (e) {
+      if (!mounted) return;
+      final code = e.response?.statusCode;
+      final msg = e.response?.data?.toString() ?? e.message ?? 'unknown error';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('삭제 실패: $code $msg'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('삭제 실패: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Future<String?> _promptLessonName() async {
@@ -745,6 +817,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                                     }
                                   });
                                 },
+                                onDeleteClass: _confirmAndDeleteClass,
                               ),
                             ),
                           ),
