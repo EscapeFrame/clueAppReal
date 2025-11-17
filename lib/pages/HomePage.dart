@@ -57,39 +57,46 @@ class _HomePageState extends State<HomePage> {
   Future<void> noJeChulGwaJe() async {
     try {
       await AssignmentNotificationService.ensureBackgroundTaskRegistered();
-      final list = await AssignmentNotificationService.syncAssignments(
+    } catch (e) {
+      debugPrint('Assignment reminder setup failed (ignored): $e');
+    }
+
+    List<Map<String, dynamic>>? list;
+    try {
+      list = await AssignmentNotificationService.syncAssignments(
         requestPermission: true,
       );
-
-      if (list == null) {
-        return;
-      }
-
-      final now = DateTime.now();
-      final filtered =
-          list.where((item) {
-            final start = _parseDate((item['startDate'] ?? '').toString());
-            final end = _parseDate((item['endDate'] ?? '').toString());
-            final startOk = start == null || !start.isAfter(now);
-            final endOk = end == null || end.isAfter(now);
-            return startOk && endOk;
-          }).toList();
-
-      filtered.sort((a, b) {
-        final da = _calcDaysDiff((a['endDate'] ?? '').toString());
-        final db = _calcDaysDiff((b['endDate'] ?? '').toString());
-        return da.compareTo(db);
-      });
-      if (!mounted) return;
-      setState(() {
-        _noJeChulList = filtered;
-      });
-      debugPrint('gwajejechul데이터?????$list');
     } catch (e) {
-      debugPrint('Error: $e');
+      debugPrint('Assignment sync failed: $e');
     }
-  }
 
+    if (list == null) {
+      debugPrint('미제출 과제 API result: null');
+      return;
+    }
+
+    final now = DateTime.now();
+    final filtered =
+        list.where((item) {
+          final start = _parseDate((item['startDate'] ?? '').toString());
+          final end = _parseDate((item['endDate'] ?? '').toString());
+          final startOk = start == null || !start.isAfter(now);
+          final endOk = end == null || end.isAfter(now);
+          return startOk && endOk;
+        }).toList();
+
+    filtered.sort((a, b) {
+      final da = _calcDaysDiff((a['endDate'] ?? '').toString());
+      final db = _calcDaysDiff((b['endDate'] ?? '').toString());
+      return da.compareTo(db);
+    });
+
+    if (!mounted) return;
+    setState(() {
+      _noJeChulList = filtered;
+    });
+    debugPrint('gwajejechul데이터: ' + list.toString());
+  }
 
   @override
   void initState() {
@@ -439,4 +446,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
