@@ -6,9 +6,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class Thaksubsilsuaptrue extends StatefulWidget {
   final Map<String, dynamic> tsuap;
+  final VoidCallback? onCreateLesson;
 
-  const Thaksubsilsuaptrue({super.key, required this.tsuap});
-
+  const Thaksubsilsuaptrue({
+    super.key,
+    required this.tsuap,
+    this.onCreateLesson,
+  });
   @override
   State<Thaksubsilsuaptrue> createState() => _HaksubsilsuapState();
 }
@@ -97,6 +101,82 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
       assignments[index]['status'] = submitted ? '제출됨' : '미제출';
       widget.tsuap['assignments'] = assignments;
     });
+  }
+
+  void _onTapAddLessonCard() {
+    if (widget.onCreateLesson != null) {
+      widget.onCreateLesson!();
+      return;
+    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('새 수업 생성 기능을 연결해 주세요.')));
+  }
+
+  Widget _buildAddLessonCard(double width, double height) {
+    final borderRadius = width * 0.03;
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: width * 0.05,
+        vertical: height * 0.004,
+      ),
+      child: InkWell(
+        onTap: _onTapAddLessonCard,
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: CustomPaint(
+          painter: _DashedRectPainter(
+            color: const Color(0xff7EA6FF),
+            strokeWidth: 1.5,
+            dashLength: 7,
+            dashGap: 4,
+            radius: borderRadius,
+          ),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: width * 0.04,
+              vertical: height * 0.012,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xffF4F7FF),
+              borderRadius: BorderRadius.circular(borderRadius),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: width * 0.1,
+                  height: width * 0.1,
+                  decoration: BoxDecoration(
+                    color: const Color(0xffE3EDFF),
+                    borderRadius: BorderRadius.circular(width * 0.05),
+                  ),
+                  child: const Icon(
+                    Icons.add,
+                    color: Color(0xff0057FF),
+                    size: 22,
+                  ),
+                ),
+                SizedBox(width: width * 0.03),
+                Expanded(
+                  child: Text(
+                    '+ 새 수업',
+                    style: TextStyle(
+                      color: const Color(0xff0057FF),
+                      fontWeight: FontWeight.w700,
+                      fontSize: width * 0.038,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: const Color(0xff0057FF),
+                  size: width * 0.038,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -287,10 +367,19 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                               // color:Colors.white,
                             ),
                             child: ListView.builder(
-                              itemCount: directoryList.length,
+                              itemCount: directoryList.length + 1,
                               itemBuilder: (context, index) {
+                                if (index == 0) {
+                                  return Column(
+                                    children: [
+                                      SizedBox(height: height * 0.012),
+                                      _buildAddLessonCard(width, height),
+                                    ],
+                                  );
+                                }
                                 final lesson =
-                                    (directoryList[index] as Map?) ?? const {};
+                                    (directoryList[index - 1] as Map?) ??
+                                    const {};
                                 final List<dynamic> documents =
                                     (lesson['documentList'] as List?) ??
                                     const [];
@@ -468,5 +557,56 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
         ],
       ),
     );
+  }
+}
+
+class _DashedRectPainter extends CustomPainter {
+  final Color color;
+  final double strokeWidth;
+  final double dashLength;
+  final double dashGap;
+  final double radius;
+
+  const _DashedRectPainter({
+    required this.color,
+    required this.strokeWidth,
+    required this.dashLength,
+    required this.dashGap,
+    required this.radius,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint =
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth
+          ..strokeCap = StrokeCap.round;
+    final RRect rrect = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      Radius.circular(radius),
+    );
+    final Path path = Path()..addRRect(rrect);
+    for (final metric in path.computeMetrics()) {
+      double distance = 0;
+      while (distance < metric.length) {
+        final double nextDistance = distance + dashLength;
+        final double end =
+            nextDistance < metric.length ? nextDistance : metric.length;
+        final Path segment = metric.extractPath(distance, end);
+        canvas.drawPath(segment, paint);
+        distance += dashLength + dashGap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedRectPainter oldDelegate) {
+    return color != oldDelegate.color ||
+        strokeWidth != oldDelegate.strokeWidth ||
+        dashLength != oldDelegate.dashLength ||
+        dashGap != oldDelegate.dashGap ||
+        radius != oldDelegate.radius;
   }
 }
