@@ -1,4 +1,4 @@
-import 'package:clue/api_client.dart';
+﻿import 'package:clue/api_client.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/sheets/widgets/assignment_sheet_widgets.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/utils/date_time.dart';
 import 'package:dio/dio.dart';
@@ -389,14 +389,24 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                         data: body,
                       );
 
+                      final responseData = response.data;
+                      final createdId =
+                          responseData is Map
+                              ? (responseData['assignmentId'] ??
+                                  responseData['id'] ??
+                                  responseData['assignment_id'] ??
+                                  '')
+                              : responseData.toString();
+
                       result = {
-                        'id': response.data['assignmentId'],
+                        'id': createdId,
                         'title': title,
                         'content': content,
                         'startDate': start,
                         'endDate': end,
                         'due': formatDate(endDate),
                         'timeLeft': formatTimeLeftFrom(endDate),
+                        'files': <dynamic>[],
                       };
 
                       if (Navigator.of(ctx).canPop()) {

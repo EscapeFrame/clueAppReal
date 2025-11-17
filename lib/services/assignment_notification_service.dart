@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:io';
 
 import 'package:clue/api_client.dart';
@@ -58,9 +58,9 @@ class AssignmentNotificationService {
   }) async {
     await _ensureEnvLoaded();
 
-    await FlutterLocalNotification.init(); //로컬 알림 플러그인 초기화
+    await FlutterLocalNotification.init(); //濡쒖뺄 ?뚮┝ ?뚮윭洹몄씤 珥덇린??
     if (requestPermission) {
-      await FlutterLocalNotification.requestNotificationPermission(); //권한 요청
+      await FlutterLocalNotification.requestNotificationPermission(); //沅뚰븳 ?붿껌
     }
 
     final assignments = await _fetchAssignments();
@@ -145,7 +145,7 @@ class AssignmentNotificationService {
 
       final remaining = endDate.difference(now);
       if (remaining > const Duration(days: 3)) {
-        // 너무 멀리 있는 마감은 아직 알림을 예약하지 않는다.
+        // ?덈Т 硫由??덈뒗 留덇컧? ?꾩쭅 ?뚮┝???덉빟?섏? ?딅뒗??
         await FlutterLocalNotification.cancelAllAssignmentReminders(
           assignmentId,
         );
@@ -154,7 +154,7 @@ class AssignmentNotificationService {
         continue;
       }
 
-      final title = (assignment['title'] ?? '과제').toString();
+      final title = (assignment['title'] ?? '怨쇱젣').toString();
       final threeDayTrigger = endDate.subtract(const Duration(days: 3));
       final oneDayTrigger = endDate.subtract(const Duration(days: 1));
 
@@ -287,3 +287,4 @@ void assignmentSyncCallbackDispatcher() {
     }
   });
 }
+

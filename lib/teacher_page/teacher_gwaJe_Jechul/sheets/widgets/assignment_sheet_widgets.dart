@@ -217,17 +217,11 @@ class AssignmentFilledTextField extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(vertical: 18),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide(
-            color: Colors.grey.shade400,
-            width: 0.8,
-          ),
+          borderSide: BorderSide(color: Colors.grey.shade400, width: 0.8),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide(
-            color: Colors.grey.shade400,
-            width: 0.8,
-          ),
+          borderSide: BorderSide(color: Colors.grey.shade400, width: 0.8),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
@@ -544,9 +538,7 @@ class AssignmentSheetActionBar extends StatelessWidget {
             offset: const Offset(0, -10),
           ),
         ],
-        border: Border.all(
-          color: Colors.black.withOpacity(0.03),
-        ),
+        border: Border.all(color: Colors.black.withOpacity(0.03)),
       ),
       child: SafeArea(
         top: false,
@@ -592,8 +584,10 @@ class AssignmentSheetActionBar extends StatelessWidget {
                   style: FilledButton.styleFrom(
                     backgroundColor: Colors.transparent,
                     shadowColor: Colors.transparent,
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 20,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
@@ -618,9 +612,7 @@ class AssignmentSheetActionBar extends StatelessWidget {
                       ],
                       Text(
                         primaryLabel,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),

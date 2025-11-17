@@ -1,4 +1,4 @@
-import 'package:clue/api_client.dart';
+﻿import 'package:clue/api_client.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/sheets/widgets/assignment_sheet_widgets.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/utils/date_time.dart';
 import 'package:dio/dio.dart';
@@ -364,7 +364,12 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                   isBusy: isSubmitting,
                   onSecondary: () => Navigator.of(ctx).pop(),
                   onPrimary: () async {
-                    final id = (assignment['assignmentId'] ?? '').toString();
+                    final id =
+                        (assignment['assignmentId'] ??
+                                assignment['id'] ??
+                                assignment['assignment_id'] ??
+                                '')
+                            .toString();
                     if (id.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('과제 ID를 찾을 수 없습니다.')),
