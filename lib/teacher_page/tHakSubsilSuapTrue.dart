@@ -20,6 +20,7 @@ class Thaksubsilsuaptrue extends StatefulWidget {
 class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
   late List<Map<String, dynamic>> assignments;
   Map<String, dynamic> _detail = {};
+  final TextEditingController _lessonNameController = TextEditingController();
 
   Future<void> _loadDetail() async {
     try {
@@ -95,6 +96,12 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
     _loadDetail();
   }
 
+  @override
+  void dispose() {
+    _lessonNameController.dispose();
+    super.dispose();
+  }
+
   void updateSubmissionStatus(int index, bool submitted) {
     setState(() {
       assignments[index]['submitted'] = submitted;
@@ -108,9 +115,204 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
       widget.onCreateLesson!();
       return;
     }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('새 수업 생성 기능을 연결해 주세요.')));
+    _handleCreateLesson();
+  }
+
+  Future<void> _handleCreateLesson() async {
+    final name = await _promptLessonName();
+    if (name == null || name.trim().isEmpty) return;
+    await _createDirectory(name.trim());
+  }
+
+  Future<String?> _promptLessonName() async {
+    _lessonNameController.clear();
+    String? errorText;
+    final name = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return Dialog(
+              insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xffF5F9FF), Colors.white],
+                  ),
+                ),
+                padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 54,
+                      height: 54,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        color: const Color(0xffE8F0FF),
+                      ),
+                      child: const Icon(
+                        Icons.menu_book_rounded,
+                        color: Color(0xff246BFD),
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      '새 수업을 만들까요?',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 20,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      '수업 이름을 입력하면 바로 새로운 단원을 시작할 수 있어요.',
+                      style: TextStyle(fontSize: 13.5, color: Colors.black54),
+                    ),
+                    const SizedBox(height: 18),
+                    TextField(
+                      controller: _lessonNameController,
+                      autofocus: true,
+                      textInputAction: TextInputAction.done,
+                      decoration: InputDecoration(
+                        labelText: '수업 이름',
+                        hintText: '예) 1주차 프로젝트',
+                        filled: true,
+                        fillColor: const Color(0xffF5F8FF),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(
+                            color: Color(0xffC7D7FF),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(
+                            color: Color(0xffE0E7FF),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(
+                            color: Color(0xff246BFD),
+                          ),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Colors.redAccent),
+                        ),
+                        errorText: errorText,
+                      ),
+                      onSubmitted: (_) {
+                        final trimmed = _lessonNameController.text.trim();
+                        if (trimmed.isNotEmpty) {
+                          Navigator.of(dialogContext).pop(trimmed);
+                        } else {
+                          setStateDialog(() {
+                            errorText = '수업명을 입력해 주세요.';
+                          });
+                        }
+                      },
+                      onChanged: (value) {
+                        if (errorText != null && value.trim().isNotEmpty) {
+                          setStateDialog(() {
+                            errorText = null;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 22),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.of(dialogContext).pop(),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              side: const BorderSide(color: Color(0xffCBD5F5)),
+                            ),
+                            child: const Text(
+                              '나중에',
+                              style: TextStyle(color: Colors.black87),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: () {
+                              final trimmed = _lessonNameController.text.trim();
+                              if (trimmed.isEmpty) {
+                                setStateDialog(() {
+                                  errorText = '수업명을 입력해 주세요.';
+                                });
+                                return;
+                              }
+                              Navigator.of(dialogContext).pop(trimmed);
+                            },
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xff246BFD),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: const Text('바로 만들기'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+    return name;
+  }
+
+  Future<void> _createDirectory(String name) async {
+    final dynamic idValue =
+        widget.tsuap['classRoomId'] ?? widget.tsuap['classRoomIdStr'];
+    final classRoomId = idValue?.toString();
+    if (classRoomId == null || classRoomId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('반 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.')),
+      );
+      return;
+    }
+    try {
+      final api = ApiClient.instance.dio;
+      await api.post(
+        '/api/directory',
+        data: {'classRoomId': classRoomId, 'name': name, 'directoryOrder': 0},
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('새 수업이 추가되었습니다.')));
+      await _loadDetail();
+    } catch (e) {
+      debugPrint('directory create error: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('수업 추가에 실패했습니다. 다시 시도해 주세요.')),
+      );
+    }
   }
 
   Widget _buildAddLessonCard(double width, double height) {
