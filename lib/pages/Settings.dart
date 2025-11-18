@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:clue/api_client.dart';
 import 'package:clue/settings/Settings_set.dart';
 import 'package:dio/dio.dart';
@@ -21,6 +23,7 @@ class _SettingsState extends State<Settings> {
   bool _isProfileLoading = false;
   Map<String, dynamic>? _profile;
   String? _profileError;
+  Uint8List? _profileImage;
 
   @override
   void initState() {
@@ -42,6 +45,7 @@ class _SettingsState extends State<Settings> {
           _profile = Map<String, dynamic>.from(res.data as Map);
           _isProfileLoading = false;
         });
+        await _loadProfileImage();
       } else {
         setState(() {
           _profileError = '사용자 정보를 불러오지 못했습니다.';
@@ -60,6 +64,30 @@ class _SettingsState extends State<Settings> {
         _profileError = '사용자 정보를 불러오지 못했습니다. $e';
         _isProfileLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadProfileImage() async {
+    try {
+      final dio = ApiClient.instance.dio;
+      final res = await dio.get(
+        '/api/user/me/image',
+        options: Options(responseType: ResponseType.bytes),
+      );
+      if (!mounted) return;
+      if (res.statusCode == 200 && res.data is List<int>) {
+        setState(() {
+          _profileImage = Uint8List.fromList(res.data as List<int>);
+        });
+      } else {
+        setState(() => _profileImage = null);
+      }
+    } on DioException {
+      if (!mounted) return;
+      setState(() => _profileImage = null);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _profileImage = null);
     }
   }
 
@@ -153,15 +181,25 @@ class _SettingsState extends State<Settings> {
                               Container(
                                 width: 64,
                                 height: 64,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFE6ECF4),
+                                decoration: BoxDecoration(
+                                  color:
+                                      _profileImage == null
+                                          ? const Color(0xFFE6ECF4)
+                                          : Colors.transparent,
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(
-                                  Icons.person,
-                                  color: Color(0xFF7F8EA3),
-                                  size: 36,
-                                ),
+                                clipBehavior: Clip.antiAlias,
+                                child:
+                                    _profileImage == null
+                                        ? const Icon(
+                                          Icons.person,
+                                          color: Color(0xFF7F8EA3),
+                                          size: 36,
+                                        )
+                                        : Image.memory(
+                                          _profileImage!,
+                                          fit: BoxFit.cover,
+                                        ),
                               ),
                               const SizedBox(width: 16),
                               Column(
@@ -217,9 +255,7 @@ class _SettingsState extends State<Settings> {
                     const SizedBox(height: 24),
 
                     // 설정 리스트
-                    SettingsSet(
-                      onProfileUpdated: () => _loadProfile(),
-                    ),
+                    SettingsSet(onProfileUpdated: () => _loadProfile()),
                   ],
                 ),
               ),

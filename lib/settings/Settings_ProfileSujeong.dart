@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:clue/api_client.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +22,7 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
   final TextEditingController _introController = TextEditingController();
   bool _isProfileLoading = false;
   bool _isSaving = false;
+  Uint8List? _profileImage;
   String? _profileError;
   String? _profileName;
   int? _profileGrade;
@@ -32,6 +35,7 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
   void initState() {
     super.initState();
     _loadProfile();
+    _loadProfileImage();
   }
 
   @override
@@ -104,6 +108,30 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
         _profileError = '사용자 정보를 불러오지 못했습니다. $e';
         _isProfileLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadProfileImage() async {
+    try {
+      final dio = ApiClient.instance.dio;
+      final res = await dio.get(
+        '/api/user/me/image',
+        options: Options(responseType: ResponseType.bytes),
+      );
+      if (!mounted) return;
+      if (res.statusCode == 200 && res.data is List<int>) {
+        setState(() {
+          _profileImage = Uint8List.fromList(res.data as List<int>);
+        });
+      } else {
+        setState(() => _profileImage = null);
+      }
+    } on DioException {
+      if (!mounted) return;
+      setState(() => _profileImage = null);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _profileImage = null);
     }
   }
 
@@ -223,15 +251,25 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
                                 Container(
                                   width: width * 0.22,
                                   height: width * 0.22,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFE6ECF4),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        _profileImage == null
+                                            ? const Color(0xFFE6ECF4)
+                                            : Colors.transparent,
                                     shape: BoxShape.circle,
                                   ),
-                                  child: Icon(
-                                    Icons.person,
-                                    size: width * 0.11,
-                                    color: const Color(0xFF7F8EA3),
-                                  ),
+                                  clipBehavior: Clip.antiAlias,
+                                  child:
+                                      _profileImage == null
+                                          ? Icon(
+                                            Icons.person,
+                                            size: width * 0.11,
+                                            color: const Color(0xFF7F8EA3),
+                                          )
+                                          : Image.memory(
+                                            _profileImage!,
+                                            fit: BoxFit.cover,
+                                          ),
                                 ),
                                 const SizedBox(height: 12),
                                 OutlinedButton.icon(
@@ -470,6 +508,7 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
       });
       messenger.showSnackBar(const SnackBar(content: Text('변경사항을 저장했습니다.')));
       await _loadProfile();
+      await _loadProfileImage();
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode;
       messenger.showSnackBar(
