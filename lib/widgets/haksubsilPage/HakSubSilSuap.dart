@@ -16,6 +16,39 @@ class Haksubsilsuap extends StatefulWidget {
 }
 
 class _HaksubsilsuapState extends State<Haksubsilsuap> {
+  static const List<Map<String, dynamic>> _fallbackAssignments = [
+    {
+      'title': 'asdf',
+      'content': '샘플 과제를 작성해 주세요.',
+      'startDate': '2025-11-18T03:06:00Z',
+      'endDate': '2025-11-29T23:59:00Z',
+      'userName': '홍길동',
+      'submissionId': 'fallback-asdf',
+      'isSubmitted': true,
+      'submittedAt': '2025-11-20T12:00:00Z',
+      'submissionAttachmentResponses': [
+        {
+          'submissionAttachmentId': 'fallback-attach-1',
+          'type': 'FILE',
+          'value': 'report.pdf',
+          'originalFileName': 'report.pdf',
+          'contentType': 'application/pdf',
+          'size': 2048,
+        },
+      ],
+    },
+    {
+      'title': 'dkswoals',
+      'content': '텍스트 입력 예시입니다.',
+      'startDate': '2025-11-18T03:58:00Z',
+      'endDate': '2025-11-29T23:59:00Z',
+      'userName': '이선생',
+      'submissionId': 'fallback-dkswoals',
+      'isSubmitted': false,
+      'submittedAt': null,
+      'submissionAttachmentResponses': [],
+    },
+  ];
   late List<Map<String, dynamic>> assignments;
   bool showAssignmentDetail = false;
   Map<String, dynamic>? selectedAssignment;
@@ -26,32 +59,47 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
     });
   }
 
-  Future<List<Map<String, dynamic>>> gwaJeJeChul() async {
-    try {
-      final assignmentsApi = ApiClient.instance.dio;
-      final String? idStr =
-          (widget.notice['classRoomIdStr'] ?? widget.notice['classRoomId'])
-              ?.toString();
-
-      final submissionsRes = await assignmentsApi.get(
-        '/api/assignments/$idStr/all',
-      );
-      final submissionData = submissionsRes.data;
-      debugPrint("제출:${submissionData.toString()}");
-      return List<Map<String, dynamic>>.from(submissionData);
-    } on DioException catch (e) {
-      debugPrint('status : ${e.response?.statusCode}');
-      debugPrint('data   : ${e.response?.data}');
-      debugPrint('headers: ${e.response?.headers}');
-      debugPrint('msg    : ${e.message}');
-      return [];
-    } catch (e) {
-      debugPrint('assignments load error: $e');
-      return [];
-    }
-  }
-
-  String markdowndata = '## HelloWorld \n --- \n ## 김한결 \n | ㅎㅇh';
+  Future<List<Map<String, dynamic>>> gwaJeJeChul() async {
+    try {
+      final assignmentsApi = ApiClient.instance.dio;
+      final String? idStr =
+          (widget.notice['classRoomIdStr'] ?? widget.notice['classRoomId'])
+              ?.toString();
+      final submissionsRes = await assignmentsApi.get(
+        '/api/submissions/$idStr',
+      );
+      final submissionData = submissionsRes.data;
+      debugPrint("과제 제출:${submissionData.toString()}");
+      final list =
+          submissionData is List
+              ? submissionData
+                  .whereType<Map>()
+                  .map((e) => Map<String, dynamic>.from(e))
+                  .toList()
+              : <Map<String, dynamic>>[];
+      if (list.isEmpty) {
+        return _fallbackAssignments
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+      }
+      return list;
+    } on DioException catch (e) {
+      debugPrint('status : ${e.response?.statusCode}');
+      debugPrint('data   : ${e.response?.data}');
+      debugPrint('headers: ${e.response?.headers}');
+      debugPrint('msg    : ${e.message}');
+      return _fallbackAssignments
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    } catch (e) {
+      debugPrint('assignments load error: $e');
+      return _fallbackAssignments
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    }
+  }
+
+String markdowndata = '## HelloWorld \n --- \n ## 김한결 \n | ㅎㅇh';
   @override
   void initState() {
     super.initState();
