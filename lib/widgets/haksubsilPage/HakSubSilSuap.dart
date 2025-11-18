@@ -59,47 +59,59 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
     });
   }
 
-  Future<List<Map<String, dynamic>>> gwaJeJeChul() async {
-    try {
-      final assignmentsApi = ApiClient.instance.dio;
-      final String? idStr =
-          (widget.notice['classRoomIdStr'] ?? widget.notice['classRoomId'])
-              ?.toString();
-      final submissionsRes = await assignmentsApi.get(
-        '/api/submissions/$idStr',
-      );
-      final submissionData = submissionsRes.data;
-      debugPrint("과제 제출:${submissionData.toString()}");
-      final list =
-          submissionData is List
-              ? submissionData
-                  .whereType<Map>()
-                  .map((e) => Map<String, dynamic>.from(e))
-                  .toList()
-              : <Map<String, dynamic>>[];
-      if (list.isEmpty) {
-        return _fallbackAssignments
-            .map((e) => Map<String, dynamic>.from(e))
-            .toList();
-      }
-      return list;
-    } on DioException catch (e) {
-      debugPrint('status : ${e.response?.statusCode}');
-      debugPrint('data   : ${e.response?.data}');
-      debugPrint('headers: ${e.response?.headers}');
-      debugPrint('msg    : ${e.message}');
-      return _fallbackAssignments
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
-    } catch (e) {
-      debugPrint('assignments load error: $e');
-      return _fallbackAssignments
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
-    }
-  }
-
-String markdowndata = '## HelloWorld \n --- \n ## 김한결 \n | ㅎㅇh';
+  Future<List<Map<String, dynamic>>> gwaJeJeChul() async {
+    try {
+      final assignmentsApi = ApiClient.instance.dio;
+
+      final String? idStr =
+          (widget.notice['classRoomIdStr'] ?? widget.notice['classRoomId'])
+              ?.toString();
+
+      final submissionsRes = await assignmentsApi.get(
+        '/api/submissions/$idStr',
+      );
+
+      final submissionData = submissionsRes.data;
+
+      debugPrint("과제 제출:${submissionData.toString()}");
+
+      final list =
+          submissionData is List
+              ? submissionData
+                  .whereType<Map>()
+                  .map((e) => Map<String, dynamic>.from(e))
+                  .toList()
+              : <Map<String, dynamic>>[];
+
+      if (list.isEmpty) {
+        return _fallbackAssignments
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+      }
+
+      return list;
+    } on DioException catch (e) {
+      debugPrint('status : ${e.response?.statusCode}');
+
+      debugPrint('data   : ${e.response?.data}');
+
+      debugPrint('headers: ${e.response?.headers}');
+
+      debugPrint('msg    : ${e.message}');
+
+      return _fallbackAssignments
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    } catch (e) {
+      debugPrint('assignments load error: $e');
+
+      return _fallbackAssignments
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    }
+  }
+
+  String markdowndata = '## HelloWorld \n --- \n ## 김한결 \n | ㅎㅇh';
   @override
   void initState() {
     super.initState();

@@ -217,7 +217,9 @@ class _SettingsState extends State<Settings> {
                     const SizedBox(height: 24),
 
                     // 설정 리스트
-                    const SettingsSet(),
+                    SettingsSet(
+                      onProfileUpdated: () => _loadProfile(),
+                    ),
                   ],
                 ),
               ),

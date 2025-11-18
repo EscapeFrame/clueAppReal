@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:clue/auth_storage.dart';
 
 class SettingsSet extends StatefulWidget {
-  const SettingsSet({super.key});
+  const SettingsSet({super.key, this.onProfileUpdated});
+
+  final VoidCallback? onProfileUpdated;
 
   @override
   State<SettingsSet> createState() => _SettingsSetState();
@@ -103,13 +105,16 @@ class _SettingsSetState extends State<SettingsSet> {
         buildSection('사용자관련', [
           buildNavigationTile(
             '사용자 정보 수정',
-            onTap:
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const SettingsProfileSujeong(),
-                  ),
+            onTap: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const SettingsProfileSujeong(),
                 ),
+              );
+              if (!mounted) return;
+              widget.onProfileUpdated?.call();
+            },
           ),
           buildNavigationTile(
             '보관된 채팅',

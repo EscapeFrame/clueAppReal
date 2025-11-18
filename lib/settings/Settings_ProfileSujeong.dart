@@ -19,6 +19,7 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
   final TextEditingController _numberController = TextEditingController();
   final TextEditingController _introController = TextEditingController();
   bool _isProfileLoading = false;
+  bool _isSaving = false;
   String? _profileError;
   String? _profileName;
   int? _profileGrade;
@@ -382,8 +383,20 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
-                        onPressed: _onSavePressed,
-                        child: const Text('변경사항 저장'),
+                        onPressed: _isSaving ? null : () => _onSavePressed(),
+                        child:
+                            _isSaving
+                                ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                                : const Text('변경사항 저장'),
                       ),
                     ),
                   ],
@@ -396,17 +409,23 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
     );
   }
 
-  void _onSavePressed() {
+  Future<void> _onSavePressed() async {
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
     final name = _nameController.text.trim();
-    final number = _numberController.text.trim();
+    final numberText = _numberController.text.trim();
+    final intro = _introController.text.trim();
     String? nameError;
     String? numberError;
 
     if (name.isEmpty) {
-      nameError = '이름을 입력해주세요.';
+      nameError = '이름을 입력해 주세요.';
     }
-    if (number.isEmpty) {
-      numberError = '번호를 입력해주세요.';
+    final parsedNumber = int.tryParse(numberText);
+    if (numberText.isEmpty) {
+      numberError = '번호를 입력해 주세요.';
+    } else if (parsedNumber == null) {
+      numberError = '번호는 숫자만 입력해 주세요.';
     }
 
     setState(() {
@@ -416,6 +435,57 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
 
     if (nameError != null || numberError != null) {
       return;
+    }
+
+    final grade = _parseSelectedValue(_selectedGrade);
+    final classNo = _parseSelectedValue(_selectedClass);
+
+    if (grade == null || classNo == null) {
+      messenger.showSnackBar(const SnackBar(content: Text('학년과 반을 선택해 주세요.')));
+      return;
+    }
+
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      final dio = ApiClient.instance.dio;
+      await dio.patch(
+        '/api/user',
+        data: {
+          'username': name,
+          'description': intro,
+          'grade': grade,
+          'classNo': classNo,
+          'number': parsedNumber!,
+        },
+      );
+      if (!mounted) return;
+      setState(() {
+        _profileName = name;
+        _profileGrade = grade;
+        _profileClassNo = classNo;
+        _profileNumber = parsedNumber;
+      });
+      messenger.showSnackBar(const SnackBar(content: Text('변경사항을 저장했습니다.')));
+      await _loadProfile();
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            statusCode == null ? '저장에 실패했습니다.' : '저장에 실패했습니다. ($statusCode)',
+          ),
+        ),
+      );
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('저장에 실패했습니다. $e')));
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _isSaving = false;
+      });
     }
   }
 
@@ -444,6 +514,13 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
     if (value == null) return null;
     if (value is int) return value;
     return int.tryParse(value.toString());
+  }
+
+  int? _parseSelectedValue(String value) {
+    if (value.isEmpty) return null;
+    final match = RegExp(r'\d+').firstMatch(value);
+    if (match == null) return null;
+    return int.tryParse(match.group(0)!);
   }
 
   Widget _buildLabel(
