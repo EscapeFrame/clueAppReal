@@ -11,18 +11,24 @@ class SettingsProfileSujeong extends StatefulWidget {
 }
 
 class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
-  String _selectedGrade = '2학년';
-  String _selectedClass = '2반';
-  final TextEditingController _nameController = TextEditingController(
-    text: '공덕현',
-  );
-  final TextEditingController _emailController = TextEditingController(
-    text: 'example@gmail.com',
-  );
-  final TextEditingController _numberController = TextEditingController(
-    text: '1',
-  );
+  String _selectedGrade = '';
+  String _selectedClass = '';
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _numberController = TextEditingController();
   final TextEditingController _introController = TextEditingController();
+  bool _isProfileLoading = false;
+  String? _profileError;
+  String? _profileName;
+  int? _profileGrade;
+  int? _profileClassNo;
+  int? _profileNumber;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
 
   @override
   void dispose() {
@@ -33,11 +39,76 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
     super.dispose();
   }
 
+  Future<void> _loadProfile() async {
+    if (!mounted) return;
+    setState(() {
+      _isProfileLoading = true;
+      _profileError = null;
+    });
+    try {
+      final dio = ApiClient.instance.dio;
+      final response = await dio.get('/api/user/me');
+      final data = response.data;
+      if (data is Map) {
+        final map = Map<String, dynamic>.from(data);
+        final username = map['username']?.toString() ?? '';
+        final email = map['email']?.toString() ?? '';
+        final grade = _parseInt(map['grade']);
+        final classNo = _parseInt(map['classNo']);
+        final number = _parseInt(map['number']);
+        if (!mounted) return;
+        setState(() {
+          _profileName = username.isEmpty ? null : username;
+          _profileGrade = grade;
+          _profileClassNo = classNo;
+          _profileNumber = number;
+          if (username.isNotEmpty) {
+            _nameController.text = username;
+          }
+          if (email.isNotEmpty) {
+            _emailController.text = email;
+          }
+          if (number != null) {
+            _numberController.text = number.toString();
+          }
+          if (grade != null) {
+            _selectedGrade = '${grade}학년';
+          }
+          if (classNo != null) {
+            _selectedClass = '${classNo}반';
+          }
+          _isProfileLoading = false;
+        });
+      } else {
+        if (!mounted) return;
+        setState(() {
+          _profileError = '사용자 정보를 불러오지 못했습니다.';
+          _isProfileLoading = false;
+        });
+      }
+    } on DioException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _profileError = '사용자 정보를 불러오지 못했습니다. ${e.response?.statusCode ?? ''}';
+        _isProfileLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _profileError = '사용자 정보를 불러오지 못했습니다. $e';
+        _isProfileLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final media = MediaQuery.of(context);
     final width = media.size.width;
+
+    final displayName = _profileName ?? '';
+    final classSummary = _buildClassSummary();
 
     Widget buildChoiceGroup({
       required String label,
@@ -84,32 +155,26 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      child: SvgPicture.asset(
-                        'assets/images/realLogo.svg',
-
-                        width: width * 0.25,
-                      ),
+                    SvgPicture.asset(
+                      'assets/images/realLogo.svg',
+                      width: width * 0.25,
                     ),
-
-                    Container(
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: Icon(Icons.arrow_back, size: width * 0.07),
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: Icon(Icons.arrow_back, size: width * 0.07),
+                        ),
+                        SizedBox(width: width * 0.03),
+                        GestureDetector(
+                          // onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+                          child: SvgPicture.asset(
+                            'assets/images/bars-3.svg',
+                            width: width * 0.074,
                           ),
-                          SizedBox(width: width * 0.03),
-                          GestureDetector(
-                            // onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
-                            child: SvgPicture.asset(
-                              'assets/images/bars-3.svg',
-                              width: width * 0.074,
-                            ),
-                          ),
-                          SizedBox(width: width * 0.0443),
-                        ],
-                      ),
+                        ),
+                        SizedBox(width: width * 0.0443),
+                      ],
                     ),
                   ],
                 ),
@@ -188,6 +253,45 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
                                     fontSize: 12,
                                   ),
                                 ),
+                                // const SizedBox(height: 14),
+                                // if (_isProfileLoading)
+                                //   const Padding(
+                                //     padding: EdgeInsets.symmetric(vertical: 8),
+                                //     child: CircularProgressIndicator.adaptive(),
+                                //   )
+                                // else ...[
+                                //   if (displayName.trim().isNotEmpty)
+                                //     Text(
+                                //       displayName,
+                                //       style: const TextStyle(
+                                //         fontSize: 20,
+                                //         fontWeight: FontWeight.w700,
+                                //         color: Color(0xFF111827),
+                                //       ),
+                                //     ),
+                                //   if (classSummary.isNotEmpty)
+                                //     Padding(
+                                //       padding: const EdgeInsets.only(top: 4),
+                                //       child: Text(
+                                //         classSummary,
+                                //         style: const TextStyle(
+                                //           fontSize: 14,
+                                //           color: Color(0xFF4B5563),
+                                //         ),
+                                //       ),
+                                //     ),
+                                // ],
+                                // if (_profileError != null)
+                                //   Padding(
+                                //     padding: const EdgeInsets.only(top: 8),
+                                //     child: Text(
+                                //       _profileError!,
+                                //       style: const TextStyle(
+                                //         fontSize: 12,
+                                //         color: Color(0xFFD14343),
+                                //       ),
+                                //     ),
+                                //   ),
                               ],
                             ),
                           ),
@@ -303,6 +407,12 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
     );
   }
 
+  int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    return int.tryParse(value.toString());
+  }
+
   Widget _buildLabel(
     String label, {
     required bool requiredMark,
@@ -327,6 +437,20 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
                 : null,
       ),
     );
+  }
+
+  String _buildClassSummary() {
+    final parts = <String>[];
+    if (_profileGrade != null) {
+      parts.add('${_profileGrade}학년');
+    }
+    if (_profileClassNo != null) {
+      parts.add('${_profileClassNo}반');
+    }
+    if (_profileNumber != null) {
+      parts.add('${_profileNumber}번');
+    }
+    return parts.join(' ');
   }
 }
 
