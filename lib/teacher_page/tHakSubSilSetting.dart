@@ -205,11 +205,16 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
                 ],
               ),
             ),
-            Switch(
-              value: value,
-              activeColor: Colors.white,
-              activeTrackColor: accent,
-              onChanged: onChanged,
+            Transform.scale(
+              scale: 0.9,
+              alignment: Alignment.centerRight,
+              child: Switch(
+                value: value,
+                activeColor: Colors.white,
+                activeTrackColor: accent,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                onChanged: onChanged,
+              ),
             ),
           ],
         ),

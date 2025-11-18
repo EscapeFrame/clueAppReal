@@ -135,9 +135,7 @@ class AssignmentNotificationService {
       }
 
       if (!endDate.isAfter(now)) {
-        await _tryCancelReminder(
-          assignmentId,
-        );
+        await _tryCancelReminder(assignmentId);
         updated = notified.remove(_triggerKey(assignmentId, 3)) || updated;
         updated = notified.remove(_triggerKey(assignmentId, 1)) || updated;
         continue;
@@ -146,9 +144,7 @@ class AssignmentNotificationService {
       final remaining = endDate.difference(now);
       if (remaining > const Duration(days: 3)) {
         // ?덈Т 硫由??덈뒗 留덇컧? ?꾩쭅 ?뚮┝???덉빟?섏? ?딅뒗??
-        await _tryCancelReminder(
-          assignmentId,
-        );
+        await _tryCancelReminder(assignmentId);
         updated = notified.remove(_triggerKey(assignmentId, 3)) || updated;
         updated = notified.remove(_triggerKey(assignmentId, 1)) || updated;
         continue;
@@ -236,9 +232,7 @@ class AssignmentNotificationService {
     for (final entry in entries) {
       final assignmentId = entry.split('|').first;
       if (!activeAssignments.contains(assignmentId)) {
-        await _tryCancelReminder(
-          assignmentId,
-        );
+        await _tryCancelReminder(assignmentId);
         updated = set.remove(entry) || updated;
       }
     }
@@ -288,7 +282,6 @@ void assignmentSyncCallbackDispatcher() {
   });
 }
 
-
 Future<void> _tryScheduleReminder({
   required String assignmentId,
   required String title,
@@ -325,9 +318,7 @@ Future<void> _tryShowReminder({
 
 Future<void> _tryCancelReminder(String assignmentId) async {
   try {
-    await FlutterLocalNotification.cancelAllAssignmentReminders(
-      assignmentId,
-    );
+    await FlutterLocalNotification.cancelAllAssignmentReminders(assignmentId);
   } catch (e) {
     debugPrint('cancel reminder skipped: ' + e.toString());
   }
