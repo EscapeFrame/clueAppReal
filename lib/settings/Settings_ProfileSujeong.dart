@@ -5,6 +5,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 
 class SettingsProfileSujeong extends StatefulWidget {
   const SettingsProfileSujeong({super.key});
@@ -22,6 +25,7 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
   final TextEditingController _introController = TextEditingController();
   bool _isProfileLoading = false;
   bool _isSaving = false;
+  bool _isImageUploading = false;
   Uint8List? _profileImage;
   String? _profileError;
   String? _profileName;
@@ -133,6 +137,59 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
       if (!mounted) return;
       setState(() => _profileImage = null);
     }
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked == null) return;
+
+    final bytes = await picked.readAsBytes();
+    final mime = picked.mimeType ?? lookupMimeType(picked.name) ?? 'image/jpeg';
+
+    if (!mounted) return;
+    setState(() => _isImageUploading = true);
+    try {
+      await _uploadProfileImage(bytes, picked.name, mime);
+      if (!mounted) return;
+      await _loadProfileImage();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('프로필 사진을 변경했어요.')),
+      );
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            statusCode == null
+                ? '프로필 사진 업로드에 실패했어요.'
+                : '프로필 사진 업로드에 실패했어요. ($statusCode)',
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('프로필 사진 업로드에 실패했어요. $e')),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() => _isImageUploading = false);
+    }
+  }
+
+  Future<void> _uploadProfileImage(
+    Uint8List bytes,
+    String filename,
+    String mime,
+  ) async {
+    final dio = ApiClient.instance.dio;
+    final multipart = MultipartFile.fromBytes(
+      bytes,
+      filename: filename,
+      contentType: MediaType.parse(mime),
+    );
+    final formData = FormData.fromMap({'file': multipart});
+    await dio.put('/api/user/me/image', data: formData);
   }
 
   @override
@@ -273,7 +330,8 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
                                 ),
                                 const SizedBox(height: 12),
                                 OutlinedButton.icon(
-                                  onPressed: () {},
+                                  onPressed:
+                                      _isImageUploading ? null : _pickAndUploadImage,
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: const Color(0xFF0D6EFD),
                                     side: const BorderSide(
@@ -287,7 +345,16 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
                                     Icons.camera_alt_outlined,
                                     size: 18,
                                   ),
-                                  label: const Text('사진변경'),
+                                  label:
+                                      _isImageUploading
+                                          ? const SizedBox(
+                                              width: 18,
+                                              height: 18,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                          : const Text('사진변경'),
                                 ),
                                 const SizedBox(height: 6),
                                 const Text(

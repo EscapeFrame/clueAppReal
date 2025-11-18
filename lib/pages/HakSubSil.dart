@@ -1,4 +1,4 @@
-import 'package:clue/api_client.dart';
+﻿import 'package:clue/api_client.dart';
 import 'package:clue/config/app_color.dart';
 import 'package:clue/widgets/haksubsilPage/HakSubSilBaroGaBoJa.dart';
 import 'package:dio/dio.dart';
@@ -122,43 +122,44 @@ class _HaksubsilState extends State<Haksubsil> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: AppColor.bblue),
+                      borderSide: const BorderSide(color: Color(0xFF3395FF)),
                     ),
                   ),
                 ),
                 SizedBox(height: height * 0.05),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     Expanded(
-                      child: GestureDetector(
-                        onTap: () => {Navigator.pop(context)},
-                        child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 4),
-                          decoration: BoxDecoration(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xff555555),
+                          side: const BorderSide(color: Color(0xffCCCCCC)),
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Color(0xffCCCCCC)),
                           ),
-                          child: Center(child: Text('취소')),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
                         ),
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('취소'),
                       ),
                     ),
-                    SizedBox(width: width * 0.015),
+                    SizedBox(width: width * 0.02),
                     Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          String code = codeController.text;
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF3395FF),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                        onPressed: () {
+                          final code = codeController.text;
                           haksubsilJoin(code);
                         },
-                        child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColor.blue,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColor.blue),
-                          ),
-                          child: Center(child: Text('확인')),
-                        ),
+                        child: const Text('확인'),
                       ),
                     ),
                   ],
