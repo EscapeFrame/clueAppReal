@@ -1,6 +1,7 @@
 import 'package:clue/api_client.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class SettingsProfileSujeong extends StatefulWidget {
@@ -23,6 +24,8 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
   int? _profileGrade;
   int? _profileClassNo;
   int? _profileNumber;
+  String? _nameErrorText;
+  String? _numberErrorText;
 
   @override
   void initState() {
@@ -77,6 +80,8 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
           if (classNo != null) {
             _selectedClass = '${classNo}반';
           }
+          _nameErrorText = null;
+          _numberErrorText = null;
           _isProfileLoading = false;
         });
       } else {
@@ -299,6 +304,7 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
                           _LabeledField(
                             label: '이름',
                             requiredMark: true,
+                            errorText: _nameErrorText,
                             child: TextFormField(
                               controller: _nameController,
                               decoration: _inputDecoration(''),
@@ -338,9 +344,13 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
                           _LabeledField(
                             label: '번호',
                             requiredMark: true,
+                            errorText: _numberErrorText,
                             child: TextFormField(
                               controller: _numberController,
                               keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
                               decoration: _inputDecoration('번호를 입력해주세요.'),
                             ),
                           ),
@@ -372,7 +382,7 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
-                        onPressed: () {},
+                        onPressed: _onSavePressed,
                         child: const Text('변경사항 저장'),
                       ),
                     ),
@@ -384,6 +394,29 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
         ),
       ),
     );
+  }
+
+  void _onSavePressed() {
+    final name = _nameController.text.trim();
+    final number = _numberController.text.trim();
+    String? nameError;
+    String? numberError;
+
+    if (name.isEmpty) {
+      nameError = '이름을 입력해주세요.';
+    }
+    if (number.isEmpty) {
+      numberError = '번호를 입력해주세요.';
+    }
+
+    setState(() {
+      _nameErrorText = nameError;
+      _numberErrorText = numberError;
+    });
+
+    if (nameError != null || numberError != null) {
+      return;
+    }
   }
 
   InputDecoration _inputDecoration(String hint) {
@@ -459,11 +492,13 @@ class _LabeledField extends StatelessWidget {
     required this.label,
     this.requiredMark = false,
     required this.child,
+    this.errorText,
   });
 
   final String label;
   final bool requiredMark;
   final Widget child;
+  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
@@ -492,6 +527,12 @@ class _LabeledField extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         child,
+        if (errorText != null) const SizedBox(height: 6),
+        if (errorText != null)
+          Text(
+            errorText!,
+            style: const TextStyle(color: Color(0xFFD14343), fontSize: 12),
+          ),
       ],
     );
   }
