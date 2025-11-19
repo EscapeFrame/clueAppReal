@@ -1,4 +1,5 @@
-﻿import 'package:clue/login.dart';
+﻿import 'package:clue/api_client.dart';
+import 'package:clue/login.dart';
 import 'package:clue/signup.dart';
 import 'package:clue/pages/ClueLink.dart';
 import 'package:clue/pages/Education.dart';
@@ -7,6 +8,7 @@ import 'package:clue/pages/HomePage.dart';
 import 'package:clue/pages/Settings.dart';
 import 'package:clue/services/assignment_notification_service.dart';
 import 'package:clue/teacher_page/tHakSubSilSuap.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_svg/svg.dart';
@@ -153,8 +155,6 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  static String code = "student";
-  // static String code = "teacher";
   late final List<Widget> _pages;
   late final List<GlobalKey<NavigatorState>> _navigatorKeys;
 
@@ -164,7 +164,7 @@ class _MainScreenState extends State<MainScreen> {
     debugPrint('🟩 MainScreen init');
     _pages = [
       const HomePage(), // index 0
-      code != 'teacher' ? Haksubsil() : Thaksubsilsuap(), // index 1
+      const Haksubsil(), // index 1 (student default)
       const Cluelink(), // index 2 (center diamond)
       const Education(), // index 3
       const Settings(), // index 4
@@ -173,6 +173,7 @@ class _MainScreenState extends State<MainScreen> {
       _pages.length,
       (_) => GlobalKey<NavigatorState>(),
     );
+    _loadUserRole();
   }
 
   Future<bool> _onWillPop() async {
@@ -192,6 +193,34 @@ class _MainScreenState extends State<MainScreen> {
               MaterialPageRoute(builder: (_) => child, settings: settings),
     );
   }
+
+  Future<void> _loadUserRole() async {
+    try {
+      final res = await ApiClient.instance.dio.get('/api/user/me');
+      if (!mounted) return;
+      final data = res.data;
+      if (data is! Map) return;
+      final profile = <String, dynamic>{};
+      data.forEach((key, value) {
+        profile[key.toString()] = value;
+      });
+      final roleValue = (profile['role']?.toString() ?? '').toLowerCase();
+      const teacherKeywords = ['teacher', 'admin'];
+      final isTeacherRole =
+          teacherKeywords.any((keyword) => roleValue.contains(keyword));
+      final isTeacherPage = _pages[1] is Thaksubsilsuap;
+      if (isTeacherRole && !isTeacherPage) {
+        setState(() => _pages[1] = const Thaksubsilsuap());
+      } else if (!isTeacherRole && isTeacherPage) {
+        setState(() => _pages[1] = const Haksubsil());
+      }
+    } on DioException catch (e) {
+      debugPrint('?? MainScreen _loadUserRole DioException: ${e.response?.statusCode}');
+    } catch (e) {
+      debugPrint('?? MainScreen _loadUserRole error: $e');
+    }
+  }
+
 
   void _onItemTapped(int index) {
     setState(() => _selectedIndex = index);
