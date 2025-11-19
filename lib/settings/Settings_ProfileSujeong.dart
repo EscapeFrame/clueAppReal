@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-
 import 'package:clue/api_client.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -68,6 +67,7 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
         final grade = _parseInt(map['grade']);
         final classNo = _parseInt(map['classNo']);
         final number = _parseInt(map['number']);
+        final description = map['description']?.toString() ?? '';
         if (!mounted) return;
         setState(() {
           _profileName = username.isEmpty ? null : username;
@@ -88,6 +88,9 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
           }
           if (classNo != null) {
             _selectedClass = '${classNo}반';
+          }
+          if (description.isNotEmpty) {
+            _introController.text = description;
           }
           _nameErrorText = null;
           _numberErrorText = null;
@@ -153,9 +156,9 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
       await _uploadProfileImage(bytes, picked.name, mime);
       if (!mounted) return;
       await _loadProfileImage();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('프로필 사진을 변경했어요.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('프로필 사진을 변경했어요.')));
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -168,9 +171,9 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
         ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('프로필 사진 업로드에 실패했어요. $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('프로필 사진 업로드에 실패했어요. $e')));
     } finally {
       if (!mounted) return;
       setState(() => _isImageUploading = false);
@@ -331,7 +334,9 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
                                 const SizedBox(height: 12),
                                 OutlinedButton.icon(
                                   onPressed:
-                                      _isImageUploading ? null : _pickAndUploadImage,
+                                      _isImageUploading
+                                          ? null
+                                          : _pickAndUploadImage,
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: const Color(0xFF0D6EFD),
                                     side: const BorderSide(
@@ -348,12 +353,12 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
                                   label:
                                       _isImageUploading
                                           ? const SizedBox(
-                                              width: 18,
-                                              height: 18,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                              ),
-                                            )
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          )
                                           : const Text('사진변경'),
                                 ),
                                 const SizedBox(height: 6),
