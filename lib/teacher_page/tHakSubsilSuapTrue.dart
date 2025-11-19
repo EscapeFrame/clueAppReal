@@ -127,26 +127,255 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
     await _createDirectory(name.trim());
   }
 
-  void _handleDirectoryAction(
+  Future<void> _renameDirectory(Map<String, dynamic> lesson) async {
+    final currentName = lesson['directoryName']?.toString() ?? '';
+    final newName = await _promptLessonName(
+      dialogTitle: '디렉토리 이름 변경',
+      dialogSubtitle: '새 이름을 입력하세요.',
+      labelText: '디렉토리 이름',
+      hintText: '예: 1주차 자료',
+      actionText: '저장',
+      initialValue: currentName,
+    );
+    final trimmedName = newName?.trim();
+    if (trimmedName == null ||
+        trimmedName.isEmpty ||
+        trimmedName == currentName) {
+      return;
+    }
+    final directoryId = lesson['directoryId']?.toString();
+    final dynamic classIdValue =
+        _detail.isNotEmpty
+            ? _detail['classRoomId'] ?? _detail['classRoomIdStr']
+            : widget.tsuap['classRoomId'] ?? widget.tsuap['classRoomIdStr'];
+    final classRoomId = classIdValue?.toString();
+    if (directoryId == null ||
+        directoryId.isEmpty ||
+        classRoomId == null ||
+        classRoomId.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to load directory information.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    try {
+      final api = ApiClient.instance.dio;
+      await api.patch(
+        '/api/directory',
+        data: {
+          'directoryId': directoryId,
+          'classRoomId': classRoomId,
+          'name': trimmedName,
+        },
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Name saved.'),
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(milliseconds: 1200),
+        ),
+      );
+      await _loadDetail();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Rename failed: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<bool?> _confirmDirectoryDelete(String lessonName) async {
+    return await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        final width = MediaQuery.of(dialogContext).size.width;
+        return Dialog(
+          insetPadding: EdgeInsets.symmetric(horizontal: width * 0.1),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              gradient: const LinearGradient(
+                colors: [Color(0xfffdfdfd), Color(0xfff6f7fb)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 62,
+                  height: 62,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xfffe6a6a), Color(0xffef5350)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.delete, color: Colors.white, size: 32),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '정말 삭제하시겠어요?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: width * 0.05,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '“$lessonName”은 삭제하면 복구할 수 없습니다.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: width * 0.035,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xffd3d8ec)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: () => Navigator.of(dialogContext).pop(false),
+                        child: const Text(
+                          '취소',
+                          style: TextStyle(color: Colors.black87),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xffd32f2f),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: () => Navigator.of(dialogContext).pop(true),
+                        child: const Text(
+                          '삭제하기',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteDirectory(Map<String, dynamic> lesson) async {
+    final lessonName = lesson['directoryName']?.toString() ?? '디렉토리';
+    final confirmed = await _confirmDirectoryDelete(lessonName);
+    if (confirmed != true) return;
+    final directoryId = lesson['directoryId']?.toString();
+    final dynamic classIdValue =
+        _detail.isNotEmpty
+            ? _detail['classRoomId'] ?? _detail['classRoomIdStr']
+            : widget.tsuap['classRoomId'] ?? widget.tsuap['classRoomIdStr'];
+    final classRoomId = classIdValue?.toString();
+    if (directoryId == null ||
+        directoryId.isEmpty ||
+        classRoomId == null ||
+        classRoomId.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('디렉토리 정보를 불러오지 못했습니다.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    try {
+      final api = ApiClient.instance.dio;
+      await api.delete(
+        '/api/directory',
+        data: {
+          'directoryId': directoryId,
+          'classRoomId': classRoomId,
+          'name': lessonName,
+        },
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('디렉토리가 삭제되었습니다.'),
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(milliseconds: 1200),
+        ),
+      );
+      await _loadDetail();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('삭제 중 오류가 발생했습니다: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleDirectoryAction(
     _DirectoryAction action,
     Map<String, dynamic> lesson,
-  ) {
-    final lessonName = lesson['directoryName']?.toString() ?? '디렉토리';
+  ) async {
+    final lessonName = lesson['directoryName']?.toString() ?? 'Directory';
     final messenger = ScaffoldMessenger.of(context);
     switch (action) {
       case _DirectoryAction.rename:
-        messenger.showSnackBar(
-          SnackBar(content: Text('$lessonName 이름 변경 기능을 준비 중입니다.')),
-        );
+        await _renameDirectory(lesson);
         break;
       case _DirectoryAction.delete:
-        messenger.showSnackBar(
-          SnackBar(content: Text('$lessonName 삭제는 확인 후 처리됩니다.')),
-        );
+        await _deleteDirectory(lesson);
         break;
       case _DirectoryAction.addResource:
         messenger.showSnackBar(
-          SnackBar(content: Text('$lessonName에 자료 추가 화면을 띄웁니다.')),
+          SnackBar(
+            content: Text('Adding resources to $lessonName is available soon.'),
+          ),
         );
         break;
     }
@@ -307,8 +536,19 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
     }
   }
 
-  Future<String?> _promptLessonName() async {
-    _lessonNameController.clear();
+  Future<String?> _promptLessonName({
+    String dialogTitle = "수업을 만들까요?",
+    String dialogSubtitle = "수업 이름을 입력하면 바로 자료를 추가하고 진행할 수 있습니다.",
+    String labelText = "수업 이름",
+    String hintText = "예: 1주차 로드맵",
+    String actionText = "바로 만들기",
+    String initialValue = "",
+  }) async {
+    final effectiveInitial = initialValue;
+    _lessonNameController.value = TextEditingValue(
+      text: effectiveInitial,
+      selection: TextSelection.collapsed(offset: effectiveInitial.length),
+    );
     String? errorText;
     final name = await showDialog<String>(
       context: context,
@@ -349,17 +589,20 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      '새 수업을 만들까요?',
-                      style: TextStyle(
+                    Text(
+                      dialogTitle,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: 20,
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const Text(
-                      '수업 이름을 입력하면 바로 새로운 단원을 시작할 수 있어요.',
-                      style: TextStyle(fontSize: 13.5, color: Colors.black54),
+                    Text(
+                      dialogSubtitle,
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        color: Colors.black54,
+                      ),
                     ),
                     const SizedBox(height: 18),
                     TextField(
@@ -367,8 +610,8 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                       autofocus: true,
                       textInputAction: TextInputAction.done,
                       decoration: InputDecoration(
-                        labelText: '수업 이름',
-                        hintText: '예) 1주차 프로젝트',
+                        labelText: labelText,
+                        hintText: hintText,
                         filled: true,
                         fillColor: const Color(0xffF5F8FF),
                         border: OutlineInputBorder(
@@ -401,7 +644,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                           Navigator.of(dialogContext).pop(trimmed);
                         } else {
                           setStateDialog(() {
-                            errorText = '수업명을 입력해 주세요.';
+                            errorText = 'Please enter a name.';
                           });
                         }
                       },
@@ -427,7 +670,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                               side: const BorderSide(color: Color(0xffCBD5F5)),
                             ),
                             child: const Text(
-                              '나중에',
+                              '취소',
                               style: TextStyle(color: Colors.black87),
                             ),
                           ),
@@ -439,7 +682,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                               final trimmed = _lessonNameController.text.trim();
                               if (trimmed.isEmpty) {
                                 setStateDialog(() {
-                                  errorText = '수업명을 입력해 주세요.';
+                                  errorText = 'Please enter a name.';
                                 });
                                 return;
                               }
@@ -452,7 +695,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            child: const Text('바로 만들기'),
+                            child: Text(actionText),
                           ),
                         ),
                       ],
@@ -465,6 +708,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
         );
       },
     );
+    _lessonNameController.clear();
     return name;
   }
 
