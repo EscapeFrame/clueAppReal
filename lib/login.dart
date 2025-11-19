@@ -27,7 +27,7 @@ class Login extends StatefulWidget {
 
   static const _callbackScheme = 'realclue';
   static const _callbackHost = 'auth';
-  static const _callbackPath = '/callback';
+  static const _callbackPath = '/register';
 
   @override
   State<Login> createState() => _LoginState();
@@ -130,10 +130,9 @@ class _LoginState extends State<Login> {
       if (!_navigated) {
         _navigated = true;
         if (redirectPath != null) {
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            redirectPath,
-            (route) => false,
-          );
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil(redirectPath, (route) => false);
           debugPrint('✅ Redirecting to $redirectPath via 서버 응답');
         } else {
           await AppNavigator.goMain();
@@ -172,7 +171,8 @@ class _LoginState extends State<Login> {
   }
 
   String? _readRedirectPath(Uri uri) {
-    String? candidate = uri.queryParameters['redirect'] ?? uri.queryParameters['next'];
+    String? candidate =
+        uri.queryParameters['redirect'] ?? uri.queryParameters['next'];
     if (candidate == null || candidate.isEmpty) {
       candidate = _extractFragmentValue(uri, ['redirect', 'next']);
     }
