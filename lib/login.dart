@@ -56,9 +56,14 @@ class _LoginState extends State<Login> {
       }
 
       final baseUri = Uri.parse(base);
-      final requestUri = baseUri.resolve(
-        '/oauth2/authorization/google?client_type=app',
-      );
+      final requestUri = baseUri
+          .resolve('/oauth2/authorization/google')
+          .replace(
+            queryParameters: {
+              'client_type': 'app',
+              'redirect_uri': redirectUri.toString(),
+            },
+          );
 
       debugPrint('OAuth 시작: request=$requestUri redirect=$redirectUri');
 
@@ -121,10 +126,19 @@ class _LoginState extends State<Login> {
       debugPrint('✅ AuthGateBridge.refresh() 완료');
 
       // --- 전역 네비게이터로 전환 (항상 같은 루트로 이동)
+      final redirectPath = _readRedirectPath(returnedUri);
       if (!_navigated) {
         _navigated = true;
-        await AppNavigator.goMain();
-        debugPrint('✅ AppNavigator.goMain() 완료');
+        if (redirectPath != null) {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            redirectPath,
+            (route) => false,
+          );
+          debugPrint('✅ Redirecting to $redirectPath via 서버 응답');
+        } else {
+          await AppNavigator.goMain();
+          debugPrint('✅ AppNavigator.goMain() 완료');
+        }
       }
     } on MissingPluginException {
       debugPrint('❌ flutter_web_auth_2 플러그인 미등록');
@@ -155,6 +169,29 @@ class _LoginState extends State<Login> {
       onGoogle: _loggingIn ? null : () => _handleGoogleLogin(context),
       loggingIn: _loggingIn,
     );
+  }
+
+  String? _readRedirectPath(Uri uri) {
+    String? candidate = uri.queryParameters['redirect'] ?? uri.queryParameters['next'];
+    if (candidate == null || candidate.isEmpty) {
+      candidate = _extractFragmentValue(uri, ['redirect', 'next']);
+    }
+    if (candidate == null || candidate.isEmpty) return null;
+    return candidate.startsWith('/') ? candidate : '/$candidate';
+  }
+
+  String? _extractFragmentValue(Uri uri, List<String> keys) {
+    if (uri.fragment.isEmpty) return null;
+    final fragPairs = uri.fragment.split('&');
+    for (final pair in fragPairs) {
+      final parts = pair.split('=');
+      if (parts.length != 2) continue;
+      final key = parts[0];
+      if (!keys.contains(key)) continue;
+      final value = Uri.decodeComponent(parts[1]);
+      if (value.isNotEmpty) return value.startsWith('/') ? value : '/$value';
+    }
+    return null;
   }
 }
 
