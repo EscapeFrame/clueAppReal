@@ -206,21 +206,29 @@ class _MainScreenState extends State<MainScreen> {
       });
       final roleValue = (profile['role']?.toString() ?? '').toLowerCase();
       const teacherKeywords = ['teacher', 'admin'];
-      final isTeacherRole =
-          teacherKeywords.any((keyword) => roleValue.contains(keyword));
+      final isTeacherRole = teacherKeywords.any(
+        (keyword) => roleValue.contains(keyword),
+      );
       final isTeacherPage = _pages[1] is Thaksubsilsuap;
       if (isTeacherRole && !isTeacherPage) {
-        setState(() => _pages[1] = const Thaksubsilsuap());
+        setState(() {
+          _pages[1] = const Thaksubsilsuap();
+          _navigatorKeys[1] = GlobalKey<NavigatorState>();
+        });
       } else if (!isTeacherRole && isTeacherPage) {
-        setState(() => _pages[1] = const Haksubsil());
+        setState(() {
+          _pages[1] = const Haksubsil();
+          _navigatorKeys[1] = GlobalKey<NavigatorState>();
+        });
       }
     } on DioException catch (e) {
-      debugPrint('?? MainScreen _loadUserRole DioException: ${e.response?.statusCode}');
+      debugPrint(
+        '?? MainScreen _loadUserRole DioException: ${e.response?.statusCode}',
+      );
     } catch (e) {
       debugPrint('?? MainScreen _loadUserRole error: $e');
     }
   }
-
 
   void _onItemTapped(int index) {
     setState(() => _selectedIndex = index);
