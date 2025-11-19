@@ -5,6 +5,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+enum _DirectoryAction { rename, delete, addResource }
+
 class Thaksubsilsuaptrue extends StatefulWidget {
   final Map<String, dynamic> tsuap;
   final VoidCallback? onCreateLesson;
@@ -125,6 +127,31 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
     await _createDirectory(name.trim());
   }
 
+  void _handleDirectoryAction(
+    _DirectoryAction action,
+    Map<String, dynamic> lesson,
+  ) {
+    final lessonName = lesson['directoryName']?.toString() ?? '디렉토리';
+    final messenger = ScaffoldMessenger.of(context);
+    switch (action) {
+      case _DirectoryAction.rename:
+        messenger.showSnackBar(
+          SnackBar(content: Text('$lessonName 이름 변경 기능을 준비 중입니다.')),
+        );
+        break;
+      case _DirectoryAction.delete:
+        messenger.showSnackBar(
+          SnackBar(content: Text('$lessonName 삭제는 확인 후 처리됩니다.')),
+        );
+        break;
+      case _DirectoryAction.addResource:
+        messenger.showSnackBar(
+          SnackBar(content: Text('$lessonName에 자료 추가 화면을 띄웁니다.')),
+        );
+        break;
+    }
+  }
+
   Future<void> _confirmAndDeleteClass() async {
     final bool? confirmed = await showDialog<bool>(
       context: context,
@@ -132,7 +159,9 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
       builder: (dialogContext) {
         final width = MediaQuery.of(dialogContext).size.width;
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+          ),
           child: Container(
             padding: EdgeInsets.symmetric(
               horizontal: width * 0.06,
@@ -733,9 +762,12 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                                     ],
                                   );
                                 }
-                                final lesson =
+                                final rawLesson =
                                     (directoryList[index - 1] as Map?) ??
                                     const {};
+                                final lesson = Map<String, dynamic>.from(
+                                  rawLesson,
+                                );
                                 final List<dynamic> documents =
                                     (lesson['documentList'] as List?) ??
                                     const [];
@@ -745,7 +777,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                                     Container(
                                       margin: EdgeInsets.symmetric(
                                         horizontal: width * 0.05,
-                                        vertical: height * 0.003,
+                                        vertical: height * 0.0025,
                                       ),
                                       decoration: BoxDecoration(
                                         boxShadow: [
@@ -768,6 +800,12 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                                           dividerColor: Colors.transparent,
                                         ),
                                         child: ExpansionTile(
+                                          controlAffinity:
+                                              ListTileControlAffinity.leading,
+                                          tilePadding: EdgeInsets.symmetric(
+                                            horizontal: width * 0.03,
+                                            vertical: height * 0.003,
+                                          ),
                                           title: Text(
                                             lesson['directoryName']
                                                     ?.toString() ??
@@ -776,6 +814,90 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                                               fontWeight: FontWeight.bold,
                                               fontSize: width * 0.045,
                                             ),
+                                          ),
+                                          trailing: PopupMenuButton<
+                                            _DirectoryAction
+                                          >(
+                                            padding: EdgeInsets.zero,
+                                            tooltip: '추가 작업',
+                                            icon: Icon(
+                                              Icons.more_vert,
+                                              size: width * 0.045,
+                                              color: Colors.black54,
+                                            ),
+                                            color: Colors.white,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            onSelected:
+                                                (action) =>
+                                                    _handleDirectoryAction(
+                                                      action,
+                                                      lesson,
+                                                    ),
+                                            itemBuilder:
+                                                (context) => [
+                                                  PopupMenuItem<
+                                                    _DirectoryAction
+                                                  >(
+                                                    value:
+                                                        _DirectoryAction.rename,
+                                                    child: Row(
+                                                      children: const [
+                                                        Icon(
+                                                          Icons.edit,
+                                                          size: 18,
+                                                          color: Color(
+                                                            0xff0057FF,
+                                                          ),
+                                                        ),
+                                                        SizedBox(width: 8),
+                                                        Text('이름 변경'),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  PopupMenuItem<
+                                                    _DirectoryAction
+                                                  >(
+                                                    value:
+                                                        _DirectoryAction.delete,
+                                                    child: Row(
+                                                      children: const [
+                                                        Icon(
+                                                          Icons.delete_outline,
+                                                          size: 18,
+                                                          color: Color(
+                                                            0xffef5350,
+                                                          ),
+                                                        ),
+                                                        SizedBox(width: 8),
+                                                        Text('삭제'),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  PopupMenuItem<
+                                                    _DirectoryAction
+                                                  >(
+                                                    value:
+                                                        _DirectoryAction
+                                                            .addResource,
+                                                    child: Row(
+                                                      children: const [
+                                                        Icon(
+                                                          Icons
+                                                              .add_circle_outline,
+                                                          size: 18,
+                                                          color: Color(
+                                                            0xff0077FF,
+                                                          ),
+                                                        ),
+                                                        SizedBox(width: 8),
+                                                        Text('자료 추가'),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
                                           ),
                                           children:
                                               documents.map<Widget>((docItem) {
