@@ -136,7 +136,9 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 flutter_native_splash:
   color: "#ffffff"             
+  image: assets/images/realrealrealrealrealrealAppIcon.png
   ios_content_mode: scaleAspectFit
   android_gravity: center
   android_12:
+    image: assets/images/realrealrealrealrealrealAppIcon.png
     icon_background_color: "#ffffff"

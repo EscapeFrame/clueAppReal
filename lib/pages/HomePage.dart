@@ -265,63 +265,64 @@ class _HomePageState extends State<HomePage> {
                         ),
 
                         SizedBox(height: width * 0.04 + 4),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: width * 0.06,
-                            vertical: height * 0.015,
-                          ),
-                          decoration: BoxDecoration(
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.09),
-                                blurRadius: 12,
-                                spreadRadius: 1,
-                                offset: Offset.zero,
-                              ),
-                            ],
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(height: height * 0.018),
-                              Text(
-                                '수행평가 안내',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: width * 0.042,
-                                ),
-                              ),
-                              SizedBox(height: height * 0.005),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    '간편하게 수행평가를 확인하세요!',
-                                    style: TextStyle(
-                                      fontSize: width * 0.035,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: height * 0.025),
-                              SuHang(
-                                day: '1',
-                                title: '과제이름 지라지ㅏㄹasdfasdf',
-                                location: '수학실asdfasdf',
-                              ),
-                              SuHang(
-                                day: '12',
-                                title: '과제이름 지라지ㅏㄹasdfasdf',
-                                location: '수학실asdfasdf',
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: width * 0.04 + 4),
+                        // Container(
+                        //   padding: EdgeInsets.symmetric(
+                        //     horizontal: width * 0.06,
+                        //     vertical: height * 0.015,
+                        //   ),
+                        //   decoration: BoxDecoration(
+                        //     boxShadow: [
+                        //       BoxShadow(
+                        //         color: Colors.black.withOpacity(0.09),
+                        //         blurRadius: 12,
+                        //         spreadRadius: 1,
+                        //         offset: Offset.zero,
+                        //       ),
+                        //     ],
+                        //     color: Colors.white,
+                        //     borderRadius: BorderRadius.circular(12),
+                        //   ),
+                        //   child: Column(
+                        //     crossAxisAlignment: CrossAxisAlignment.start,
+                        //     children: [
+                        //       SizedBox(height: height * 0.018),
+                        //       Text(
+                        //         '수행평가 안내',
+                        //         style: TextStyle(
+                        //           fontWeight: FontWeight.w600,
+                        //           fontSize: width * 0.042,
+                        //         ),
+                        //       ),
+                        //       SizedBox(height: height * 0.005),
+                        //       Row(
+                        //         mainAxisAlignment:
+                        //             MainAxisAlignment.spaceBetween,
+                        //         children: [
+                        //           Text(
+                        //             '간편하게 수행평가를 확인하세요!',
+                        //             style: TextStyle(
+                        //               fontSize: width * 0.035,
+                        //               color: Colors.grey[600],
+                        //             ),
+                        //           ),
+                        //         ],
+                        //       ),
+                        //       SizedBox(height: height * 0.025),
+                        //       SuHang(
+                        //         day: '1',
+                        //         title: '과제이름 지라지ㅏㄹasdfasdf',
+                        //         location: '수학실asdfasdf',
+                        //       ),
+                        //       SuHang(
+                        //         day: '12',
+                        //         title: '과제이름 지라지ㅏㄹasdfasdf',
+                        //         location: '수학실asdfasdf',
+                        //       ),
+
+                        //     ],
+                        //   ),
+                        // ),
+                        // SizedBox(height: width * 0.04 + 4),
                         Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
