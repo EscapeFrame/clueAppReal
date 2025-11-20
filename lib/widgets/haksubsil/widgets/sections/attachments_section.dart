@@ -15,17 +15,29 @@ class AttachmentsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('첨부파일', style: TextStyle(fontWeight: FontWeight.bold, fontSize: width * 0.045)),
+        Text(
+          '첨부파일',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: width * 0.045,
+          ),
+        ),
         SizedBox(height: height * 0.009),
-        ...attachments.map((f) => Container(
-              margin: const EdgeInsets.only(bottom: 6),
-              padding: EdgeInsets.all(width * 0.03),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F5),
-                borderRadius: BorderRadius.circular(width * 0.025),
-              ),
-              child: Row(children: [
-                Icon((f['kind'] == 'URL') ? Icons.link : Icons.insert_drive_file_outlined),
+        ...attachments.map(
+          (f) => Container(
+            margin: const EdgeInsets.only(bottom: 6),
+            padding: EdgeInsets.all(width * 0.03),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(width * 0.025),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  (f['kind'] == 'URL')
+                      ? Icons.link
+                      : Icons.insert_drive_file_outlined,
+                ),
                 SizedBox(width: width * 0.025),
                 Expanded(
                   child: GestureDetector(
@@ -41,10 +53,19 @@ class AttachmentsSection extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: width * 0.02),
-                if ((f['kind'] ?? '') != 'URL' && (f['sizeText'] ?? '').toString().isNotEmpty)
-                  Text('(${f['sizeText']})', style: TextStyle(fontSize: width * 0.025, color: Colors.grey)),
-              ]),
-            )),
+                if ((f['kind'] ?? '') != 'URL' &&
+                    (f['sizeText'] ?? '').toString().isNotEmpty)
+                  Text(
+                    '(${f['sizeText']})',
+                    style: TextStyle(
+                      fontSize: width * 0.025,
+                      color: Colors.grey,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
         SizedBox(height: height * 0.015),
       ],
     );

@@ -6,7 +6,11 @@ class UploadedFilesSection extends StatelessWidget {
   final List<PlatformFile> files;
   final void Function(int index) onRemove;
 
-  const UploadedFilesSection({super.key, required this.files, required this.onRemove});
+  const UploadedFilesSection({
+    super.key,
+    required this.files,
+    required this.onRemove,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +21,13 @@ class UploadedFilesSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(height: height * 0.015),
-        Text('업로드된 파일', style: TextStyle(fontWeight: FontWeight.bold, fontSize: width * 0.045)),
+        Text(
+          '업로드한 파일',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: width * 0.045,
+          ),
+        ),
         SizedBox(height: height * 0.009),
         ...List.generate(files.length, (index) {
           final file = files[index];
@@ -28,22 +38,29 @@ class UploadedFilesSection extends StatelessWidget {
               color: const Color(0xFFF5F5F5),
               borderRadius: BorderRadius.circular(width * 0.025),
             ),
-            child: Row(children: [
-              Icon(Icons.insert_drive_file_outlined, size: width * 0.05),
-              SizedBox(width: width * 0.025),
-              Expanded(
-                child: Text(
-                  file.name,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: width * 0.03),
+            child: Row(
+              children: [
+                Icon(Icons.insert_drive_file_outlined, size: width * 0.05),
+                SizedBox(width: width * 0.025),
+                Expanded(
+                  child: Text(
+                    file.name,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: width * 0.03),
+                  ),
                 ),
-              ),
-              SizedBox(width: width * 0.02),
-              Text('(${(file.size / 1024).toStringAsFixed(1)} KB)',
-                  style: TextStyle(fontSize: width * 0.025, color: Colors.grey)),
-              SizedBox(width: width * 0.02),
-              GestureDetector(onTap: () => onRemove(index), child: Icon(Icons.close, size: width * 0.045)),
-            ]),
+                SizedBox(width: width * 0.02),
+                Text(
+                  '(${(file.size / 1024).toStringAsFixed(1)} KB)',
+                  style: TextStyle(fontSize: width * 0.025, color: Colors.grey),
+                ),
+                SizedBox(width: width * 0.02),
+                GestureDetector(
+                  onTap: () => onRemove(index),
+                  child: Icon(Icons.close, size: width * 0.045),
+                ),
+              ],
+            ),
           );
         }),
       ],
