@@ -308,7 +308,117 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
               ActionsSection(
                 isSubmitted: controller.submitted,
                 onUploadPressed: _handleUploadMenu,
-                onToggleSubmit: () => setState(controller.toggleSubmitted),
+                onToggleSubmit: () async {
+                  final width = MediaQuery.of(context).size.width;
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder:
+                        (ctx) => Dialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          insetPadding: EdgeInsets.symmetric(
+                            horizontal: width * 0.08,
+                            vertical: width * 0.04,
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '제출 확인',
+                                      style: TextStyle(
+                                        fontSize: width * 0.045,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                      icon: const Icon(Icons.close),
+                                      onPressed:
+                                          () => Navigator.pop(ctx, false),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  '정말 과제를 제출하시겠습니까?',
+                                  style: TextStyle(
+                                    fontSize: width * 0.038,
+                                    color: const Color(0xff4B5563),
+                                    height: 1.45,
+                                  ),
+                                ),
+                                const SizedBox(height: 18),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: OutlinedButton(
+                                        onPressed:
+                                            () => Navigator.pop(ctx, false),
+                                        style: OutlinedButton.styleFrom(
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: width * 0.028,
+                                          ),
+                                          side: const BorderSide(
+                                            color: Color(0xffCBD5F5),
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          foregroundColor: Colors.black,
+                                          backgroundColor: Colors.white,
+                                        ),
+                                        child: const Text('취소'),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        onPressed:
+                                            () => Navigator.pop(ctx, true),
+                                        style: ElevatedButton.styleFrom(
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: width * 0.028,
+                                          ),
+                                          backgroundColor: const Color(
+                                            0xff3B82F6,
+                                          ),
+                                          foregroundColor: Colors.white,
+                                          elevation: 0,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                        ),
+                                        child: const Text('제출'),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                  );
+                  if (confirmed == true) {
+                    setState(controller.toggleSubmitted);
+                  }
+                },
                 uploadButtonKey: _uploadButtonKey,
               ),
               SizedBox(height: height * 0.05),
