@@ -7,6 +7,8 @@ import 'package:clue/teacher_page/t_haksubsil/utils/id_utils.dart';
 import 'package:clue/teacher_page/t_haksubsil/widgets/assignment_actions.dart';
 import 'package:clue/teacher_page/t_haksubsil/widgets/assignment_meta.dart';
 import 'package:clue/teacher_page/t_haksubsil/widgets/attachment_list.dart';
+import 'package:clue/widgets/haksubsil/widgets/sections/uploaded_files_section.dart';
+import 'package:clue/widgets/haksubsil/widgets/sections/uploaded_links_section.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -123,6 +125,7 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
   }
 
   List<PlatformFile> uploadedFiles = [];
+  final List<String> uploadedUrls = [];
 
   // assignment의 files에서 파일을 삭제하는 함수 추가
   void removeFile(int fileIndex) {
@@ -142,6 +145,18 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
   void removeUploadedFile(int index) {
     setState(() {
       uploadedFiles.removeAt(index);
+    });
+  }
+
+  void addUploadedUrl(String url) {
+    setState(() {
+      uploadedUrls.add(url);
+    });
+  }
+
+  void removeUploadedUrl(int index) {
+    setState(() {
+      uploadedUrls.removeAt(index);
     });
   }
 
@@ -301,12 +316,14 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
       final file = await showUploadFileSheet(context);
       if (file != null) {
         await uploadFile(file);
+        addUploadedFile(file);
       }
     } else if (choice == 'url') {
       final url = await showUrlInputDialog(context);
       if (url != null && url.isNotEmpty) {
         final id = _assignmentIdStr() ?? '';
         await _uploadUrlAttachment(id, url);
+        addUploadedUrl(url);
       }
     }
   }
@@ -488,6 +505,16 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
                         ),
                         SizedBox(height: height * 0.015),
                       ],
+
+                      UploadedFilesSection(
+                        files: uploadedFiles,
+                        onRemove: removeUploadedFile,
+                      ),
+                      UploadedLinksSection(
+                        urls: uploadedUrls,
+                        onRemove: removeUploadedUrl,
+                      ),
+                      SizedBox(height: height * 0.015),
 
                       Text(
                         '상세설명',
