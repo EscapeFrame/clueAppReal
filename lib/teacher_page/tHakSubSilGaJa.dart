@@ -162,6 +162,167 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     }
   }
 
+  Future<bool> _confirmAttachmentDeletion(String name) async {
+    final width = MediaQuery.of(context).size.width;
+    return await showDialog<bool>(
+          context: context,
+          builder:
+              (ctx) => Dialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                insetPadding: EdgeInsets.symmetric(
+                  horizontal: width * 0.08,
+                  vertical: width * 0.04,
+                ),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '첨부 삭제',
+                            style: TextStyle(
+                              fontSize: width * 0.045,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(ctx, false),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "'$name' 첨부를 정말 삭제하시겠습니까?",
+                        style: TextStyle(
+                          fontSize: width * 0.036,
+                          color: const Color(0xff4B5563),
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              style: OutlinedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: width * 0.028,
+                                ),
+                                side: const BorderSide(
+                                  color: Color(0xffCBD5F5),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text('취소'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: width * 0.028,
+                                ),
+                                backgroundColor: const Color(0xffEF4444),
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text('삭제'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+        ) ??
+        false;
+  }
+
+  Future<void> _handleLocalAttachmentRemoval({
+    required bool isFile,
+    required int index,
+    required String name,
+  }) async {
+    final confirmed = await _confirmAttachmentDeletion(name);
+    if (!confirmed) return;
+    if (!mounted) return;
+    setState(() {
+      if (isFile) {
+        controller.removeFileAt(index);
+      } else {
+        controller.removeUrlAt(index);
+      }
+    });
+  }
+
+  Future<void> _handleServerAttachmentRemoval({
+    required String attachmentId,
+    required String name,
+  }) async {
+    final confirmed = await _confirmAttachmentDeletion(name);
+    if (!confirmed) return;
+    try {
+      final dio = ApiClient.instance.dio;
+      await dio.delete('/api/assignments/attachment/$attachmentId');
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('첨부가 삭제되었습니다.')));
+      await _loadDetail();
+    } on DioException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('삭제 실패: ${e.message ?? '알 수 없는 오류'}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('삭제 실패: $e')));
+    }
+  }
+
+  List<Map<String, dynamic>> _decorateServerAttachments(
+    List<Map<String, dynamic>> attachments,
+  ) {
+    return attachments.map((item) {
+      final copy = Map<String, dynamic>.from(item);
+      final attachmentId = (copy['attachmentId'] ?? '').toString();
+      final displayName = (copy['name'] ?? '첨부').toString();
+      if (attachmentId.isNotEmpty) {
+        copy['onRemove'] = () {
+          _handleServerAttachmentRemoval(
+            attachmentId: attachmentId,
+            name: displayName,
+          );
+        };
+      }
+      return copy;
+    }).toList();
+  }
+
   DateTime? _parseDate(String? raw) {
     if (raw == null || raw.isEmpty) return null;
     try {
@@ -225,18 +386,20 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       }
     }
 
-    final serverFileAttachments =
-        serverAttachments
-            .where(
-              (item) => (item['kind'] ?? '').toString().toUpperCase() == 'FILE',
-            )
-            .toList();
-    final serverLinkAttachments =
-        serverAttachments
-            .where(
-              (item) => (item['kind'] ?? '').toString().toUpperCase() == 'URL',
-            )
-            .toList();
+    final serverFileAttachments = _decorateServerAttachments(
+      serverAttachments
+          .where(
+            (item) => (item['kind'] ?? '').toString().toUpperCase() == 'FILE',
+          )
+          .toList(),
+    );
+    final serverLinkAttachments = _decorateServerAttachments(
+      serverAttachments
+          .where(
+            (item) => (item['kind'] ?? '').toString().toUpperCase() == 'URL',
+          )
+          .toList(),
+    );
 
     final localFileAttachments =
         controller.uploadedFiles
@@ -249,8 +412,13 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                 'contentType': entry.value.extension ?? 'FILE',
                 'kind': 'FILE',
                 'url': '',
-                'local': true,
-                'localIndex': entry.key,
+                'onRemove': () {
+                  _handleLocalAttachmentRemoval(
+                    isFile: true,
+                    index: entry.key,
+                    name: entry.value.name,
+                  );
+                },
               },
             )
             .toList();
@@ -265,8 +433,13 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                 'contentType': 'URL',
                 'kind': 'URL',
                 'url': entry.value,
-                'local': true,
-                'localIndex': entry.key,
+                'onRemove': () {
+                  _handleLocalAttachmentRemoval(
+                    isFile: false,
+                    index: entry.key,
+                    name: entry.value,
+                  );
+                },
               },
             )
             .toList();
@@ -348,121 +521,137 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                         .toString(),
               ),
               SizedBox(height: height * 0.05),
-              ActionsSection(
-                isSubmitted: controller.submitted,
-                onUploadPressed: _handleUploadMenu,
-                onToggleSubmit: () async {
-                  final width = MediaQuery.of(context).size.width;
-                  final confirmed = await showDialog<bool>(
-                    context: context,
-                    builder:
-                        (ctx) => Dialog(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          insetPadding: EdgeInsets.symmetric(
-                            horizontal: width * 0.08,
-                            vertical: width * 0.04,
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
+              Theme(
+                data: Theme.of(context).copyWith(
+                  elevatedButtonTheme: ElevatedButtonThemeData(
+                    style: ElevatedButton.styleFrom(
+                      textStyle: TextStyle(
+                        fontSize: width * 0.04,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                child: ActionsSection(
+                  isSubmitted: controller.submitted,
+                  onUploadPressed: _handleUploadMenu,
+                  submitButtonLabel: '저장하기',
+                  onToggleSubmit: () async {
+                    final width = MediaQuery.of(context).size.width;
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder:
+                          (ctx) => Dialog(
+                            shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      '제출 확인',
-                                      style: TextStyle(
-                                        fontSize: width * 0.045,
-                                        fontWeight: FontWeight.w700,
+                            insetPadding: EdgeInsets.symmetric(
+                              horizontal: width * 0.08,
+                              vertical: width * 0.04,
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.fromLTRB(
+                                20,
+                                20,
+                                20,
+                                16,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        '제출 확인',
+                                        style: TextStyle(
+                                          fontSize: width * 0.045,
+                                          fontWeight: FontWeight.w700,
+                                        ),
                                       ),
-                                    ),
-                                    IconButton(
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(),
-                                      icon: const Icon(Icons.close),
-                                      onPressed:
-                                          () => Navigator.pop(ctx, false),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  '정말 과제를 제출하시겠습니까?',
-                                  style: TextStyle(
-                                    fontSize: width * 0.038,
-                                    color: const Color(0xff4B5563),
-                                    height: 1.45,
-                                  ),
-                                ),
-                                const SizedBox(height: 18),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: OutlinedButton(
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        icon: const Icon(Icons.close),
                                         onPressed:
                                             () => Navigator.pop(ctx, false),
-                                        style: OutlinedButton.styleFrom(
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: width * 0.028,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    '정말 과제를 제출하시겠습니까?',
+                                    style: TextStyle(
+                                      fontSize: width * 0.038,
+                                      color: const Color(0xff4B5563),
+                                      height: 1.45,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 18),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: OutlinedButton(
+                                          onPressed:
+                                              () => Navigator.pop(ctx, false),
+                                          style: OutlinedButton.styleFrom(
+                                            padding: EdgeInsets.symmetric(
+                                              vertical: width * 0.028,
+                                            ),
+                                            side: const BorderSide(
+                                              color: Color(0xffCBD5F5),
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            foregroundColor: Colors.black,
+                                            backgroundColor: Colors.white,
                                           ),
-                                          side: const BorderSide(
-                                            color: Color(0xffCBD5F5),
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
+                                          child: const Text('취소'),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: ElevatedButton(
+                                          onPressed:
+                                              () => Navigator.pop(ctx, true),
+                                          style: ElevatedButton.styleFrom(
+                                            padding: EdgeInsets.symmetric(
+                                              vertical: width * 0.028,
+                                            ),
+                                            backgroundColor: const Color(
+                                              0xff3B82F6,
+                                            ),
+                                            foregroundColor: Colors.white,
+                                            elevation: 0,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                             ),
                                           ),
-                                          foregroundColor: Colors.black,
-                                          backgroundColor: Colors.white,
+                                          child: const Text('제출'),
                                         ),
-                                        child: const Text('취소'),
                                       ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: ElevatedButton(
-                                        onPressed:
-                                            () => Navigator.pop(ctx, true),
-                                        style: ElevatedButton.styleFrom(
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: width * 0.028,
-                                          ),
-                                          backgroundColor: const Color(
-                                            0xff3B82F6,
-                                          ),
-                                          foregroundColor: Colors.white,
-                                          elevation: 0,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                          ),
-                                        ),
-                                        child: const Text('제출'),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                  );
-                  if (confirmed == true) {
-                    setState(controller.toggleSubmitted);
-                  }
-                },
-                uploadButtonKey: _uploadButtonKey,
+                    );
+                    if (confirmed == true) {
+                      setState(controller.toggleSubmitted);
+                    }
+                  },
+                  uploadButtonKey: _uploadButtonKey,
+                ),
               ),
               SizedBox(height: height * 0.05),
             ],

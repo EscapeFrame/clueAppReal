@@ -1,4 +1,4 @@
-﻿// Upload / submit action buttons.
+// Upload / submit action buttons.
 import 'package:flutter/material.dart';
 
 class ActionsSection extends StatelessWidget {
@@ -6,6 +6,8 @@ class ActionsSection extends StatelessWidget {
   final VoidCallback onUploadPressed;
   final VoidCallback onToggleSubmit;
   final Key? uploadButtonKey;
+  final String submitButtonLabel;
+  final String submittedButtonLabel;
 
   const ActionsSection({
     super.key,
@@ -13,12 +15,15 @@ class ActionsSection extends StatelessWidget {
     required this.onUploadPressed,
     required this.onToggleSubmit,
     this.uploadButtonKey,
+    this.submitButtonLabel = '파일 업로드',
+    this.submittedButtonLabel = '?? ????',
   });
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final height = MediaQuery.of(context).size.height;
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
     return Column(
       children: [
         SizedBox(
@@ -27,7 +32,7 @@ class ActionsSection extends StatelessWidget {
             key: uploadButtonKey,
             onPressed: onUploadPressed,
             icon: Icon(Icons.cloud_upload_outlined, size: width * 0.045),
-            label: const Text('과제 업로드'),
+            label: const Text('파일 업로드'),
             style: OutlinedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: const Color(0xff1F2937),
@@ -45,7 +50,7 @@ class ActionsSection extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: onToggleSubmit,
             icon: Icon(Icons.upload, size: width * 0.045),
-            label: Text(isSubmitted ? '과제 제출 취소하기' : '과제 제출하기'),
+            label: Text(isSubmitted ? submittedButtonLabel : submitButtonLabel),
             style: ElevatedButton.styleFrom(
               elevation: 4,
               backgroundColor:

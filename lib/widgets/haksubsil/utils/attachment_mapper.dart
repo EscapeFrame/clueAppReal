@@ -20,12 +20,21 @@ List<Map<String, dynamic>> mapAttachments(List src) {
     final name = (originalName.isNotEmpty ? originalName : (isLikelyUrl ? valueStr : ''))
         .toString();
 
+    final attachmentRaw = m['assignmentAttachmentId'] ??
+        m['attachmentId'] ??
+        m['assignment_attachment_id'] ??
+        m['id'];
+    final attachmentId = attachmentRaw == null
+        ? ''
+        : attachmentRaw.toString();
+
     return <String, dynamic>{
       'name': name,
       'sizeText': (kind == 'URL' && sizeNum == 0) ? '' : formatSize(sizeNum),
       'contentType': (m['contentType'] ?? m['type'] ?? '').toString(),
       'kind': kind,
       'url': isLikelyUrl ? valueStr : '',
+      'attachmentId': attachmentId,
     };
   }).toList();
 }
