@@ -12,6 +12,7 @@ import 'package:clue/widgets/haksubsil/widgets/sections/attachments_section.dart
 import 'package:clue/widgets/haksubsil/widgets/sections/description_section.dart';
 import 'package:clue/widgets/haksubsil/widgets/sections/header_section.dart';
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -304,6 +305,89 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     }
   }
 
+  String? _resolveCurrentAssignmentId() {
+    final detailMap = controller.detail;
+    if (detailMap != null) {
+      final resolved = resolveAssignmentId(detailMap);
+      if (resolved != null && resolved.isNotEmpty) return resolved;
+    }
+    return resolveAssignmentId(widget.assignment);
+  }
+
+  Future<MultipartFile?> _platformFileToMultipart(PlatformFile file) async {
+    try {
+      if (file.path != null) {
+        return await MultipartFile.fromFile(file.path!, filename: file.name);
+      }
+      if (file.bytes != null) {
+        return MultipartFile.fromBytes(file.bytes!, filename: file.name);
+      }
+    } catch (_) {
+      return null;
+    }
+    return null;
+  }
+
+  Future<void> _savePendingAttachments() async {
+    final assignmentId = _resolveCurrentAssignmentId();
+    if (assignmentId == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            '\uACFC\uC81C ID\uB97C \uCC3E\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.',
+          ),
+        ),
+      );
+      return;
+    }
+    final dio = ApiClient.instance.dio;
+    try {
+      if (controller.uploadedUrls.isNotEmpty) {
+        final payload =
+            controller.uploadedUrls.map((url) => {'url': url}).toList();
+        await dio.post('/api/assignments/$assignmentId/link', data: payload);
+      }
+      if (controller.uploadedFiles.isNotEmpty) {
+        final formData = FormData();
+        for (final file in controller.uploadedFiles) {
+          final multipart = await _platformFileToMultipart(file);
+          if (multipart != null) {
+            formData.files.add(MapEntry('files', multipart));
+          }
+        }
+        if (formData.files.isNotEmpty) {
+          await dio.post('/api/assignments/$assignmentId/file', data: formData);
+        }
+      }
+      setState(() {
+        controller.uploadedFiles.clear();
+        controller.uploadedUrls.clear();
+      });
+      await _loadDetail();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('\uC800\uC7A5\uB418\uC5C8\uC2B5\uB2C8\uB2E4.'),
+        ),
+      );
+    } on DioException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '\uC800\uC7A5 \uC2E4\uD328: ${e.message ?? '알 수 없는 오류'}',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('\uC800\uC7A5 \uC2E4\uD328: $e')));
+    }
+  }
+
   List<Map<String, dynamic>> _decorateServerAttachments(
     List<Map<String, dynamic>> attachments,
   ) {
@@ -535,8 +619,20 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                 child: ActionsSection(
                   isSubmitted: controller.submitted,
                   onUploadPressed: _handleUploadMenu,
-                  submitButtonLabel: '저장하기',
+                  submitButtonLabel: '\uC800\uC7A5\uD558\uAE30',
                   onToggleSubmit: () async {
+                    if (controller.uploadedFiles.isEmpty &&
+                        controller.uploadedUrls.isEmpty) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            '\uC800\uC7A5\uD560 \uCCA8\uBD80\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.',
+                          ),
+                        ),
+                      );
+                      return;
+                    }
                     final width = MediaQuery.of(context).size.width;
                     final confirmed = await showDialog<bool>(
                       context: context,
@@ -569,7 +665,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        '제출 확인',
+                                        '\uC800\uC7A5 \uD655\uC778',
                                         style: TextStyle(
                                           fontSize: width * 0.045,
                                           fontWeight: FontWeight.w700,
@@ -586,7 +682,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    '정말 과제를 제출하시겠습니까?',
+                                    '\uC5C5\uB85C\uB4DC\uD55C \uD30C\uC77C\uACFC \uB9C1\uD06C\uB97C \uC800\uC7A5\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?',
                                     style: TextStyle(
                                       fontSize: width * 0.038,
                                       color: const Color(0xff4B5563),
@@ -614,7 +710,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                                             foregroundColor: Colors.black,
                                             backgroundColor: Colors.white,
                                           ),
-                                          child: const Text('취소'),
+                                          child: const Text('\uCDE8\uC18C'),
                                         ),
                                       ),
                                       const SizedBox(width: 12),
@@ -636,7 +732,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                                                   BorderRadius.circular(12),
                                             ),
                                           ),
-                                          child: const Text('제출'),
+                                          child: const Text('\uC800\uC7A5'),
                                         ),
                                       ),
                                     ],
@@ -647,7 +743,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                           ),
                     );
                     if (confirmed == true) {
-                      setState(controller.toggleSubmitted);
+                      await _savePendingAttachments();
                     }
                   },
                   uploadButtonKey: _uploadButtonKey,
