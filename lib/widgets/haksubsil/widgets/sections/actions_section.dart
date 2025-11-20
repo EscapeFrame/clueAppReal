@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 
 class ActionsSection extends StatelessWidget {
   final bool isSubmitted;
+  final Future<bool> Function() onConfirmSubmit; // returns true if confirmed
   final VoidCallback onUploadPressed;
-  final VoidCallback onToggleSubmit;
   final Key? uploadButtonKey;
 
   const ActionsSection({
     super.key,
     required this.isSubmitted,
+    required this.onConfirmSubmit,
     required this.onUploadPressed,
-    required this.onToggleSubmit,
     this.uploadButtonKey,
   });
 
@@ -43,17 +43,17 @@ class ActionsSection extends StatelessWidget {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: onToggleSubmit,
+            onPressed: () async {
+              final ok = await onConfirmSubmit();
+              if (!ok) return;
+            },
             icon: Icon(Icons.upload, size: width * 0.045),
             label: Text(isSubmitted ? '과제 제출 취소하기' : '과제 제출하기'),
             style: ElevatedButton.styleFrom(
               elevation: 4,
               backgroundColor:
-                  isSubmitted
-                      ? const Color(0xFFD8D8D8)
-                      : const Color(0xff3B82F6),
-              foregroundColor:
-                  isSubmitted ? const Color(0xff1F2937) : Colors.white,
+                  isSubmitted ? const Color(0xFFD8D8D8) : const Color(0xff3B82F6),
+              foregroundColor: isSubmitted ? const Color(0xff1F2937) : Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(width * 0.03),
               ),

@@ -1,4 +1,4 @@
-// 페이지: 학습실 과제 상세/제출 화면의 메인 구현입니다.
+﻿// ?섏씠吏: ?숈뒿??怨쇱젣 ?곸꽭/?쒖텧 ?붾㈃??硫붿씤 援ы쁽?낅땲??
 import 'package:clue/api_client.dart';
 import 'package:clue/widgets/haksubsil/dialogs/upload_choice_menu.dart';
 import 'package:clue/widgets/haksubsil/dialogs/upload_file_dialog.dart';
@@ -44,7 +44,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       final idStr = resolveAssignmentId(widget.assignment);
       if (idStr == null) {
         controller.loading = false;
-        controller.error = '상세 조회 실패(과제 ID 없음)';
+        controller.error = '?곸꽭 議고쉶 ?ㅽ뙣(怨쇱젣 ID ?놁쓬)';
         setState(() {});
         return;
       }
@@ -54,12 +54,12 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       if (res.statusCode == 200 && res.data is Map) {
         controller.detail = Map<String, dynamic>.from(res.data as Map);
       } else {
-        controller.error = '상세 조회 실패(${res.statusCode})';
+        controller.error = '?곸꽭 議고쉶 ?ㅽ뙣(${res.statusCode})';
       }
     } on DioException catch (e) {
-      controller.error = '상세 오류: ${e.message}';
+      controller.error = '?곸꽭 ?ㅻ쪟: ${e.message}';
     } catch (e) {
-      controller.error = '상세 예외: $e';
+      controller.error = '?곸꽭 ?덉쇅: $e';
     } finally {
       controller.loading = false;
       if (mounted) setState(() {});
@@ -85,7 +85,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                   children: [
                     Expanded(
                       child: Text(
-                        '첨부 방식 선택',
+                        '泥⑤? 諛⑹떇 ?좏깮',
                         style: TextStyle(
                           fontSize: width * 0.042,
                           fontWeight: FontWeight.w600,
@@ -105,7 +105,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                 ElevatedButton.icon(
                   onPressed: () => Navigator.pop(ctx, 'file'),
                   icon: const Icon(Icons.cloud_upload_outlined),
-                  label: const Text('파일 업로드'),
+                  label: const Text('?뚯씪 ?낅줈??),
                   style: ElevatedButton.styleFrom(
                     elevation: 0,
                     backgroundColor: const Color(0xff3B82F6),
@@ -124,7 +124,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                 OutlinedButton.icon(
                   onPressed: () => Navigator.pop(ctx, 'url'),
                   icon: const Icon(Icons.link_outlined),
-                  label: const Text('URL 링크 업로드'),
+                  label: const Text('URL 留곹겕 ?낅줈??),
                   style: OutlinedButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: width * 0.04),
                     shape: RoundedRectangleBorder(
@@ -164,23 +164,23 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
   }
 
   String _formatTimeLeft(DateTime? end) {
-    if (end == null) return '남은 시간 정보 없음';
+    if (end == null) return '?⑥? ?쒓컙 ?뺣낫 ?놁쓬';
     final diff = end.difference(DateTime.now());
-    if (diff.isNegative) return '마감됨';
+    if (diff.isNegative) return '留덇컧??;
     final days = diff.inDays;
     final hours = diff.inHours - days * 24;
     final minutes = diff.inMinutes - diff.inHours * 60;
-    if (days > 0) return 'D-$days · ${days}일 ${hours}시간 남음';
-    if (diff.inHours > 0) return '${diff.inHours}시간 ${minutes}분 남음';
-    return '${minutes}분 남음';
+    if (days > 0) return 'D-$days 쨌 ${days}??${hours}?쒓컙 ?⑥쓬';
+    if (diff.inHours > 0) return '${diff.inHours}?쒓컙 ${minutes}遺??⑥쓬';
+    return '${minutes}遺??⑥쓬';
   }
 
   String _formatDue(DateTime? end) {
-    if (end == null) return '마감일 정보 없음';
+    if (end == null) return '留덇컧???뺣낫 ?놁쓬';
     final y = end.year.toString().padLeft(4, '0');
     final m = end.month.toString().padLeft(2, '0');
     final d = end.day.toString().padLeft(2, '0');
-    return '마감일: $y-$m-$d';
+    return '留덇컧?? $y-$m-$d';
   }
 
   @override
@@ -207,7 +207,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
         }
       }
     }
-    // fallback: widget에서 전달된 제출첨부 사용
+    // fallback: widget?먯꽌 ?꾨떖???쒖텧泥⑤? ?ъ슜
     if (serverAttachments.isEmpty) {
       final fallback = (widget.assignment['submissionAttachmentResponses'] as List?) ?? const [];
       if (fallback.isNotEmpty) {
@@ -249,7 +249,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                 },
               ),
             if ((widget.assignment['results'] as List?)?.isNotEmpty == true) ...[
-              Text('제출 결과물', style: TextStyle(fontWeight: FontWeight.bold, fontSize: width * 0.045)),
+              Text('?쒖텧 寃곌낵臾?, style: TextStyle(fontWeight: FontWeight.bold, fontSize: width * 0.045)),
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -265,7 +265,80 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
             ActionsSection(
               isSubmitted: controller.submitted,
               onUploadPressed: _handleUploadMenu,
-              onToggleSubmit: () => setState(controller.toggleSubmitted),
+              onConfirmSubmit: () async {
+                final width = MediaQuery.of(context).size.width;
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => Dialog(
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            '?뺣쭚 怨쇱젣瑜??쒖텧?섏떆寃좎뒿?덇퉴?',
+                            style: TextStyle(
+                              fontSize: width * 0.042,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: width * 0.028,
+                                    ),
+                                    side: const BorderSide(
+                                      color: Color(0xffCBD5F5),
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    foregroundColor: Colors.black,
+                                  ),
+                                  child: const Text('痍⑥냼'),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  style: ElevatedButton.styleFrom(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: width * 0.028,
+                                    ),
+                                    backgroundColor: const Color(0xff3B82F6),
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  child: const Text('?쒖텧'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+                if (confirmed == true) {
+                  setState(controller.toggleSubmitted);
+                  return true;
+                }
+                return false;
+              },
               uploadButtonKey: _uploadButtonKey,
             ),
             SizedBox(height: height * 0.05),
@@ -275,3 +348,4 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     );
   }
 }
+
