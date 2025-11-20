@@ -104,217 +104,225 @@ class _GwajejechulState extends State<Gwajejechul> {
             final dDay = _buildDDayLabel(endDate);
             final period = _formatPeriod(startDate, endDate);
 
-            return Container(
-              margin: EdgeInsets.symmetric(
-                horizontal: width * 0.05,
-                vertical: height * 0.008,
-              ),
-              padding: EdgeInsets.all(width * 0.04),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(width * 0.04),
-                border: Border.all(color: const Color(0xffE5E7EB)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(12),
-                    blurRadius: width * 0.025,
-                    offset: Offset(0, width * 0.01),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              title,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: width * 0.048,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xff1F2937),
-                              ),
-                            ),
-                            if (teacher.isNotEmpty) ...[
-                              SizedBox(height: height * 0.006),
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap:
+                  widget.onCardClick == null
+                      ? null
+                      : () => widget.onCardClick!(data),
+              child: Container(
+                margin: EdgeInsets.symmetric(
+                  horizontal: width * 0.05,
+                  vertical: height * 0.008,
+                ),
+                padding: EdgeInsets.all(width * 0.04),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(width * 0.04),
+                  border: Border.all(color: const Color(0xffE5E7EB)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(12),
+                      blurRadius: width * 0.025,
+                      offset: Offset(0, width * 0.01),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               Text(
-                                '담당 · $teacher',
-                                style: TextStyle(
-                                  fontSize: width * 0.032,
-                                  color: const Color(0xff6B7280),
-                                ),
-                              ),
-                            ],
-                            if (content.trim().isNotEmpty) ...[
-                              SizedBox(height: height * 0.01),
-                              Text(
-                                content,
-                                maxLines: 3,
+                                title,
+                                maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  fontSize: width * 0.034,
-                                  color: const Color(0xff374151),
+                                  fontSize: width * 0.048,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xff1F2937),
                                 ),
                               ),
+                              if (teacher.isNotEmpty) ...[
+                                SizedBox(height: height * 0.006),
+                                Text(
+                                  '담당 · $teacher',
+                                  style: TextStyle(
+                                    fontSize: width * 0.032,
+                                    color: const Color(0xff6B7280),
+                                  ),
+                                ),
+                              ],
+                              if (content.trim().isNotEmpty) ...[
+                                SizedBox(height: height * 0.01),
+                                Text(
+                                  content,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: width * 0.034,
+                                    color: const Color(0xff374151),
+                                  ),
+                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          if (dDay != null)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            if (dDay != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: accent.withAlpha(30),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  dDay,
+                                  style: TextStyle(
+                                    color: accent,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            SizedBox(height: height * 0.006),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: accent.withAlpha(30),
+                                color:
+                                    isSubmitted
+                                        ? const Color(0xffDCFCE7)
+                                        : const Color(0xffFEE2E2),
                                 borderRadius: BorderRadius.circular(999),
                               ),
                               child: Text(
-                                dDay,
+                                isSubmitted ? '제출완료' : '미제출',
                                 style: TextStyle(
-                                  color: accent,
+                                  color:
+                                      isSubmitted
+                                          ? const Color(0xff15803D)
+                                          : const Color(0xffB91C1C),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
-                          SizedBox(height: height * 0.006),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  isSubmitted
-                                      ? const Color(0xffDCFCE7)
-                                      : const Color(0xffFEE2E2),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              isSubmitted ? '제출완료' : '미제출',
-                              style: TextStyle(
-                                color:
-                                    isSubmitted
-                                        ? const Color(0xff15803D)
-                                        : const Color(0xffB91C1C),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  if (period.isNotEmpty) ...[
-                    SizedBox(height: height * 0.015),
-                    Text(
-                      period,
-                      style: TextStyle(
-                        fontSize: width * 0.034,
-                        color: const Color(0xff475467),
-                      ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ],
-                  SizedBox(height: height * 0.02),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildMetaTile(
-                          icon: Icons.calendar_today,
-                          label: '시작일',
-                          value: _formatDate(startDate),
-                          color: const Color(0xff4C5674),
-                          width: width,
-                        ),
-                      ),
-                      SizedBox(width: width * 0.02),
-                      Expanded(
-                        child: _buildMetaTile(
-                          icon: Icons.flag,
-                          label: '마감일',
-                          value: _formatDate(endDate),
-                          color: accent,
-                          width: width,
+                    if (period.isNotEmpty) ...[
+                      SizedBox(height: height * 0.015),
+                      Text(
+                        period,
+                        style: TextStyle(
+                          fontSize: width * 0.034,
+                          color: const Color(0xff475467),
                         ),
                       ),
                     ],
-                  ),
-                  SizedBox(height: height * 0.02),
-                  _buildSubmissionInfo(submittedAt, isSubmitted, width),
-                  if (attachments.isNotEmpty) ...[
                     SizedBox(height: height * 0.02),
-                    _buildAttachmentSection(attachments, width),
-                  ],
-                  const Divider(height: 32, color: Color(0xffE2E8F0)),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed:
-                              widget.onCardClick == null
-                                  ? null
-                                  : () => widget.onCardClick!(data),
-                          icon: const Icon(
-                            Icons.description_outlined,
-                            color: Color(0xff1F2937),
-                          ),
-                          label: const Text('과제 보기'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: const Color(0xff1F2937),
-                            elevation: 0,
-                            side: const BorderSide(color: Color(0xffE2E8F0)),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                width * 0.028,
-                              ),
-                            ),
-                            padding: EdgeInsets.symmetric(
-                              vertical: height * 0.018,
-                            ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildMetaTile(
+                            icon: Icons.calendar_today,
+                            label: '시작일',
+                            value: _formatDate(startDate),
+                            color: const Color(0xff4C5674),
+                            width: width,
                           ),
                         ),
-                      ),
-                      SizedBox(width: width * 0.03),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _toggleSubmissionStatus(index),
-                          icon: Icon(isSubmitted ? Icons.undo : Icons.upload),
-                          label: Text(isSubmitted ? '제출 취소' : '과제 제출하기'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                isSubmitted
-                                    ? const Color(0xffE5E7EB)
-                                    : const Color(0xff2563EB),
-                            foregroundColor:
-                                isSubmitted
-                                    ? const Color(0xff1F2937)
-                                    : Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                width * 0.028,
-                              ),
-                            ),
-                            padding: EdgeInsets.symmetric(
-                              vertical: height * 0.018,
-                            ),
+                        SizedBox(width: width * 0.02),
+                        Expanded(
+                          child: _buildMetaTile(
+                            icon: Icons.flag,
+                            label: '마감일',
+                            value: _formatDate(endDate),
+                            color: accent,
+                            width: width,
                           ),
                         ),
-                      ),
+                      ],
+                    ),
+                    SizedBox(height: height * 0.02),
+                    _buildSubmissionInfo(submittedAt, isSubmitted, width),
+                    if (attachments.isNotEmpty) ...[
+                      SizedBox(height: height * 0.02),
+                      _buildAttachmentSection(attachments, width),
                     ],
-                  ),
-                ],
+                    // const Divider(height: 32, color: Color(0xffE2E8F0)),
+                    // Row(
+                    //   children: [
+                    //     Expanded(
+                    //       child: ElevatedButton.icon(
+                    //         onPressed:
+                    //             widget.onCardClick == null
+                    //                 ? null
+                    //                 : () => widget.onCardClick!(data),
+                    //         icon: const Icon(
+                    //           Icons.description_outlined,
+                    //           color: Color(0xff1F2937),
+                    //         ),
+                    //         label: const Text('과제 보기'),
+                    //         style: ElevatedButton.styleFrom(
+                    //           backgroundColor: Colors.white,
+                    //           foregroundColor: const Color(0xff1F2937),
+                    //           elevation: 0,
+                    //           side: const BorderSide(color: Color(0xffE2E8F0)),
+                    //           shape: RoundedRectangleBorder(
+                    //             borderRadius: BorderRadius.circular(
+                    //               width * 0.028,
+                    //             ),
+                    //           ),
+                    //           padding: EdgeInsets.symmetric(
+                    //             vertical: height * 0.018,
+                    //           ),
+                    //         ),
+                    //       ),
+                    //     ),
+                    //     SizedBox(width: width * 0.03),
+                    //     Expanded(
+                    //       child: ElevatedButton.icon(
+                    //         onPressed: () => _toggleSubmissionStatus(index),
+                    //         icon: Icon(isSubmitted ? Icons.undo : Icons.upload),
+                    //         label: Text(isSubmitted ? '제출 취소' : '과제 제출하기'),
+                    //         style: ElevatedButton.styleFrom(
+                    //           backgroundColor:
+                    //               isSubmitted
+                    //                   ? const Color(0xffE5E7EB)
+                    //                   : const Color(0xff2563EB),
+                    //           foregroundColor:
+                    //               isSubmitted
+                    //                   ? const Color(0xff1F2937)
+                    //                   : Colors.white,
+                    //           shape: RoundedRectangleBorder(
+                    //             borderRadius: BorderRadius.circular(
+                    //               width * 0.028,
+                    //             ),
+                    //           ),
+                    //           padding: EdgeInsets.symmetric(
+                    //             vertical: height * 0.018,
+                    //           ),
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
+                    SizedBox(height: 4),
+                  ],
+                ),
               ),
             );
           }).toList(),
