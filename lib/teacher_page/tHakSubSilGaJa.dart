@@ -108,6 +108,11 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
     final id = _submissionIdStr();
     if (id != null) {
       await _loadDetail(id);
+      return;
+    }
+    final aid = _assignmentIdStr();
+    if (aid != null && aid.isNotEmpty) {
+      await _loadAssignmentDetail(aid);
     }
   }
 
@@ -361,7 +366,28 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
     }
   }
 
+  Future<void> _loadAssignmentDetail(String assignmentId) async {
+    setState(() {
+      loading = true;
+      error = null;
+    });
+    final data = await HaksubsilService.fetchAssignmentDetail(assignmentId);
+    if (!mounted) return;
+    if (data != null) {
+      setState(() {
+        detail = data;
+        loading = false;
+      });
+    } else {
+      setState(() {
+        error = '?? ??? ???? ?????.';
+        loading = false;
+      });
+    }
+  }
+
   Future<void> _downloadAttachment(
+
     String attachmentId,
     String fallbackName,
   ) async {

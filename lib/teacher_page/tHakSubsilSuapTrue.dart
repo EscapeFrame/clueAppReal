@@ -787,7 +787,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                 SizedBox(width: width * 0.03),
                 Expanded(
                   child: Text(
-                    '+ 새 수업',
+                    '새 수업',
                     style: TextStyle(
                       color: const Color(0xff0057FF),
                       fontWeight: FontWeight.w700,
