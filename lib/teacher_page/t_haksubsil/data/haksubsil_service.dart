@@ -26,6 +26,29 @@ class HaksubsilService {
     }
   }
 
+  static Future<Map<String, dynamic>?> fetchSubmissionDetail(
+    String submissionId,
+  ) async {
+    try {
+      final api = ApiClient.instance.dio;
+      final res = await api.get('/api/submissions/assignment/$submissionId');
+      debugPrint(
+        'submission detail status=${res.statusCode}, data=${res.data}',
+      );
+
+      if (res.statusCode == 200 && res.data is Map) {
+        return Map<String, dynamic>.from(res.data as Map);
+      }
+      return null;
+    } on DioException catch (e) {
+      debugPrint('submission detail error: ${e.response?.data}');
+      return null;
+    } catch (e) {
+      debugPrint('submission detail error: $e');
+      return null;
+    }
+  }
+
   static Future<bool> deleteAttachment(String attachmentId) async {
     try {
       final dio = ApiClient.instance.dio;
@@ -38,12 +61,18 @@ class HaksubsilService {
     }
   }
 
-  static Future<bool> uploadFileAttachment(String assignmentId, PlatformFile file) async {
+  static Future<bool> uploadFileAttachment(
+    String assignmentId,
+    PlatformFile file,
+  ) async {
     try {
       final mf = await MultipartFile.fromFile(file.path!, filename: file.name);
       final form = FormData.fromMap({'files': mf});
       final dio = ApiClient.instance.dio;
-      final res = await dio.post('/api/assignments/$assignmentId/file', data: form);
+      final res = await dio.post(
+        '/api/assignments/$assignmentId/file',
+        data: form,
+      );
       return (res.statusCode ?? 500) < 300;
     } on DioException catch (e) {
       debugPrint('upload file dio error: ${e.message}');
@@ -54,12 +83,18 @@ class HaksubsilService {
     }
   }
 
-  static Future<bool> uploadUrlAttachment(String assignmentId, String url) async {
+  static Future<bool> uploadUrlAttachment(
+    String assignmentId,
+    String url,
+  ) async {
     try {
       final dio = ApiClient.instance.dio;
-      final res = await dio.post('/api/assignments/$assignmentId/link', data: [
-        {'url': url.trim()},
-      ]);
+      final res = await dio.post(
+        '/api/assignments/$assignmentId/link',
+        data: [
+          {'url': url.trim()},
+        ],
+      );
       final code = res.statusCode ?? 500;
       // debugPrint('요청값 : ${res.data}');
       return code >= 200 && code < 300;

@@ -40,6 +40,20 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
     return s.isEmpty ? null : s;
   }
 
+  String? _submissionIdStr() {
+    final candidates = [
+      detail?['submissionId'],
+      widget.assignment['submissionId'],
+      widget.assignment['id'],
+      widget.assignment['submission_id'],
+    ];
+    for (final v in candidates) {
+      final s = v?.toString();
+      if (s != null && s.isNotEmpty) return s;
+    }
+    return null;
+  }
+
   String _fmtSize(int bytes) {
     if (bytes >= 1024 * 1024) {
       return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
@@ -47,12 +61,12 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
     return '${(bytes / 1024).toStringAsFixed(1)} KB';
   }
 
-  Future<void> _loadDetail(String idPath) async {
+  Future<void> _loadDetail(String submissionId) async {
     setState(() {
       loading = true;
       error = null;
     });
-    final data = await HaksubsilService.fetchAssignmentDetail(idPath);
+    final data = await HaksubsilService.fetchSubmissionDetail(submissionId);
     if (!mounted) return;
     if (data != null) {
       setState(() {
@@ -61,21 +75,27 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
       });
     } else {
       setState(() {
-        error = '과제 상세 정보를 불러오지 못했습니다.';
+        error = '제출 세부 정보를 불러오지 못했습니다.';
         loading = false;
       });
+    }
+  }
+
+  Future<void> _reloadDetail() async {
+    final id = _submissionIdStr();
+    if (id != null) {
+      await _loadDetail(id);
     }
   }
 
   @override
   void initState() {
     super.initState();
-    // 페이지 진입 시 과제 상세 조회 호출 (문자열 ID 허용)
-    final idStr = _assignmentIdStr();
-    if (idStr != null) {
-      _loadDetail(idStr);
+    final submissionId = _submissionIdStr();
+    if (submissionId != null) {
+      _loadDetail(submissionId);
     } else {
-      debugPrint('assignmentId가 없어 상세 조회를 건너뜀: ${widget.assignment}');
+      debugPrint('submissionId가 없어 세부 조회를 건너뜀: ${widget.assignment}');
       loading = false;
     }
     // _showFile();
@@ -112,8 +132,7 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('첨부 삭제 완료')));
-      final idStr = _assignmentIdStr();
-      if (idStr != null) await _loadDetail(idStr);
+      await _reloadDetail();
     } else {
       ScaffoldMessenger.of(
         context,
@@ -149,7 +168,7 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('업로드 완료')));
-      await _loadDetail(idStr);
+      await _reloadDetail();
     } else {
       ScaffoldMessenger.of(
         context,
@@ -166,7 +185,7 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('링크가 등록되었습니다.')));
-      await _loadDetail(idStr);
+      await _reloadDetail();
     } else {
       ScaffoldMessenger.of(
         context,
@@ -306,23 +325,31 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
 
     // 첨부 소스: AssignmentAttachments 우선, 없으면 xAssignmentResponseDtos 사용
     List<Map<String, dynamic>> mapAttList(List src) =>
-        src.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).map((m) {
-          final typeVal = (m['type'] ?? '').toString().toUpperCase();
+        src.whereType<Map>().map((e) {
+          final m = Map<String, dynamic>.from(e);
+          final typeVal =
+              (m['type'] ?? m['kind'] ?? '').toString().toUpperCase();
           final valueStr = (m['value'] ?? m['url'] ?? '').toString();
-          final originalName = (m['originalFileName'] ?? '').toString();
+          final originalName =
+              (m['originalFileName'] ?? m['name'] ?? '').toString();
           final isLikelyUrl =
               typeVal == 'URL' ||
               (valueStr.startsWith('http') && originalName.isEmpty);
-
-          final kind = isLikelyUrl ? 'URL' : 'FILE';
+          final kind =
+              isLikelyUrl ? 'URL' : (typeVal.isNotEmpty ? typeVal : 'FILE');
           final sizeNum =
               m['size'] is int
                   ? (m['size'] as int)
                   : int.tryParse('${m['size'] ?? ''}') ?? 0;
           final name =
-              (originalName.isNotEmpty
-                      ? originalName
-                      : (isLikelyUrl ? valueStr : ''))
+              originalName.isNotEmpty
+                  ? originalName
+                  : (isLikelyUrl ? valueStr : '');
+          final attachmentId =
+              (m['attachmentId'] ??
+                      m['submissionAttachmentId'] ??
+                      m['id'] ??
+                      (kind == 'FILE' ? valueStr : ''))
                   .toString();
 
           return <String, dynamic>{
@@ -330,27 +357,26 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
             'sizeText':
                 (kind == 'URL' && sizeNum == 0) ? '' : _fmtSize(sizeNum),
             'contentType': (m['contentType'] ?? m['type'] ?? '').toString(),
-            // 파일일 때만 attachment 식별자가 의미 있음
-            'attachmentId':
-                (m['attachmentId'] ??
-                        m['id'] ??
-                        (kind == 'FILE' ? valueStr : ''))
-                    .toString(),
-            'kind': kind, // 'FILE' | 'URL'
+            'attachmentId': attachmentId,
+            'kind': kind,
             'url': isLikelyUrl ? valueStr : '',
           };
         }).toList();
-
     final List<Map<String, dynamic>> serverAttachments =
         (() {
-          final a = (detail?['AssignmentAttachments'] as List?) ?? const [];
-          if (a.isNotEmpty) return mapAttList(a);
-          final b = (detail?['attachmentDtos'] as List?) ?? const [];
-          if (b.isNotEmpty) return mapAttList(b);
-          final c = (detail?['xAssignmentResponseDtos'] as List?) ?? const [];
-          return mapAttList(c);
+          final sources = [
+            (detail?['submissionAttachmentResponses'] as List?) ?? const [],
+            (detail?['AssignmentAttachments'] as List?) ?? const [],
+            (detail?['attachmentDtos'] as List?) ?? const [],
+            (detail?['xAssignmentResponseDtos'] as List?) ?? const [],
+          ];
+          for (final source in sources) {
+            if (source.isNotEmpty) {
+              return mapAttList(source);
+            }
+          }
+          return const <Map<String, dynamic>>[];
         })();
-
     return Scaffold(
       body:
           loading
