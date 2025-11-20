@@ -27,7 +27,7 @@ class Login extends StatefulWidget {
 
   static const _callbackScheme = 'realclue';
   static const _callbackHost = 'auth';
-  static const _callbackPath = '/register';
+  static const _callbackPath = '/callback';
 
   @override
   State<Login> createState() => _LoginState();
