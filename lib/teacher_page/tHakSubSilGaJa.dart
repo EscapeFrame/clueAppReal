@@ -5,7 +5,6 @@ import 'package:clue/teacher_page/t_haksubsil/utils/date_time.dart';
 import 'package:clue/teacher_page/t_haksubsil/utils/file_utils.dart';
 import 'package:clue/teacher_page/t_haksubsil/utils/id_utils.dart';
 import 'package:clue/teacher_page/t_haksubsil/widgets/assignment_actions.dart';
-import 'package:clue/teacher_page/t_haksubsil/widgets/assignment_header.dart';
 import 'package:clue/teacher_page/t_haksubsil/widgets/assignment_meta.dart';
 import 'package:clue/teacher_page/t_haksubsil/widgets/attachment_list.dart';
 import 'package:file_picker/file_picker.dart';
@@ -326,22 +325,27 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
                           ),
                         ),
                       ],
-                      AssignmentHeader(
-                        width: width,
-                        height: height,
-                        statusText:
-                            (widget.assignment['status'] ?? '').toString(),
-                        submitted:
-                            (widget.assignment['submitted'] ?? false) == true,
-                        onClose: widget.onClose,
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: width * 0.045,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: TextStyle(
+                                fontSize: width * 0.052,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          IconButton(
+                            iconSize: width * 0.06,
+                            icon: const Icon(Icons.close),
+                            onPressed: widget.onClose,
+                          ),
+                        ],
                       ),
                       SizedBox(height: height * 0.012),
                       AssignmentMeta(

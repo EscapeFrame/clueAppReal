@@ -123,7 +123,7 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
           dataList.asMap().entries.map((entry) {
             final index = entry.key;
             final data = entry.value;
-        final Color accent = const Color(0xff3B82F6);
+            final Color accent = const Color(0xff3B82F6);
             final String title = (data['title'] ?? '제목 없음').toString();
             final DateTime? startDate = _tryParseDate(data['startDate']);
             final DateTime? endDate = _tryParseDate(data['endDate']);
@@ -269,9 +269,7 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                               Icons.brush,
                               color: Color(0xff1F2937),
                             ),
-                            label: const Text(
-                              '내용수정',
-                            ),
+                            label: const Text('내용수정'),
                           ),
                         ),
                         SizedBox(width: width * 0.03),
@@ -302,9 +300,7 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                             icon: const Icon(
                               Icons.assignment_turned_in_outlined,
                             ),
-                            label: const Text(
-                              '확인/채점',
-                            ),
+                            label: const Text('확인/채점'),
                           ),
                         ),
                       ],

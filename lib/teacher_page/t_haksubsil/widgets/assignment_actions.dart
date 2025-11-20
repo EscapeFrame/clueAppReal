@@ -19,44 +19,51 @@ class AssignmentActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       children: [
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xffCCCCCC), width: 0.7),
-            borderRadius: BorderRadius.circular(width * 0.025),
-          ),
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: onUploadPressed,
-              style: ElevatedButton.styleFrom(
-                elevation: 0,
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(width * 0.025),
-                ),
-                padding: EdgeInsets.symmetric(vertical: height * 0.018),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: onUploadPressed,
+            icon: const Icon(Icons.cloud_upload_outlined),
+            label: Text(
+              "파일 업로드",
+              style: TextStyle(
+                fontSize: width * 0.035,
+                fontWeight: FontWeight.w600,
               ),
-              child: Text("파일 업로드", style: TextStyle(fontSize: width * 0.035)),
+            ),
+            style: OutlinedButton.styleFrom(
+              padding: EdgeInsets.symmetric(vertical: height * 0.018),
+              backgroundColor: Colors.white,
+              foregroundColor: const Color(0xff2563EB),
+              side: const BorderSide(color: Color(0xffC7D8FF)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(width * 0.03),
+              ),
             ),
           ),
         ),
-        SizedBox(height: height * 0.005),
-        SizedBox(
-          width: double.infinity,
+        SizedBox(width: width * 0.03),
+        Expanded(
           child: ElevatedButton.icon(
             onPressed: onSavePressed,
-            label: Text("저장", style: TextStyle(fontSize: width * 0.035)),
-            icon: const Icon(Icons.save),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF86C1FF),
-              foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(width * 0.025),
+            icon: const Icon(Icons.check_circle_outline),
+            label: Text(
+              "저장",
+              style: TextStyle(
+                fontSize: width * 0.035,
+                fontWeight: FontWeight.w600,
               ),
+            ),
+            style: ElevatedButton.styleFrom(
+              elevation: 4,
               padding: EdgeInsets.symmetric(vertical: height * 0.018),
+              backgroundColor: const Color(0xff3B82F6),
+              foregroundColor: Colors.white,
+              shadowColor: const Color(0xff3B82F6).withOpacity(0.35),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(width * 0.03),
+              ),
             ),
           ),
         ),
