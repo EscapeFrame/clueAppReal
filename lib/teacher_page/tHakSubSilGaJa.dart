@@ -126,6 +126,7 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
 
   List<PlatformFile> uploadedFiles = [];
   final List<String> uploadedUrls = [];
+  bool _saving = false;
 
   // assignment의 files에서 파일을 삭제하는 함수 추가
   void removeFile(int fileIndex) {
@@ -315,16 +316,48 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
     if (choice == 'file') {
       final file = await showUploadFileSheet(context);
       if (file != null) {
-        await uploadFile(file);
         addUploadedFile(file);
       }
     } else if (choice == 'url') {
       final url = await showUrlInputDialog(context);
       if (url != null && url.isNotEmpty) {
-        final id = _assignmentIdStr() ?? '';
-        await _uploadUrlAttachment(id, url);
         addUploadedUrl(url);
       }
+    }
+  }
+
+  Future<void> _handleSave() async {
+    if (_saving) return;
+    final id = _assignmentIdStr();
+    if (id == null || id.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('과제 ID를 확인할 수 없습니다.')),
+      );
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      final urlsOk =
+          await HaksubsilService.uploadUrlAttachments(id, uploadedUrls);
+      final filesOk =
+          await HaksubsilService.uploadFileAttachments(id, uploadedFiles);
+      final ok = urlsOk && filesOk;
+      if (!mounted) return;
+      if (ok) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('저장되었습니다.')),
+        );
+        uploadedFiles.clear();
+        uploadedUrls.clear();
+        await _reloadDetail();
+        widget.onClose();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('저장에 실패했습니다. 다시 시도해주세요.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
   }
 
@@ -561,7 +594,7 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
                         width: width,
                         height: height,
                         onUploadPressed: _showUploadChoiceMenu,
-                        onSavePressed: widget.onClose,
+                        onSavePressed: () { if (_saving) return; _handleSave(); },
                       ),
                       SizedBox(height: height * 0.02),
                     ],

@@ -130,4 +130,55 @@ class HaksubsilService {
       return null;
     }
   }
+
+  /// 여러 URL을 한 번에 등록
+  static Future<bool> uploadUrlAttachments(
+    String assignmentId,
+    List<String> urls,
+  ) async {
+    if (urls.isEmpty) return true;
+    try {
+      final dio = ApiClient.instance.dio;
+      final res = await dio.post(
+        '/api/assignments/$assignmentId/link',
+        data: urls.map((u) => {'url': u.trim()}).toList(),
+      );
+      final code = res.statusCode ?? 500;
+      return code >= 200 && code < 300;
+    } on DioException catch (e) {
+      debugPrint('upload urls dio error: ${e.message}');
+      return false;
+    } catch (e) {
+      debugPrint('upload urls error: $e');
+      return false;
+    }
+  }
+
+  /// 여러 파일을 한 번에 업로드
+  static Future<bool> uploadFileAttachments(
+    String assignmentId,
+    List<PlatformFile> files,
+  ) async {
+    if (files.isEmpty) return true;
+    try {
+      final dio = ApiClient.instance.dio;
+      final mfList = <MultipartFile>[];
+      for (final f in files) {
+        if (f.path == null) continue;
+        mfList.add(await MultipartFile.fromFile(f.path!, filename: f.name));
+      }
+      final form = FormData.fromMap({'files': mfList});
+      final res = await dio.post(
+        '/api/assignments/$assignmentId/file',
+        data: form,
+      );
+      return (res.statusCode ?? 500) < 300;
+    } on DioException catch (e) {
+      debugPrint('upload files dio error: ${e.message}');
+      return false;
+    } catch (e) {
+      debugPrint('upload files error: $e');
+      return false;
+    }
+  }
 }
