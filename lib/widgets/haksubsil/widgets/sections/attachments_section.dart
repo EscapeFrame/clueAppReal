@@ -29,10 +29,14 @@ class AttachmentsSection extends StatelessWidget {
           ),
         ),
         SizedBox(height: height * 0.009),
-        ...attachments.map(
-          (f) => Container(
-            margin: const EdgeInsets.only(bottom: 6),
-            padding: EdgeInsets.all(width * 0.03),
+        ...attachments.map((f) {
+          final VoidCallback? removeCallback = f['onRemove'] as VoidCallback?;
+          return Container(
+            margin: EdgeInsets.only(bottom: height * 0.007),
+            padding: EdgeInsets.symmetric(
+              horizontal: width * 0.02,
+              vertical: width * 0.009,
+            ),
             decoration: BoxDecoration(
               color: const Color(0xFFF5F5F5),
               borderRadius: BorderRadius.circular(width * 0.025),
@@ -43,8 +47,9 @@ class AttachmentsSection extends StatelessWidget {
                   (f['kind'] == 'URL')
                       ? Icons.link
                       : Icons.insert_drive_file_outlined,
+                  size: width * 0.038,
                 ),
-                SizedBox(width: width * 0.025),
+                SizedBox(width: width * 0.02),
                 Expanded(
                   child: GestureDetector(
                     onTap: onTap == null ? null : () => onTap!(f),
@@ -58,7 +63,7 @@ class AttachmentsSection extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(width: width * 0.02),
+                SizedBox(width: width * 0.015),
                 if ((f['kind'] ?? '') != 'URL' &&
                     (f['sizeText'] ?? '').toString().isNotEmpty)
                   Text(
@@ -68,10 +73,17 @@ class AttachmentsSection extends StatelessWidget {
                       color: Colors.grey,
                     ),
                   ),
+                IconButton(
+                  icon: const Icon(Icons.close, size: 16),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  splashRadius: width * 0.04,
+                  onPressed: removeCallback,
+                ),
               ],
             ),
-          ),
-        ),
+          );
+        }),
         SizedBox(height: height * 0.015),
       ],
     );
