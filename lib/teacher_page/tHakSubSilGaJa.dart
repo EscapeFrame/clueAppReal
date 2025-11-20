@@ -32,7 +32,6 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
   String? error;
   Map<String, dynamic>? detail;
   final Set<String> _deletingAttachmentIds = <String>{};
-  final GlobalKey _uploadButtonKey = GlobalKey();
 
   // formatting helpers moved to utils/date_time.dart
 
@@ -176,33 +175,86 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
   }
 
   Future<void> _showUploadChoiceMenu() async {
-    final RenderBox? button =
-        _uploadButtonKey.currentContext?.findRenderObject() as RenderBox?;
-    final RenderBox overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
-    RelativeRect position;
-    if (button != null) {
-      final Offset offset = button.localToGlobal(Offset.zero);
-      position = RelativeRect.fromRect(
-        Rect.fromLTWH(
-          offset.dx,
-          offset.dy,
-          button.size.width,
-          button.size.height,
-        ),
-        Offset.zero & overlay.size,
-      );
-    } else {
-      position = const RelativeRect.fromLTRB(100, 100, 0, 0);
-    }
-
-    final choice = await showMenu<String>(
+    final choice = await showDialog<String>(
       context: context,
-      position: position.shift(const Offset(0, -8)), // 약간 위로
-      items: const [
-        PopupMenuItem<String>(value: 'file', child: Text('파일 업로드')),
-        PopupMenuItem<String>(value: 'url', child: Text('URL 링크 업로드')),
-      ],
+      builder: (ctx) {
+        final width = MediaQuery.of(ctx).size.width;
+        return Dialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 10,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '첨부 방식 선택',
+                        style: TextStyle(
+                          fontSize: width * 0.042,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      iconSize: width * 0.056,
+                      padding: EdgeInsets.zero,
+                      constraints: BoxConstraints(),
+                      color: const Color(0xff94A3B8),
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () => Navigator.pop(ctx, 'file'),
+                  icon: const Icon(Icons.cloud_upload_outlined),
+                  label: const Text('파일 업로드'),
+                  style: ElevatedButton.styleFrom(
+                    elevation: 0,
+                    backgroundColor: const Color(0xff3B82F6),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: width * 0.04),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    textStyle: TextStyle(
+                      fontSize: width * 0.038,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.pop(ctx, 'url'),
+                  icon: const Icon(Icons.link_outlined),
+                  label: const Text('URL 링크 업로드'),
+                  style: OutlinedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: width * 0.04),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    side: const BorderSide(color: Color(0xff94A3B8)),
+                    textStyle: TextStyle(
+                      fontSize: width * 0.038,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    foregroundColor: const Color(0xff1E3A8A),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
 
     if (choice == 'file') {
@@ -444,5 +496,6 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
     );
   }
 }
+
 // 학습실(과제 상세) 화면.
 // 과제 상세 조회, 첨부(파일/URL) 표시/다운로드/삭제, 업로드/링크 등록 등 상호작용을 제공합니다.
