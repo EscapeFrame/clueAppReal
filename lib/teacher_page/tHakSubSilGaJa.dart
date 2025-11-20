@@ -61,6 +61,27 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
     return '${(bytes / 1024).toStringAsFixed(1)} KB';
   }
 
+  String _formatDaysHours(DateTime? end) {
+    if (end == null) return '남은 시간 정보 없음';
+    final diff = end.difference(DateTime.now());
+    if (diff.isNegative) return '마감됨';
+    final days = diff.inDays;
+    final hours = diff.inHours - days * 24;
+    final minutes = diff.inMinutes - diff.inHours * 60;
+    if (days > 0) return '$days일 ${hours}시간 남음';
+    if (diff.inHours > 0) return '${diff.inHours}시간 ${minutes}분 남음';
+    return '${minutes}분 남음';
+  }
+
+  String? _buildDDayLabel(DateTime? endDate) {
+    if (endDate == null) return null;
+    final now = DateTime.now();
+    final diff = endDate.difference(now).inDays;
+    if (diff > 0) return 'D-$diff';
+    if (diff == 0) return 'D-DAY';
+    return '종료';
+  }
+
   Future<void> _loadDetail(String submissionId) async {
     setState(() {
       loading = true;
@@ -321,7 +342,7 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
         (detail?['endDate'] ?? widget.assignment['endDate'])?.toString();
     final end = parseDateFlexible(endDateStr);
     final due = formatDue(end);
-    final timeLeft = formatTimeLeft(end);
+    final timeLeft = _formatDaysHours(end);
 
     // 첨부 소스: AssignmentAttachments 우선, 없으면 xAssignmentResponseDtos 사용
     List<Map<String, dynamic>> mapAttList(List src) =>
@@ -431,6 +452,7 @@ class _ThaksubsilgajaState extends State<Thaksubsilgaja> {
                         height: height,
                         due: due,
                         timeLeft: timeLeft,
+                        dDay: _buildDDayLabel(end),
                       ),
                       SizedBox(height: height * 0.015),
                       // 서버 첨부 파일 표시

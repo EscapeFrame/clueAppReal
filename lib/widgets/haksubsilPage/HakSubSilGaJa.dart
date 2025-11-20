@@ -90,6 +90,35 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     }
   }
 
+  DateTime? _parseDate(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      return DateTime.parse(raw.replaceAll(' ', 'T')).toLocal();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _formatTimeLeft(DateTime? end) {
+    if (end == null) return '남은 시간 정보 없음';
+    final diff = end.difference(DateTime.now());
+    if (diff.isNegative) return '마감됨';
+    final days = diff.inDays;
+    final hours = diff.inHours - days * 24;
+    final minutes = diff.inMinutes - diff.inHours * 60;
+    if (days > 0) return 'D-$days · ${days}일 ${hours}시간 남음';
+    if (diff.inHours > 0) return '${diff.inHours}시간 ${minutes}분 남음';
+    return '${minutes}분 남음';
+  }
+
+  String _formatDue(DateTime? end) {
+    if (end == null) return '마감일 정보 없음';
+    final y = end.year.toString().padLeft(4, '0');
+    final m = end.month.toString().padLeft(2, '0');
+    final d = end.day.toString().padLeft(2, '0');
+    return '마감일: $y-$m-$d';
+  }
+
   @override
   Widget build(BuildContext context) {
     if (controller.loading) {
@@ -107,15 +136,18 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
         serverAttachments = mapAttachments(a);
       } else if (b.isNotEmpty) {
         serverAttachments = mapAttachments(b);
-      } else {
-        final c = (detail['xAssignmentResponseDtos'] as List?) ?? const [];
-        serverAttachments = mapAttachments(c);
-      }
+    } else {
+      final c = (detail['xAssignmentResponseDtos'] as List?) ?? const [];
+      serverAttachments = mapAttachments(c);
     }
+  }
 
-    final title = (detail?['title'] ?? widget.assignment['title'] ?? '').toString();
-    final dueDateText = "마감일: ${(detail?['endDate'] ?? widget.assignment['due'] ?? '').toString().split('T').first}";
-    final timeLeftText = (widget.assignment['timeLeft'] ?? '').toString();
+  final title = (detail?['title'] ?? widget.assignment['title'] ?? '').toString();
+    final endDateStr =
+        (detail?['endDate'] ?? widget.assignment['endDate'] ?? widget.assignment['due'])?.toString();
+    final endDate = _parseDate(endDateStr);
+    final dueDateText = _formatDue(endDate);
+    final timeLeftText = _formatTimeLeft(endDate);
 
     return Scaffold(
       body: SingleChildScrollView(

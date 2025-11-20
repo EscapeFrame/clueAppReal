@@ -1,13 +1,12 @@
-// 학습실 메타 정보 위젯.
-// 마감일과 남은 시간을 행 형태로 표시합니다.
-
 import 'package:flutter/material.dart';
 
+/// Displays due date and remaining time (with optional D-day chip).
 class AssignmentMeta extends StatelessWidget {
   final double width;
   final double height;
   final String due;
   final String timeLeft;
+  final String? dDay;
 
   const AssignmentMeta({
     super.key,
@@ -15,6 +14,7 @@ class AssignmentMeta extends StatelessWidget {
     required this.height,
     required this.due,
     required this.timeLeft,
+    this.dDay,
   });
 
   @override
@@ -32,7 +32,11 @@ class AssignmentMeta extends StatelessWidget {
         SizedBox(height: height * 0.008),
         Row(
           children: [
-            Icon(Icons.access_time, size: width * 0.04, color: const Color(0xff3B82F6)),
+            Icon(
+              Icons.access_time,
+              size: width * 0.04,
+              color: const Color(0xff3B82F6),
+            ),
             SizedBox(width: width * 0.015),
             Text(
               timeLeft,
@@ -42,6 +46,27 @@ class AssignmentMeta extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
+            if (dDay != null && dDay!.isNotEmpty) ...[
+              SizedBox(width: width * 0.015),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: width * 0.018,
+                  vertical: height * 0.004,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xffE8F0FF),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  dDay!,
+                  style: TextStyle(
+                    fontSize: width * 0.028,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xff2251C5),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ],
