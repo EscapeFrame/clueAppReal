@@ -5,13 +5,12 @@ import 'package:clue/widgets/haksubsil/dialogs/upload_file_dialog.dart';
 import 'package:clue/widgets/haksubsil/dialogs/url_input_dialog.dart';
 import 'package:clue/widgets/haksubsil/state/haksubsil_controller.dart';
 import 'package:clue/widgets/haksubsil/utils/attachment_mapper.dart';
+import 'package:clue/widgets/haksubsil/utils/formatters.dart';
 import 'package:clue/widgets/haksubsil/utils/id_resolver.dart';
 import 'package:clue/widgets/haksubsil/widgets/sections/actions_section.dart';
 import 'package:clue/widgets/haksubsil/widgets/sections/attachments_section.dart';
 import 'package:clue/widgets/haksubsil/widgets/sections/description_section.dart';
 import 'package:clue/widgets/haksubsil/widgets/sections/header_section.dart';
-import 'package:clue/widgets/haksubsil/widgets/sections/uploaded_files_section.dart';
-import 'package:clue/widgets/haksubsil/widgets/sections/uploaded_links_section.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -29,6 +28,9 @@ class Haksubsilgaja extends StatefulWidget {
   @override
   State<Haksubsilgaja> createState() => _HaksubsilgajaState();
 }
+
+/// Legacy alias kept for older callers that still reference `Thaksubsilgaja`.
+typedef Thaksubsilgaja = Haksubsilgaja;
 
 class _HaksubsilgajaState extends State<Haksubsilgaja> {
   final controller = HaksubsilController();
@@ -189,16 +191,6 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     return '마감일: $y-$m-$d';
   }
 
-  String _formatFullDateTime(DateTime? target) {
-    if (target == null) return '일시 정보 ?�음';
-    final y = target.year.toString().padLeft(4, '0');
-    final m = target.month.toString().padLeft(2, '0');
-    final d = target.day.toString().padLeft(2, '0');
-    final h = target.hour.toString().padLeft(2, '0');
-    final minute = target.minute.toString().padLeft(2, '0');
-    return '$y-$m-$d $h:$minute';
-  }
-
   @override
   Widget build(BuildContext context) {
     if (controller.loading) {
@@ -233,6 +225,55 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       }
     }
 
+    final serverFileAttachments =
+        serverAttachments
+            .where(
+              (item) => (item['kind'] ?? '').toString().toUpperCase() == 'FILE',
+            )
+            .toList();
+    final serverLinkAttachments =
+        serverAttachments
+            .where(
+              (item) => (item['kind'] ?? '').toString().toUpperCase() == 'URL',
+            )
+            .toList();
+
+    final localFileAttachments =
+        controller.uploadedFiles
+            .asMap()
+            .entries
+            .map(
+              (entry) => {
+                'name': entry.value.name,
+                'sizeText': formatSize(entry.value.size),
+                'contentType': entry.value.extension ?? 'FILE',
+                'kind': 'FILE',
+                'url': '',
+                'local': true,
+                'localIndex': entry.key,
+              },
+            )
+            .toList();
+    final localLinkAttachments =
+        controller.uploadedUrls
+            .asMap()
+            .entries
+            .map(
+              (entry) => {
+                'name': entry.value,
+                'sizeText': '',
+                'contentType': 'URL',
+                'kind': 'URL',
+                'url': entry.value,
+                'local': true,
+                'localIndex': entry.key,
+              },
+            )
+            .toList();
+
+    final fileAttachments = [...serverFileAttachments, ...localFileAttachments];
+    final linkAttachments = [...serverLinkAttachments, ...localLinkAttachments];
+
     final title =
         (detail?['title'] ?? widget.assignment['title'] ?? '').toString();
     final endDateStr =
@@ -243,13 +284,6 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     final endDate = _parseDate(endDateStr);
     final dueDateText = _formatDue(endDate);
     final timeLeftText = _formatTimeLeft(endDate);
-    final startDateStr =
-        (detail?['startDate'] ?? widget.assignment['startDate'])?.toString();
-    final startDate = _parseDate(startDateStr);
-    final startDateText = _formatFullDateTime(startDate);
-    final ownerName =
-        (detail?['userName'] ?? widget.assignment['userName'] ?? '').toString();
-
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
@@ -269,75 +303,19 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                 onClose: widget.onClose,
               ),
               SizedBox(height: height * 0.03),
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(
-                  horizontal: width * 0.04,
-                  vertical: height * 0.015,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xffF8FAFC),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xffE2E8F0)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.person_outline,
-                          size: width * 0.045,
-                          color: const Color(0xff334155),
-                        ),
-                        SizedBox(width: width * 0.02),
-                        Expanded(
-                          child: Text(
-                            '담당자: ${ownerName.isEmpty ? '정보 없음' : ownerName}',
-                            style: TextStyle(
-                              fontSize: width * 0.034,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: height * 0.012),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.play_circle_outline,
-                          size: width * 0.045,
-                          color: const Color(0xff334155),
-                        ),
-                        SizedBox(width: width * 0.02),
-                        Expanded(
-                          child: Text(
-                            '시작일: $startDateText',
-                            style: TextStyle(
-                              fontSize: width * 0.034,
-                              color: const Color(0xff475569),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: height * 0.025),
-              if (serverAttachments.isNotEmpty)
+              if (fileAttachments.isNotEmpty)
                 AttachmentsSection(
-                  attachments: serverAttachments,
+                  title: '첨부된 파일',
+                  attachments: fileAttachments,
+                ),
+              if (linkAttachments.isNotEmpty)
+                AttachmentsSection(
+                  title: '첨부된 링크',
+                  attachments: linkAttachments,
                   onTap: (f) async {
-                    if ((f['kind'] ?? '') == 'URL') {
-                      final u = Uri.tryParse((f['url'] ?? '').toString());
-                      if (u != null) {
-                        await launchUrl(
-                          u,
-                          mode: LaunchMode.externalApplication,
-                        );
-                      }
+                    final u = Uri.tryParse((f['url'] ?? '').toString());
+                    if (u != null) {
+                      await launchUrl(u, mode: LaunchMode.externalApplication);
                     }
                   },
                 ),
@@ -361,14 +339,6 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                       ),
                 ),
               ],
-              UploadedFilesSection(
-                files: controller.uploadedFiles,
-                onRemove: controller.removeFileAt,
-              ),
-              UploadedLinksSection(
-                urls: controller.uploadedUrls,
-                onRemove: controller.removeUrlAt,
-              ),
               SizedBox(height: height * 0.03),
               DescriptionSection(
                 description:

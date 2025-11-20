@@ -4,8 +4,14 @@ import 'package:flutter/material.dart';
 class AttachmentsSection extends StatelessWidget {
   final List<Map<String, dynamic>> attachments;
   final void Function(Map<String, dynamic> item)? onTap;
+  final String title;
 
-  const AttachmentsSection({super.key, required this.attachments, this.onTap});
+  const AttachmentsSection({
+    super.key,
+    required this.attachments,
+    this.onTap,
+    this.title = '첨부파일',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +22,7 @@ class AttachmentsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '첨부파일',
+          title,
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: width * 0.045,
