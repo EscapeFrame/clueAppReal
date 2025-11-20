@@ -85,7 +85,7 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
           duration: const Duration(milliseconds: 250),
           child:
               showAssignmentDetail
-                  ? Thaksubsilgaja(
+                  ? Haksubsilgaja(
                     key: const ValueKey('assignment-detail'),
                     assignment: selectedAssignment!,
                     onClose: _closeAssignmentDetail,
