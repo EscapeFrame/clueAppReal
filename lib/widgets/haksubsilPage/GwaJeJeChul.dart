@@ -269,7 +269,7 @@ class _GwajejechulState extends State<Gwajejechul> {
                             Icons.description_outlined,
                             color: Color(0xff1F2937),
                           ),
-                          label: const Text('제출 내역 보기'),
+                          label: const Text('과제 보기'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
                             foregroundColor: const Color(0xff1F2937),

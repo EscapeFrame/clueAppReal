@@ -48,7 +48,6 @@ class AttachmentItem extends StatelessWidget {
                 style: TextStyle(
                   fontSize: width * 0.03,
                   color: Colors.blue,
-                  decoration: TextDecoration.underline,
                 ),
               ),
             ),
