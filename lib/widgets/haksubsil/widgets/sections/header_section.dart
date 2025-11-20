@@ -27,47 +27,48 @@ class HeaderSection extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: width * 0.025,
-                vertical: height * 0.005,
-              ),
-              decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xff86C1FF), width: 1.5),
-                color: const Color(0xff86C1FF),
-                borderRadius: BorderRadius.circular(8),
-              ),
+            Expanded(
               child: Text(
-                status,
-                style: TextStyle(fontSize: width * 0.03, color: Colors.black),
+                title,
+                style: TextStyle(
+                  fontSize: width * 0.055,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            IconButton(iconSize: width * 0.06, icon: const Icon(Icons.close), onPressed: onClose),
+            IconButton(
+              iconSize: width * 0.06,
+              icon: const Icon(Icons.close),
+              onPressed: onClose,
+            ),
           ],
         ),
-        const SizedBox(height: 10),
-        Text(
-          title,
-          style: TextStyle(fontSize: width * 0.045, fontWeight: FontWeight.bold),
+
+        Row(
+          children: [
+            Icon(Icons.calendar_today, size: width * 0.04, color: Colors.grey),
+            SizedBox(width: width * 0.015),
+            Text(dueDateText, style: TextStyle(fontSize: width * 0.03)),
+          ],
         ),
-        SizedBox(height: height * 0.012),
-        Row(children: [
-          Icon(Icons.calendar_today, size: width * 0.04, color: Colors.grey),
-          SizedBox(width: width * 0.015),
-          Text(dueDateText, style: TextStyle(fontSize: width * 0.03)),
-        ]),
         SizedBox(height: height * 0.008),
-        Row(children: [
-          Icon(Icons.access_time, size: width * 0.04, color: const Color(0xff3B82F6)),
-          SizedBox(width: width * 0.015),
-          Text(
-            timeLeftText,
-            style: TextStyle(
-              fontSize: width * 0.03,
+        Row(
+          children: [
+            Icon(
+              Icons.access_time,
+              size: width * 0.04,
               color: const Color(0xff3B82F6),
             ),
-          ),
-        ]),
+            SizedBox(width: width * 0.015),
+            Text(
+              timeLeftText,
+              style: TextStyle(
+                fontSize: width * 0.03,
+                color: const Color(0xff3B82F6),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
