@@ -58,9 +58,15 @@ class HeaderSection extends StatelessWidget {
         ]),
         SizedBox(height: height * 0.008),
         Row(children: [
-          Icon(Icons.access_time, size: width * 0.04, color: Colors.blue),
+          Icon(Icons.access_time, size: width * 0.04, color: const Color(0xff3B82F6)),
           SizedBox(width: width * 0.015),
-          Text(timeLeftText, style: TextStyle(fontSize: width * 0.03, color: Colors.blue)),
+          Text(
+            timeLeftText,
+            style: TextStyle(
+              fontSize: width * 0.03,
+              color: const Color(0xff3B82F6),
+            ),
+          ),
         ]),
       ],
     );

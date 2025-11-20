@@ -130,19 +130,28 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     final detail = controller.detail;
     List<Map<String, dynamic>> serverAttachments = const [];
     if (detail != null) {
-      final a = (detail['AssignmentAttachments'] as List?) ?? const [];
-      final b = (detail['attachmentDtos'] as List?) ?? const [];
-      if (a.isNotEmpty) {
-        serverAttachments = mapAttachments(a);
-      } else if (b.isNotEmpty) {
-        serverAttachments = mapAttachments(b);
-    } else {
-      final c = (detail['xAssignmentResponseDtos'] as List?) ?? const [];
-      serverAttachments = mapAttachments(c);
+      final sources = [
+        (detail['submissionAttachmentResponses'] as List?) ?? const [],
+        (detail['AssignmentAttachments'] as List?) ?? const [],
+        (detail['attachmentDtos'] as List?) ?? const [],
+        (detail['xAssignmentResponseDtos'] as List?) ?? const [],
+      ];
+      for (final src in sources) {
+        if (src.isNotEmpty) {
+          serverAttachments = mapAttachments(src);
+          break;
+        }
+      }
     }
-  }
+    // fallback: widget에서 전달된 제출첨부 사용
+    if (serverAttachments.isEmpty) {
+      final fallback = (widget.assignment['submissionAttachmentResponses'] as List?) ?? const [];
+      if (fallback.isNotEmpty) {
+        serverAttachments = mapAttachments(fallback);
+      }
+    }
 
-  final title = (detail?['title'] ?? widget.assignment['title'] ?? '').toString();
+    final title = (detail?['title'] ?? widget.assignment['title'] ?? '').toString();
     final endDateStr =
         (detail?['endDate'] ?? widget.assignment['endDate'] ?? widget.assignment['due'])?.toString();
     final endDate = _parseDate(endDateStr);

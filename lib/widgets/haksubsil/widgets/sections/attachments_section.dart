@@ -33,7 +33,10 @@ class AttachmentsSection extends StatelessWidget {
                     child: Text(
                       (f['name'] ?? '').toString(),
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: width * 0.03, color: Colors.blue, decoration: TextDecoration.underline),
+                      style: TextStyle(
+                        fontSize: width * 0.03,
+                        color: Colors.blue,
+                      ),
                     ),
                   ),
                 ),
