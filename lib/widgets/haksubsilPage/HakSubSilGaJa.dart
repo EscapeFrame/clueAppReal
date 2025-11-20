@@ -34,6 +34,20 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
   final controller = HaksubsilController();
   final GlobalKey _uploadButtonKey = GlobalKey();
 
+  String? _resolveSubmissionId(Map<String, dynamic>? data) {
+    if (data == null) return null;
+    final candidates = [
+      data['submissionId'],
+      data['SubmissionId'],
+      data['submission_id'],
+    ];
+    for (final v in candidates) {
+      final s = v?.toString();
+      if (s != null && s.isNotEmpty) return s;
+    }
+    return null;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -45,15 +59,15 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     controller.error = null;
     setState(() {});
     try {
-      final idStr = resolveAssignmentId(widget.assignment);
-      if (idStr == null) {
+      final submissionId = _resolveSubmissionId(widget.assignment);
+      if (submissionId == null) {
         controller.loading = false;
-        controller.error = '상세 조회 실패(과제 ID 없음)';
+        controller.error = '제출 ID를 찾지 못했습니다.';
         setState(() {});
         return;
       }
       final dio = ApiClient.instance.dio;
-      final res = await dio.get('/api/assignments/$idStr');
+      final res = await dio.get('/api/submissions/assignment/$submissionId');
       if (!mounted) return;
       if (res.statusCode == 200 && res.data is Map) {
         controller.detail = Map<String, dynamic>.from(res.data as Map);

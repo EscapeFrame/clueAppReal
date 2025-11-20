@@ -15,8 +15,8 @@ class ActionsSection extends StatelessWidget {
     required this.onUploadPressed,
     required this.onToggleSubmit,
     this.uploadButtonKey,
-    this.submitButtonLabel = '파일 업로드',
-    this.submittedButtonLabel = '?? ????',
+    this.submitButtonLabel = '과제 제출하기',
+    this.submittedButtonLabel = '제출 취소하기',
   });
 
   @override

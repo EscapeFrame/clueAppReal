@@ -48,25 +48,25 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     controller.error = null;
     setState(() {});
     try {
-      final idStr = resolveAssignmentId(widget.assignment);
-      if (idStr == null) {
+      final assignmentId = resolveAssignmentId(widget.assignment);
+      if (assignmentId == null) {
         controller.loading = false;
-        controller.error = '상세 조회 실패(과제 ID 없음)';
+        controller.error = '\uC0C1\uC138 \uC870\uD68C \uC2E4\uD328(\uACFC\uC81C ID \uC5C6\uC74C)';
         setState(() {});
         return;
       }
       final dio = ApiClient.instance.dio;
-      final res = await dio.get('/api/assignments/$idStr');
+      final res = await dio.get('/api/assignments/$assignmentId');
       if (!mounted) return;
       if (res.statusCode == 200 && res.data is Map) {
         controller.detail = Map<String, dynamic>.from(res.data as Map);
       } else {
-        controller.error = '상세 조회 실패(${res.statusCode})';
+        controller.error = '\uC0C1\uC138 \uC870\uD68C \uC2E4\uD328(${res.statusCode})';
       }
     } on DioException catch (e) {
-      controller.error = '상세 오류: ${e.message}';
+      controller.error = '\uC0C1\uC138 \uC624\uB958: ${e.message}';
     } catch (e) {
-      controller.error = '상세 예외: $e';
+      controller.error = '\uC0C1\uC138 \uC608\uC678: $e';
     } finally {
       controller.loading = false;
       if (mounted) setState(() {});
@@ -448,9 +448,9 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     List<Map<String, dynamic>> serverAttachments = const [];
     if (detail != null) {
       final sources = [
-        (detail['attachmentDtos'] as List?) ?? const [],
-        (detail['AssignmentAttachments'] as List?) ?? const [],
         (detail['submissionAttachmentResponses'] as List?) ?? const [],
+        (detail['AssignmentAttachments'] as List?) ?? const [],
+        (detail['attachmentDtos'] as List?) ?? const [],
         (detail['xAssignmentResponseDtos'] as List?) ?? const [],
       ];
       for (final src in sources) {
