@@ -1215,56 +1215,6 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Padding(
-                                  padding: EdgeInsets.fromLTRB(
-                                    width * 0.04,
-                                    height * 0.02,
-                                    width * 0.04,
-                                    height * 0.01,
-                                  ),
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: width * 0.03,
-                                      vertical: height * 0.015,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xffEEF4FF),
-                                      borderRadius: BorderRadius.circular(
-                                        width * 0.03,
-                                      ),
-                                      border: Border.all(
-                                        color: const Color(0xffC1D7FF),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          width: width * 0.07,
-                                          height: width * 0.07,
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xffD1E4FF),
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: const Icon(
-                                            Icons.info_outline,
-                                            color: Color(0xff4F7BFF),
-                                            size: 20,
-                                          ),
-                                        ),
-                                        SizedBox(width: width * 0.03),
-                                        Expanded(
-                                          child: Text(
-                                            '카드를 클릭하시면 과제에 대한 세부 내용을 확인하실 수 있습니다.',
-                                            style: TextStyle(
-                                              fontSize: width * 0.034,
-                                              color: const Color(0xff1B4ED4),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
                                 Expanded(
                                   child: TeacherGwajeJechul(
                                     dataList: assignments,

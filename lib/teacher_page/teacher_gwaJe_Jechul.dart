@@ -119,197 +119,240 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
     return ListView(
       key: const ValueKey('assignment-list'),
       padding: EdgeInsets.symmetric(vertical: height * 0.01),
-      children:
-          dataList.asMap().entries.map((entry) {
-            final index = entry.key;
-            final data = entry.value;
-            final Color accent = const Color(0xff3B82F6);
-            final String title = (data['title'] ?? '제목 없음').toString();
-            final DateTime? startDate = _tryParseDate(data['startDate']);
-            final DateTime? endDate = _tryParseDate(data['endDate']);
-            final String? dDay = _buildDDayLabel(endDate);
-            final String periodText = _formatPeriod(startDate, endDate);
-
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  final mapped = Map<String, dynamic>.from(data);
-                  selectedAssignment = mapped;
-                  showAssignmentDetail = true;
-                });
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOutCubic,
-                margin: EdgeInsets.symmetric(
-                  horizontal: width * 0.04,
-                  vertical: height * 0.012,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: width * 0.04,
+            vertical: height * 0.01,
+          ),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: width * 0.03,
+              vertical: height * 0.015,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xffEEF4FF),
+              borderRadius: BorderRadius.circular(width * 0.03),
+              border: Border.all(color: const Color(0xffC1D7FF)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: width * 0.07,
+                  height: width * 0.07,
+                  decoration: const BoxDecoration(
+                    color: Color(0xffD1E4FF),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.info_outline,
+                    color: Color(0xff4F7BFF),
+                    size: 20,
+                  ),
                 ),
-                padding: EdgeInsets.all(width * 0.04),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(width * 0.045),
-                  border: Border.all(color: const Color(0xffE5E7EB)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: width * 0.025,
-                      offset: Offset(0, width * 0.01),
+                SizedBox(width: width * 0.03),
+                Expanded(
+                  child: Text(
+                    '카드를 클릭하시면 과제에 대한 세부 내용을 확인하실 수 있습니다.',
+                    style: TextStyle(
+                      fontSize: width * 0.0335,
+                      color: const Color(0xff1B4ED4),
                     ),
-                  ],
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
+              ],
+            ),
+          ),
+        ),
+        ...dataList.asMap().entries.map((entry) {
+          final index = entry.key;
+          final data = entry.value;
+          final Color accent = const Color(0xff3B82F6);
+          final String title = (data['title'] ?? '제목 없음').toString();
+          final DateTime? startDate = _tryParseDate(data['startDate']);
+          final DateTime? endDate = _tryParseDate(data['endDate']);
+          final String? dDay = _buildDDayLabel(endDate);
+          final String periodText = _formatPeriod(startDate, endDate);
+
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                final mapped = Map<String, dynamic>.from(data);
+                selectedAssignment = mapped;
+                showAssignmentDetail = true;
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOutCubic,
+              margin: EdgeInsets.symmetric(
+                horizontal: width * 0.04,
+                vertical: height * 0.012,
+              ),
+              padding: EdgeInsets.all(width * 0.04),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(width * 0.045),
+                border: Border.all(color: const Color(0xffE5E7EB)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: width * 0.025,
+                    offset: Offset(0, width * 0.01),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: width * 0.048,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xff1F2937),
+                          ),
+                        ),
+                      ),
+                      if (dDay != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: accent.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
                           child: Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            dDay,
                             style: TextStyle(
-                              fontSize: width * 0.048,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xff1F2937),
+                              color: accent,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                        if (dDay != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: accent.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              dDay,
-                              style: TextStyle(
-                                color: accent,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                      ],
+                    ],
+                  ),
+                  if (periodText.isNotEmpty) ...[
+                    SizedBox(height: height * 0.008),
+                    Text(
+                      periodText,
+                      style: TextStyle(
+                        fontSize: width * 0.034,
+                        color: const Color(0xff475467),
+                      ),
                     ),
-                    if (periodText.isNotEmpty) ...[
-                      SizedBox(height: height * 0.008),
-                      Text(
-                        periodText,
-                        style: TextStyle(
-                          fontSize: width * 0.034,
-                          color: const Color(0xff475467),
+                  ],
+                  SizedBox(height: height * 0.02),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildMetaTile(
+                          icon: Icons.calendar_today,
+                          label: '시작일',
+                          value: _formatDate(startDate),
+                          color: const Color(0xff4C5674),
+                          width: width,
+                        ),
+                      ),
+                      SizedBox(width: width * 0.02),
+                      Expanded(
+                        child: _buildMetaTile(
+                          icon: Icons.flag,
+                          label: '마감일',
+                          value: _formatDate(endDate),
+                          color: accent,
+                          width: width,
                         ),
                       ),
                     ],
-                    SizedBox(height: height * 0.02),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildMetaTile(
-                            icon: Icons.calendar_today,
-                            label: '시작일',
-                            value: _formatDate(startDate),
-                            color: const Color(0xff4C5674),
-                            width: width,
-                          ),
-                        ),
-                        SizedBox(width: width * 0.02),
-                        Expanded(
-                          child: _buildMetaTile(
-                            icon: Icons.flag,
-                            label: '마감일',
-                            value: _formatDate(endDate),
-                            color: accent,
-                            width: width,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: height * 0.02),
-                    const Divider(height: 1, color: Color(0xffE2E8F0)),
-                    SizedBox(height: height * 0.012),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () async {
-                              final updated = await showEditAssignmentSheet(
-                                context: context,
-                                assignment: dataList[index],
-                              );
-                              if (updated != null) {
-                                setState(() {
-                                  dataList[index] = updated;
-                                });
-                                if (!mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('내용이 업데이트됐어요.')),
-                                );
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: const Color(0xff1F2937),
-                              elevation: 0,
-                              side: const BorderSide(color: Color(0xffE2E8F0)),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  width * 0.028,
-                                ),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                vertical: height * 0.018,
-                              ),
-                            ),
-                            icon: const Icon(
-                              Icons.brush,
-                              color: Color(0xff1F2937),
-                            ),
-                            label: const Text('내용수정'),
-                          ),
-                        ),
-                        SizedBox(width: width * 0.03),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () {
+                  ),
+                  SizedBox(height: height * 0.02),
+                  const Divider(height: 1, color: Color(0xffE2E8F0)),
+                  SizedBox(height: height * 0.012),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            final updated = await showEditAssignmentSheet(
+                              context: context,
+                              assignment: dataList[index],
+                            );
+                            if (updated != null) {
                               setState(() {
-                                selectedAssignment = Map<String, dynamic>.from(
-                                  dataList[index],
-                                );
-                                showTeacherCheck = true;
+                                dataList[index] = updated;
                               });
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xffD1ECFF),
-                              foregroundColor: const Color(0xff0D5DBA),
-                              elevation: 0,
-                              shadowColor: Colors.transparent,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  width * 0.028,
-                                ),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                vertical: height * 0.018,
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('내용이 업데이트됐어요.')),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: const Color(0xff1F2937),
+                            elevation: 0,
+                            side: const BorderSide(color: Color(0xffE2E8F0)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                width * 0.028,
                               ),
                             ),
-                            icon: const Icon(
-                              Icons.assignment_turned_in_outlined,
+                            padding: EdgeInsets.symmetric(
+                              vertical: height * 0.018,
                             ),
-                            label: const Text('확인/채점'),
                           ),
+                          icon: const Icon(
+                            Icons.brush,
+                            color: Color(0xff1F2937),
+                          ),
+                          label: const Text('내용수정'),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                      SizedBox(width: width * 0.03),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              selectedAssignment = Map<String, dynamic>.from(
+                                dataList[index],
+                              );
+                              showTeacherCheck = true;
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xffD1ECFF),
+                            foregroundColor: const Color(0xff0D5DBA),
+                            elevation: 0,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                width * 0.028,
+                              ),
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              vertical: height * 0.018,
+                            ),
+                          ),
+                          icon: const Icon(Icons.assignment_turned_in_outlined),
+                          label: const Text('확인/채점'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            );
-          }).toList(),
+            ),
+          );
+        }).toList(),
+      ],
     );
   }
 
