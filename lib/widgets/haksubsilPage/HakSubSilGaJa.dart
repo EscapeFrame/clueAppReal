@@ -6,11 +6,10 @@ import 'package:clue/widgets/haksubsil/dialogs/url_input_dialog.dart';
 import 'package:clue/widgets/haksubsil/state/haksubsil_controller.dart';
 import 'package:clue/widgets/haksubsil/utils/attachment_mapper.dart';
 import 'package:clue/widgets/haksubsil/utils/id_resolver.dart';
+import 'package:clue/widgets/haksubsil/utils/formatters.dart';
 import 'package:clue/widgets/haksubsil/widgets/sections/actions_section.dart';
 import 'package:clue/widgets/haksubsil/widgets/sections/attachments_section.dart';
 import 'package:clue/widgets/haksubsil/widgets/sections/description_section.dart';
-import 'package:clue/widgets/haksubsil/widgets/sections/uploaded_files_section.dart';
-import 'package:clue/widgets/haksubsil/widgets/sections/uploaded_links_section.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -150,6 +149,13 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       }
     }
     return _resolveSubmissionId(widget.assignment);
+  }
+
+  Future<void> _openAttachmentLink(Map<String, dynamic> attachment) async {
+    final url = Uri.tryParse((attachment['url'] ?? '').toString());
+    if (url != null) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
   }
 
   @override
@@ -302,6 +308,150 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     }
   }
 
+  Future<bool> _confirmAttachmentDeletion(String name) async {
+    final width = MediaQuery.of(context).size.width;
+    return await showDialog<bool>(
+          context: context,
+          builder:
+              (ctx) => Dialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                insetPadding: EdgeInsets.symmetric(
+                  horizontal: width * 0.08,
+                  vertical: width * 0.04,
+                ),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '첨부 삭제',
+                            style: TextStyle(
+                              fontSize: width * 0.045,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(ctx, false),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "'$name' 첨부를 삭제하시겠습니까?",
+                        style: TextStyle(
+                          fontSize: width * 0.038,
+                          color: const Color(0xff4B5563),
+                          height: 1.45,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              style: OutlinedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: width * 0.028,
+                                ),
+                                side: const BorderSide(
+                                  color: Color(0xffCBD5F5),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text('취소'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: width * 0.028,
+                                ),
+                                backgroundColor: const Color(0xffEF4444),
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text('삭제'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+        ) ??
+        false;
+  }
+
+  Future<void> _handleServerSubmissionAttachmentRemoval({
+    required String attachmentId,
+    required String name,
+  }) async {
+    final confirmed = await _confirmAttachmentDeletion(name);
+    if (!confirmed) return;
+    try {
+      final dio = ApiClient.instance.dio;
+      await dio.delete('/api/submissions/$attachmentId');
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('첨부가 삭제되었습니다.')));
+      await _loadDetail();
+    } on DioException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('삭제 실패: ${e.message ?? '알 수 없는 오류'}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('삭제 실패: $e')));
+    }
+  }
+
+  List<Map<String, dynamic>> _decorateSubmissionAttachments(
+    List<Map<String, dynamic>> attachments,
+  ) {
+    return attachments.map((item) {
+      final copy = Map<String, dynamic>.from(item);
+      final attachmentId = (copy['attachmentId'] ?? '').toString();
+      final displayName = (copy['name'] ?? '첨부파일').toString();
+      if (attachmentId.isNotEmpty) {
+        copy['onRemove'] = () {
+          _handleServerSubmissionAttachmentRemoval(
+            attachmentId: attachmentId,
+            name: displayName,
+          );
+        };
+      }
+      return copy;
+    }).toList();
+  }
+
   Future<void> _submitPendingAttachments() async {
     final submissionId = _resolveCurrentSubmissionId();
     if (submissionId == null) {
@@ -413,41 +563,111 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     final height = MediaQuery.of(context).size.height;
 
     final detail = controller.detail;
-    List<Map<String, dynamic>> serverAttachments = [];
+    List<Map<String, dynamic>> assignmentAttachments = [];
+    List<Map<String, dynamic>> submissionAttachments = [];
     if (detail != null) {
       final submissionResponses =
           (detail['submissionAttachmentResponses'] as List?) ?? const [];
       if (submissionResponses.isNotEmpty) {
-        serverAttachments.addAll(mapAttachments(submissionResponses));
+        submissionAttachments = _decorateSubmissionAttachments(
+          mapAttachments(submissionResponses),
+        );
       }
-      if (serverAttachments.isEmpty) {
-        final sources = [
-          (detail['AssignmentAttachments'] as List?) ?? const [],
-          (detail['attachmentDtos'] as List?) ?? const [],
-          (detail['xAssignmentResponseDtos'] as List?) ?? const [],
-        ];
-        for (final src in sources) {
-          if (src.isNotEmpty) {
-            serverAttachments = mapAttachments(src);
-            break;
-          }
+      final sources = [
+        (detail['AssignmentAttachments'] as List?) ?? const [],
+        (detail['attachmentDtos'] as List?) ?? const [],
+        (detail['xAssignmentResponseDtos'] as List?) ?? const [],
+      ];
+      for (final src in sources) {
+        if (src.isNotEmpty) {
+          assignmentAttachments = mapAttachments(src);
+          break;
         }
       }
     }
     // fallback: widget에서 전달된 제출첨부 사용
-    if (serverAttachments.isEmpty && _assignmentAttachments.isNotEmpty) {
-      serverAttachments = List<Map<String, dynamic>>.from(
+    if (assignmentAttachments.isEmpty && _assignmentAttachments.isNotEmpty) {
+      assignmentAttachments = List<Map<String, dynamic>>.from(
         _assignmentAttachments,
       );
     }
-    if (serverAttachments.isEmpty) {
-      final fallback =
-          (widget.assignment['submissionAttachmentResponses'] as List?) ??
+    if (assignmentAttachments.isEmpty) {
+      final assignmentFallback =
+          (widget.assignment['attachmentDtos'] as List?) ??
+          (widget.assignment['AssignmentAttachments'] as List?) ??
           const [];
-      if (fallback.isNotEmpty) {
-        serverAttachments = mapAttachments(fallback);
+      if (assignmentFallback.isNotEmpty) {
+        assignmentAttachments = mapAttachments(assignmentFallback);
       }
     }
+    if (submissionAttachments.isEmpty) {
+      final submissionFallback =
+          (widget.assignment['submissionAttachmentResponses'] as List?) ??
+          const [];
+      if (submissionFallback.isNotEmpty) {
+        submissionAttachments = _decorateSubmissionAttachments(
+          mapAttachments(submissionFallback),
+        );
+      }
+    }
+    final submissionFileAttachments =
+        submissionAttachments
+            .where(
+              (item) => (item['kind'] ?? '').toString().toUpperCase() == 'FILE',
+            )
+            .toList();
+    final submissionLinkAttachments =
+        submissionAttachments
+            .where(
+              (item) => (item['kind'] ?? '').toString().toUpperCase() == 'URL',
+            )
+            .toList();
+    final localFileAttachments =
+        controller.uploadedFiles.asMap().entries.map((entry) {
+          final file = entry.value;
+          return <String, dynamic>{
+            'name': file.name,
+            'sizeText': formatSize(file.size),
+            'contentType': file.extension ?? 'FILE',
+            'kind': 'FILE',
+            'url': '',
+            'onRemove': () async {
+              final confirmed = await _confirmAttachmentDeletion(file.name);
+              if (!confirmed) return;
+              if (!mounted) return;
+              setState(() {
+                controller.removeFileAt(entry.key);
+              });
+            },
+          };
+        }).toList();
+    final localLinkAttachments =
+        controller.uploadedUrls.asMap().entries.map((entry) {
+          final url = entry.value;
+          return <String, dynamic>{
+            'name': url,
+            'sizeText': '',
+            'contentType': 'URL',
+            'kind': 'URL',
+            'url': url,
+            'onRemove': () async {
+              final confirmed = await _confirmAttachmentDeletion(url);
+              if (!confirmed) return;
+              if (!mounted) return;
+              setState(() {
+                controller.removeUrlAt(entry.key);
+              });
+            },
+          };
+        }).toList();
+    final uploadedFileAttachments = [
+      ...submissionFileAttachments,
+      ...localFileAttachments,
+    ];
+    final uploadedLinkAttachments = [
+      ...submissionLinkAttachments,
+      ...localLinkAttachments,
+    ];
 
     final title =
         (detail?['title'] ?? widget.assignment['title'] ?? '').toString();
@@ -493,20 +713,27 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                 submissionStateColor: submissionBadgeColor,
               ),
               SizedBox(height: height * 0.03),
-              if (serverAttachments.isNotEmpty)
+              if (assignmentAttachments.isNotEmpty)
                 AttachmentsSection(
-                  attachments: serverAttachments,
-                  onTap: (f) async {
-                    if ((f['kind'] ?? '') == 'URL') {
-                      final u = Uri.tryParse((f['url'] ?? '').toString());
-                      if (u != null) {
-                        await launchUrl(
-                          u,
-                          mode: LaunchMode.externalApplication,
-                        );
-                      }
+                  title: '첨부파일',
+                  attachments: assignmentAttachments,
+                  onTap: (item) {
+                    if ((item['kind'] ?? '').toString().toUpperCase() ==
+                        'URL') {
+                      _openAttachmentLink(item);
                     }
                   },
+                ),
+              if (uploadedFileAttachments.isNotEmpty)
+                AttachmentsSection(
+                  title: '업로드한 파일',
+                  attachments: uploadedFileAttachments,
+                ),
+              if (uploadedLinkAttachments.isNotEmpty)
+                AttachmentsSection(
+                  title: '업로드한 링크',
+                  attachments: uploadedLinkAttachments,
+                  onTap: (item) => _openAttachmentLink(item),
                 ),
               if ((widget.assignment['results'] as List?)?.isNotEmpty ==
                   true) ...[
@@ -528,14 +755,6 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                       ),
                 ),
               ],
-              UploadedFilesSection(
-                files: controller.uploadedFiles,
-                onRemove: controller.removeFileAt,
-              ),
-              UploadedLinksSection(
-                urls: controller.uploadedUrls,
-                onRemove: controller.removeUrlAt,
-              ),
               SizedBox(height: height * 0.03),
               DescriptionSection(
                 description:

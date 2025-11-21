@@ -5,12 +5,14 @@ class AttachmentsSection extends StatelessWidget {
   final List<Map<String, dynamic>> attachments;
   final void Function(Map<String, dynamic> item)? onTap;
   final String title;
+  final double verticalPaddingFactor;
 
   const AttachmentsSection({
     super.key,
     required this.attachments,
     this.onTap,
     this.title = '첨부파일',
+    this.verticalPaddingFactor = 0.024,
   });
 
   @override
@@ -35,7 +37,7 @@ class AttachmentsSection extends StatelessWidget {
             margin: EdgeInsets.only(bottom: height * 0.007),
             padding: EdgeInsets.symmetric(
               horizontal: width * 0.035,
-              vertical: width * 0.03,
+              vertical: width * verticalPaddingFactor,
             ),
             decoration: BoxDecoration(
               color: const Color(0xFFF5F5F5),
