@@ -12,6 +12,7 @@ import 'package:clue/widgets/haksubsil/widgets/sections/description_section.dart
 import 'package:clue/widgets/haksubsil/widgets/sections/uploaded_files_section.dart';
 import 'package:clue/widgets/haksubsil/widgets/sections/uploaded_links_section.dart';
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -138,6 +139,17 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       if (asNum != null) return asNum != 0;
     }
     return false;
+  }
+
+  String? _resolveCurrentSubmissionId() {
+    final detailMap = controller.detail;
+    if (detailMap != null) {
+      final resolved = _resolveSubmissionId(detailMap);
+      if (resolved != null && resolved.isNotEmpty) {
+        return resolved;
+      }
+    }
+    return _resolveSubmissionId(widget.assignment);
   }
 
   @override
@@ -290,6 +302,79 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     }
   }
 
+  Future<void> _submitPendingAttachments() async {
+    final submissionId = _resolveCurrentSubmissionId();
+    if (submissionId == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('제출 ID를 찾지 못했습니다.')));
+      return;
+    }
+    if (controller.uploadedFiles.isEmpty && controller.uploadedUrls.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('제출할 첨부가 없습니다.')));
+      return;
+    }
+    final dio = ApiClient.instance.dio;
+    try {
+      if (controller.uploadedUrls.isNotEmpty) {
+        final payload =
+            controller.uploadedUrls.map((url) => {'url': url}).toList();
+        await dio.post('/api/submissions/$submissionId/link', data: payload);
+      }
+      if (controller.uploadedFiles.isNotEmpty) {
+        final formData = FormData();
+        for (final file in controller.uploadedFiles) {
+          final multipart = await _platformFileToMultipart(file);
+          if (multipart != null) {
+            formData.files.add(MapEntry('files', multipart));
+          }
+        }
+        if (formData.files.isNotEmpty) {
+          await dio.post('/api/submissions/$submissionId/file', data: formData);
+        }
+      }
+      setState(() {
+        controller.uploadedFiles.clear();
+        controller.uploadedUrls.clear();
+        controller.submitted = true;
+      });
+      controller.notifyListeners();
+      await _loadDetail();
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('제출되었습니다.')));
+    } on DioException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('제출 실패: ${e.message ?? '알 수 없는 오류'}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('제출 실패: $e')));
+    }
+  }
+
+  Future<MultipartFile?> _platformFileToMultipart(PlatformFile file) async {
+    try {
+      if (file.path != null) {
+        return await MultipartFile.fromFile(file.path!, filename: file.name);
+      }
+      if (file.bytes != null) {
+        return MultipartFile.fromBytes(file.bytes!, filename: file.name);
+      }
+    } catch (_) {
+      return null;
+    }
+    return null;
+  }
+
   DateTime? _parseDate(String? raw) {
     if (raw == null || raw.isEmpty) return null;
     try {
@@ -328,22 +413,33 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     final height = MediaQuery.of(context).size.height;
 
     final detail = controller.detail;
-    List<Map<String, dynamic>> serverAttachments = _assignmentAttachments;
-    if (serverAttachments.isEmpty && detail != null) {
-      final sources = [
-        (detail['submissionAttachmentResponses'] as List?) ?? const [],
-        (detail['AssignmentAttachments'] as List?) ?? const [],
-        (detail['attachmentDtos'] as List?) ?? const [],
-        (detail['xAssignmentResponseDtos'] as List?) ?? const [],
-      ];
-      for (final src in sources) {
-        if (src.isNotEmpty) {
-          serverAttachments = mapAttachments(src);
-          break;
+    List<Map<String, dynamic>> serverAttachments = [];
+    if (detail != null) {
+      final submissionResponses =
+          (detail['submissionAttachmentResponses'] as List?) ?? const [];
+      if (submissionResponses.isNotEmpty) {
+        serverAttachments.addAll(mapAttachments(submissionResponses));
+      }
+      if (serverAttachments.isEmpty) {
+        final sources = [
+          (detail['AssignmentAttachments'] as List?) ?? const [],
+          (detail['attachmentDtos'] as List?) ?? const [],
+          (detail['xAssignmentResponseDtos'] as List?) ?? const [],
+        ];
+        for (final src in sources) {
+          if (src.isNotEmpty) {
+            serverAttachments = mapAttachments(src);
+            break;
+          }
         }
       }
     }
     // fallback: widget에서 전달된 제출첨부 사용
+    if (serverAttachments.isEmpty && _assignmentAttachments.isNotEmpty) {
+      serverAttachments = List<Map<String, dynamic>>.from(
+        _assignmentAttachments,
+      );
+    }
     if (serverAttachments.isEmpty) {
       final fallback =
           (widget.assignment['submissionAttachmentResponses'] as List?) ??
@@ -560,7 +656,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                         ),
                   );
                   if (confirmed == true) {
-                    setState(controller.toggleSubmitted);
+                    await _submitPendingAttachments();
                   }
                 },
                 uploadButtonKey: _uploadButtonKey,
