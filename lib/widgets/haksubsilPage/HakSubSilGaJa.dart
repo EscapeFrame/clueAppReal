@@ -33,6 +33,7 @@ class Haksubsilgaja extends StatefulWidget {
 class _HaksubsilgajaState extends State<Haksubsilgaja> {
   final controller = HaksubsilController();
   final GlobalKey _uploadButtonKey = GlobalKey();
+  List<Map<String, dynamic>> _assignmentAttachments = const [];
 
   String? _resolveSubmissionId(Map<String, dynamic>? data) {
     if (data == null) return null;
@@ -57,22 +58,42 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
   Future<void> _loadDetail() async {
     controller.loading = true;
     controller.error = null;
+    List<Map<String, dynamic>> assignmentAttachments = const [];
     setState(() {});
     try {
       final submissionId = _resolveSubmissionId(widget.assignment);
-      if (submissionId == null) {
-        controller.loading = false;
-        controller.error = '제출 ID를 찾지 못했습니다.';
-        setState(() {});
-        return;
-      }
+      Map<String, dynamic>? submissionDetail;
       final dio = ApiClient.instance.dio;
-      final res = await dio.get('/api/submissions/assignment/$submissionId');
-      if (!mounted) return;
-      if (res.statusCode == 200 && res.data is Map) {
-        controller.detail = Map<String, dynamic>.from(res.data as Map);
-      } else {
-        controller.error = '상세 조회 실패(${res.statusCode})';
+      if (submissionId == null) {
+        controller.error = '제출 ID를 찾지 못했습니다.';
+      }
+      if (submissionId != null) {
+        final res = await dio.get('/api/submissions/assignment/$submissionId');
+        if (!mounted) return;
+        if (res.statusCode == 200 && res.data is Map) {
+          final detailMap = Map<String, dynamic>.from(res.data as Map);
+          submissionDetail = detailMap;
+          controller.detail = detailMap;
+        } else {
+          controller.error = '상세 조회 실패(${res.statusCode})';
+        }
+      }
+      String? assignmentId;
+      if (submissionDetail != null) {
+        assignmentId = resolveAssignmentId(submissionDetail!);
+      }
+      assignmentId ??= resolveAssignmentId(widget.assignment);
+      if (assignmentId != null) {
+        final assignmentRes = await dio.get('/api/assignments/$assignmentId');
+        if (!mounted) return;
+        if (assignmentRes.statusCode == 200 && assignmentRes.data is Map) {
+          final dtoList =
+              ((assignmentRes.data as Map)['attachmentDtos'] as List?) ??
+              const [];
+          if (dtoList.isNotEmpty) {
+            assignmentAttachments = mapAttachments(dtoList);
+          }
+        }
       }
     } on DioException catch (e) {
       controller.error = '상세 오류: ${e.message}';
@@ -80,7 +101,11 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       controller.error = '상세 예외: $e';
     } finally {
       controller.loading = false;
-      if (mounted) setState(() {});
+      if (mounted) {
+        setState(() {
+          _assignmentAttachments = assignmentAttachments;
+        });
+      }
     }
   }
 
@@ -212,8 +237,8 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     final height = MediaQuery.of(context).size.height;
 
     final detail = controller.detail;
-    List<Map<String, dynamic>> serverAttachments = const [];
-    if (detail != null) {
+    List<Map<String, dynamic>> serverAttachments = _assignmentAttachments;
+    if (serverAttachments.isEmpty && detail != null) {
       final sources = [
         (detail['submissionAttachmentResponses'] as List?) ?? const [],
         (detail['AssignmentAttachments'] as List?) ?? const [],

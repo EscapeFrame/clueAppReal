@@ -34,8 +34,8 @@ class AttachmentsSection extends StatelessWidget {
           return Container(
             margin: EdgeInsets.only(bottom: height * 0.007),
             padding: EdgeInsets.symmetric(
-              horizontal: width * 0.02,
-              vertical: width * 0.009,
+              horizontal: width * 0.035,
+              vertical: width * 0.03,
             ),
             decoration: BoxDecoration(
               color: const Color(0xFFF5F5F5),
@@ -73,13 +73,16 @@ class AttachmentsSection extends StatelessWidget {
                       color: Colors.grey,
                     ),
                   ),
-                IconButton(
-                  icon: const Icon(Icons.close, size: 16),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  splashRadius: width * 0.04,
-                  onPressed: removeCallback,
-                ),
+                if (removeCallback != null)
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 16),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    splashRadius: width * 0.04,
+                    onPressed: removeCallback,
+                  )
+                else
+                  SizedBox(width: width * 0.04),
               ],
             ),
           );
