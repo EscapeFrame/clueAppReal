@@ -9,7 +9,6 @@ import 'package:clue/widgets/haksubsil/utils/id_resolver.dart';
 import 'package:clue/widgets/haksubsil/widgets/sections/actions_section.dart';
 import 'package:clue/widgets/haksubsil/widgets/sections/attachments_section.dart';
 import 'package:clue/widgets/haksubsil/widgets/sections/description_section.dart';
-import 'package:clue/widgets/haksubsil/widgets/sections/header_section.dart';
 import 'package:clue/widgets/haksubsil/widgets/sections/uploaded_files_section.dart';
 import 'package:clue/widgets/haksubsil/widgets/sections/uploaded_links_section.dart';
 import 'package:dio/dio.dart';
@@ -35,6 +34,85 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
   final GlobalKey _uploadButtonKey = GlobalKey();
   List<Map<String, dynamic>> _assignmentAttachments = const [];
 
+  Widget _buildDetailHeader({
+    required BuildContext context,
+    required String title,
+    required String dueDateText,
+    required String timeLeftText,
+    required VoidCallback onClose,
+    required String submissionStateLabel,
+    required Color submissionStateColor,
+  }) {
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: width * 0.022,
+                vertical: width * 0.007,
+              ),
+              decoration: BoxDecoration(
+                color: submissionStateColor.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(width * 0.03),
+              ),
+              child: Text(
+                submissionStateLabel,
+                style: TextStyle(
+                  fontSize: width * 0.03,
+                  fontWeight: FontWeight.w600,
+                  color: submissionStateColor,
+                ),
+              ),
+            ),
+            IconButton(
+              iconSize: width * 0.06,
+              icon: const Icon(Icons.close),
+              onPressed: onClose,
+            ),
+          ],
+        ),
+        SizedBox(height: height * 0.001),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: width * 0.055,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Row(
+          children: [
+            Icon(Icons.calendar_today, size: width * 0.04, color: Colors.grey),
+            SizedBox(width: width * 0.015),
+            Text(dueDateText, style: TextStyle(fontSize: width * 0.03)),
+          ],
+        ),
+        SizedBox(height: height * 0.008),
+        Row(
+          children: [
+            Icon(
+              Icons.access_time,
+              size: width * 0.04,
+              color: const Color(0xff3B82F6),
+            ),
+            SizedBox(width: width * 0.015),
+            Text(
+              timeLeftText,
+              style: TextStyle(
+                fontSize: width * 0.03,
+                color: const Color(0xff3B82F6),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   String? _resolveSubmissionId(Map<String, dynamic>? data) {
     if (data == null) return null;
     final candidates = [
@@ -47,6 +125,19 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       if (s != null && s.isNotEmpty) return s;
     }
     return null;
+  }
+
+  bool _parseBool(dynamic value) {
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    if (value is String) {
+      final lower = value.toLowerCase();
+      if (lower == 'true') return true;
+      if (lower == 'false') return false;
+      final asNum = double.tryParse(lower);
+      if (asNum != null) return asNum != 0;
+    }
+    return false;
   }
 
   @override
@@ -272,6 +363,18 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     final endDate = _parseDate(endDateStr);
     final dueDateText = _formatDue(endDate);
     final timeLeftText = _formatTimeLeft(endDate);
+    bool submissionState = controller.submitted;
+    final dynamic submissionRaw =
+        detail?['IsSubmitted'] ??
+        detail?['isSubmitted'] ??
+        widget.assignment['IsSubmitted'] ??
+        widget.assignment['isSubmitted'];
+    if (submissionRaw != null) {
+      submissionState = _parseBool(submissionRaw);
+    }
+    final submissionBadgeLabel = submissionState ? '제출됨' : '미제출';
+    final submissionBadgeColor =
+        submissionState ? const Color(0xff16A34A) : const Color(0xffDC2626);
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -284,12 +387,14 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              HeaderSection(
-                status: (widget.assignment['status'] ?? '').toString(),
+              _buildDetailHeader(
+                context: context,
                 title: title,
                 dueDateText: dueDateText,
                 timeLeftText: timeLeftText,
                 onClose: widget.onClose,
+                submissionStateLabel: submissionBadgeLabel,
+                submissionStateColor: submissionBadgeColor,
               ),
               SizedBox(height: height * 0.03),
               if (serverAttachments.isNotEmpty)
