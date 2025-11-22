@@ -1395,31 +1395,72 @@ class _AlarmState extends State<Alarm> {
             duration: const Duration(milliseconds: 200),
           ),
           const SizedBox(height: 16),
-          TextField(
-            controller: titleController,
-            enabled: enabled,
-            decoration: const InputDecoration(
-              labelText: '제목',
-              hintText: '예) 2025년 학사일정 안내',
-              border: OutlineInputBorder(),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF0077FF)),
-              ),
+          Container(
+            margin: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9FBFF),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '제목',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF475569),
+                  ),
+                ),
+                TextField(
+                  controller: titleController,
+                  enabled: enabled,
+                  decoration: const InputDecoration(
+                    hintText: '예) 2025년 학사일정 안내',
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 16),
-          TextField(
-            controller: contentController,
-            enabled: enabled,
-            minLines: 5,
-            maxLines: 10,
-            decoration: const InputDecoration(
-              labelText: '내용',
-              hintText: '공지 내용을 입력해 주세요.',
-              border: OutlineInputBorder(),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF0077FF)),
-              ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9FBFF),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '내용',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF475569),
+                  ),
+                ),
+                TextField(
+                  controller: contentController,
+                  enabled: enabled,
+                  minLines: 5,
+                  maxLines: 10,
+                  decoration: const InputDecoration(
+                    hintText: '공지 내용을 입력해 주세요.',
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
