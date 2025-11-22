@@ -461,13 +461,6 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       ).showSnackBar(const SnackBar(content: Text('제출 ID를 찾지 못했습니다.')));
       return;
     }
-    if (controller.uploadedFiles.isEmpty && controller.uploadedUrls.isEmpty) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('제출할 첨부가 없습니다.')));
-      return;
-    }
     final dio = ApiClient.instance.dio;
     try {
       if (controller.uploadedUrls.isNotEmpty) {
@@ -769,6 +762,14 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                 onUploadPressed: _handleUploadMenu,
                 onToggleSubmit: () async {
                   final width = MediaQuery.of(context).size.width;
+                  final hasPendingUploads =
+                      controller.uploadedFiles.isNotEmpty ||
+                      controller.uploadedUrls.isNotEmpty;
+                  final dialogTitle = hasPendingUploads ? '제출 확인' : '안내';
+                  final dialogMessage =
+                      hasPendingUploads
+                          ? '과제 제출을 완료하시겠습니까?'
+                          : '업로드한 파일이 없습니다.\n제출하시겠습니까?';
                   final confirmed = await showDialog<bool>(
                     context: context,
                     builder:
@@ -795,7 +796,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      '제출 확인',
+                                      dialogTitle,
                                       style: TextStyle(
                                         fontSize: width * 0.045,
                                         fontWeight: FontWeight.w700,
@@ -812,7 +813,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  '정말 과제를 제출하시겠습니까?',
+                                  dialogMessage,
                                   style: TextStyle(
                                     fontSize: width * 0.038,
                                     color: const Color(0xff4B5563),
