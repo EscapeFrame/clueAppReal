@@ -384,25 +384,6 @@ class _TeacherCheckState extends State<TeacherCheck> {
                               ),
                             ),
                           ),
-                          SizedBox(width: width * 0.1),
-
-                          GestureDetector(
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('${student['name']} 학생 채점하기'),
-                                ),
-                              );
-                            },
-                            child: Text(
-                              '채점하기',
-                              style: TextStyle(
-                                color: Color(0xFF3A7BFF),
-                                fontWeight: FontWeight.w500,
-                                fontSize: width * 0.04,
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     );
