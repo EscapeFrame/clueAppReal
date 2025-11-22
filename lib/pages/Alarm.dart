@@ -1234,6 +1234,9 @@ class _AlarmState extends State<Alarm> {
                                             : () {
                                               Navigator.of(dialogContext).pop();
                                             },
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.black87,
+                                    ),
                                     child: const Text('취소'),
                                   ),
                                 ),
@@ -1262,6 +1265,7 @@ class _AlarmState extends State<Alarm> {
                                               '확인',
                                               style: TextStyle(
                                                 fontWeight: FontWeight.w700,
+                                                color: Colors.white,
                                               ),
                                             ),
                                   ),
