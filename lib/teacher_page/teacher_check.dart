@@ -18,6 +18,9 @@ class _TeacherCheckState extends State<TeacherCheck> {
   String selectedClass = '반';
   String searchText = '';
   List<Map<String, dynamic>> filteredStudents = [];
+  List<Map<String, dynamic>> _allStudents = [];
+  bool _studentsLoading = false;
+  String? _studentsError;
   String? _assignmentTitle;
   DateTime? _assignmentEndDate;
   bool _detailLoading = false;
@@ -83,10 +86,12 @@ class _TeacherCheckState extends State<TeacherCheck> {
   @override
   void initState() {
     super.initState();
-    filteredStudents = TeacherData.getStudentJechul();
+    _allStudents = TeacherData.getStudentJechul();
+    filteredStudents = List<Map<String, dynamic>>.from(_allStudents);
     final idStr = (widget.assignmentId ?? '').toString();
     if (idStr.isNotEmpty) {
       _fetchAssignmentDetail(idStr);
+      _fetchSubmissions(idStr);
     }
   }
 
@@ -97,31 +102,100 @@ class _TeacherCheckState extends State<TeacherCheck> {
     final prevId = (oldWidget.assignmentId ?? '').toString();
     if (currentId.isNotEmpty && currentId != prevId) {
       _fetchAssignmentDetail(currentId);
+      _fetchSubmissions(currentId);
     }
   }
 
-  void filterStudents() {
+  void _updateFilteredStudents() {
+    final source = _allStudents;
+    final searchLower = searchText.toLowerCase();
+    filteredStudents =
+        source.where((student) {
+          final name = student['name']?.toString().toLowerCase() ?? '';
+          final number = student['number']?.toString().toLowerCase() ?? '';
+          final isSubmitted = student['submitted'] == true;
+          final matchesSearch =
+              name.contains(searchLower) || number.contains(searchLower);
+          bool matchesStatus = true;
+          if (selectedStatus == '제출완료') {
+            matchesStatus = isSubmitted;
+          } else if (selectedStatus == '미제출') {
+            matchesStatus = !isSubmitted;
+          }
+          return matchesSearch && matchesStatus;
+        }).toList();
+  }
+
+  Future<void> _fetchSubmissions(String idStr) async {
     setState(() {
-      filteredStudents =
-          TeacherData.getStudentJechul().where((student) {
-            final name = student['name'].toString().toLowerCase();
-            final number = student['number'].toString().toLowerCase();
-            final searchLower = searchText.toLowerCase();
-            final isSubmitted = student['submitted'] as bool;
-
-            final matchesSearch =
-                name.contains(searchLower) || number.contains(searchLower);
-
-            bool matchesStatus = true;
-            if (selectedStatus == '제출완료') {
-              matchesStatus = isSubmitted;
-            } else if (selectedStatus == '미제출') {
-              matchesStatus = !isSubmitted;
-            }
-
-            return matchesSearch && matchesStatus;
-          }).toList();
+      _studentsLoading = true;
+      _studentsError = null;
     });
+    try {
+      final dio = ApiClient.instance.dio;
+      final res = await dio.get('/api/submissions/$idStr/check');
+      if (!mounted) return;
+      if (res.statusCode == 200 && res.data is List) {
+        debugPrint('Submission check response: ${res.data}');
+        final list =
+            (res.data as List)
+                .map((item) {
+                  if (item is Map) {
+                    final map = Map<String, dynamic>.from(item);
+                    final grade = map['grade'];
+                    final classNo = map['classNo'];
+                    final number = map['number'];
+                    final numberStr =
+                        number == null
+                            ? ''
+                            : number is int
+                            ? number.toString().padLeft(2, '0')
+                            : number.toString().padLeft(2, '0');
+                    final formattedNumber =
+                        [
+                          grade != null ? grade.toString() : '',
+                          classNo != null ? classNo.toString() : '',
+                          numberStr,
+                        ].join();
+                    return {
+                      'number': formattedNumber,
+                      'name': map['userName']?.toString() ?? '',
+                      'submitted': map['isSubmitted'] == true,
+                      'submittedAt': map['submittedAt']?.toString(),
+                      'grade': map['grade'],
+                      'classNo': map['classNo'],
+                      'submissionId': map['submissionId']?.toString(),
+                    };
+                  }
+                  return null;
+                })
+                .whereType<Map<String, dynamic>>()
+                .toList();
+        setState(() {
+          _allStudents = list;
+          _updateFilteredStudents();
+          _studentsLoading = false;
+          _studentsError = null;
+        });
+      } else {
+        setState(() {
+          _studentsLoading = false;
+          _studentsError = '제출 정보를 불러오지 못했습니다 (${res.statusCode}).';
+        });
+      }
+    } on DioException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _studentsLoading = false;
+        _studentsError = e.message ?? '제출 정보를 불러오지 못했습니다.';
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _studentsLoading = false;
+        _studentsError = '제출 정보를 불러오지 못했습니다: $e';
+      });
+    }
   }
 
   @override
@@ -214,8 +288,8 @@ class _TeacherCheckState extends State<TeacherCheck> {
               _buildDropdown(selectedStatus, ['상태', '제출완료', '미제출'], (val) {
                 setState(() {
                   selectedStatus = val!;
+                  _updateFilteredStudents();
                 });
-                filterStudents();
               }),
               SizedBox(height: height * 0.02),
 
@@ -249,8 +323,8 @@ class _TeacherCheckState extends State<TeacherCheck> {
                 onChanged: (value) {
                   setState(() {
                     searchText = value;
+                    _updateFilteredStudents();
                   });
-                  filterStudents();
                 },
               ),
               SizedBox(height: height * 0.02),
