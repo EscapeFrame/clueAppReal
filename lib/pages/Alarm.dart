@@ -1533,7 +1533,13 @@ class _NoticeDialogSection extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              TextButton(onPressed: onAction, child: Text(actionLabel)),
+              TextButton(
+                onPressed: onAction,
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF0077FF),
+                ),
+                child: Text(actionLabel),
+              ),
             ],
           ),
           if (description != null) ...[
