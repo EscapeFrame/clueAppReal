@@ -13,6 +13,7 @@ class Alarm extends StatefulWidget {
 
 class _AlarmState extends State<Alarm> {
   int _selectedCategory = 0;
+  String? _userRole;
   final List<_NoticeCategory> _categories = const [
     _NoticeCategory(label: '학교공지', type: 'SCHOOL'),
     _NoticeCategory(label: '설정안내', type: 'SETTING'),
@@ -27,6 +28,7 @@ class _AlarmState extends State<Alarm> {
   void initState() {
     super.initState();
     _fetchNotices();
+    _fetchUserRole();
   }
 
   Future<void> _fetchNotices() async {
@@ -59,6 +61,29 @@ class _AlarmState extends State<Alarm> {
     } catch (e) {
       debugPrint('공지 알 수 없는 오류: $e');
     }
+  }
+
+  Future<void> _fetchUserRole() async {
+    try {
+      final dio = ApiClient.instance.dio;
+      final res = await dio.get('/api/user/me');
+      final data = _coerceToMap(res.data);
+      final role = data?['role']?.toString();
+      if (!mounted) return;
+      setState(() {
+        _userRole = role;
+      });
+    } on DioException catch (e) {
+      debugPrint('user role request failed: ${e.response?.data ?? e.message}');
+    } catch (e) {
+      debugPrint('user role unexpected error: $e');
+    }
+  }
+
+  bool get _canCreateNotice {
+    final role = _userRole?.toUpperCase();
+    if (role == null) return false;
+    return role != 'STUDENT';
   }
 
   Future<void> _fetchNoticeDetail(String noticeId) async {
@@ -135,6 +160,20 @@ class _AlarmState extends State<Alarm> {
         elevation: 0,
         toolbarHeight: 0,
       ),
+      floatingActionButton:
+          _canCreateNotice
+              ? FloatingActionButton.extended(
+                onPressed: () {},
+                backgroundColor: const Color(0xFF0077FF),
+                foregroundColor: Colors.white,
+                icon: const Icon(Icons.edit_outlined),
+                label: const Text(
+                  '새 공지',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+              )
+              : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: Container(
         color: Colors.white,
         child: Column(
