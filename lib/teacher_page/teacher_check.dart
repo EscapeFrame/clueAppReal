@@ -18,20 +18,65 @@ class _TeacherCheckState extends State<TeacherCheck> {
   String selectedClass = '반';
   String searchText = '';
   List<Map<String, dynamic>> filteredStudents = [];
+  String? _assignmentTitle;
+  DateTime? _assignmentEndDate;
+  bool _detailLoading = false;
+  String? _detailError;
 
-  Future<void> checkApi(String idStr) async {
+  Future<void> _fetchAssignmentDetail(String idStr) async {
+    setState(() {
+      _detailLoading = true;
+      _detailError = null;
+    });
     debugPrint("idSSSSTTTTRRR:  $idStr");
     try {
       final dio = ApiClient.instance.dio;
-      final res = await dio.get('/api/assignments/$idStr/check');
+      final res = await dio.get('/api/assignments/$idStr');
       final data = res.data;
+      final Map<String, dynamic>? detailMap =
+          data is Map ? Map<String, dynamic>.from(data as Map) : null;
+      final String? detailTitle = detailMap?['title']?.toString();
+      final String? endDateStr = detailMap?['endDate']?.toString();
+      final DateTime? parsedEndDate =
+          (endDateStr != null && endDateStr.isNotEmpty)
+              ? DateTime.tryParse(endDateStr)
+              : null;
+      if (!mounted) return;
+      if (res.statusCode == 200 && detailMap != null) {
+        setState(() {
+          _assignmentTitle = detailTitle;
+          _assignmentEndDate = parsedEndDate;
+          _detailError = null;
+          _detailLoading = false;
+        });
+      } else {
+        setState(() {
+          _assignmentTitle = null;
+          _assignmentEndDate = null;
+          _detailError = '과제 정보를 불러오지 못했습니다 (${res.statusCode}).';
+          _detailLoading = false;
+        });
+      }
       debugPrint("응답값 : ${data.toString()}");
     } on DioException catch (e) {
       debugPrint("DioError:  ${e.error}");
-
       debugPrint("DioError:  ${e.message}");
+      if (!mounted) return;
+      setState(() {
+        _assignmentTitle = null;
+        _assignmentEndDate = null;
+        _detailError = e.message ?? '과제 정보를 불러오지 못했습니다.';
+        _detailLoading = false;
+      });
     } catch (e) {
       debugPrint("Errrrrrrorrrr:$e");
+      if (!mounted) return;
+      setState(() {
+        _assignmentTitle = null;
+        _assignmentEndDate = null;
+        _detailError = '과제 정보를 불러오지 못했습니다: $e';
+        _detailLoading = false;
+      });
     }
   }
 
@@ -41,7 +86,17 @@ class _TeacherCheckState extends State<TeacherCheck> {
     filteredStudents = TeacherData.getStudentJechul();
     final idStr = (widget.assignmentId ?? '').toString();
     if (idStr.isNotEmpty) {
-      checkApi(idStr);
+      _fetchAssignmentDetail(idStr);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant TeacherCheck oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final currentId = (widget.assignmentId ?? '').toString();
+    final prevId = (oldWidget.assignmentId ?? '').toString();
+    if (currentId.isNotEmpty && currentId != prevId) {
+      _fetchAssignmentDetail(currentId);
     }
   }
 
@@ -86,15 +141,19 @@ class _TeacherCheckState extends State<TeacherCheck> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
                     child: Text(
-                      '자바에 대해서 조사하기',
+                      _assignmentTitle ??
+                          (_detailLoading
+                              ? '과제 정보를 불러오는 중입니다.'
+                              : _detailError ?? '과제 제목 정보 없음'),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         fontSize: width * 0.055,
-                        color: Colors.black,
+                        color: Colors.black87,
                       ),
                     ),
                   ),
@@ -113,24 +172,43 @@ class _TeacherCheckState extends State<TeacherCheck> {
                 ],
               ),
               SizedBox(height: height * 0.01),
-
               Row(
                 children: [
                   Icon(
                     Icons.calendar_today,
                     size: width * 0.04,
-                    color: Colors.grey,
+                    color: Colors.grey[700],
                   ),
                   SizedBox(width: width * 0.01),
                   Text(
-                    '마감일: 2025.04.15 23:59:59',
+                    _buildDueDateLabel(),
                     style: TextStyle(
                       fontSize: width * 0.035,
-                      color: Colors.black,
+                      color: Colors.black87,
                     ),
                   ),
                 ],
               ),
+              SizedBox(height: height * 0.015),
+
+              if (false)
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today,
+                      size: width * 0.04,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(width: width * 0.01),
+                    Text(
+                      '마감일: 2025.04.15 23:59:59',
+                      style: TextStyle(
+                        fontSize: width * 0.035,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
               SizedBox(height: height * 0.02),
 
               _buildDropdown(selectedStatus, ['상태', '제출완료', '미제출'], (val) {
@@ -254,6 +332,20 @@ class _TeacherCheckState extends State<TeacherCheck> {
         ),
       ),
     );
+  }
+
+  String _buildDueDateLabel() {
+    if (_assignmentEndDate != null) {
+      final date = _assignmentEndDate!.toLocal();
+      final mm = date.month.toString().padLeft(2, '0');
+      final dd = date.day.toString().padLeft(2, '0');
+      final hh = date.hour.toString().padLeft(2, '0');
+      final min = date.minute.toString().padLeft(2, '0');
+      return '마감일 ${date.year}.$mm.$dd $hh:$min';
+    }
+    if (_detailLoading) return '마감일 정보를 불러오는 중입니다.';
+    if (_detailError != null) return '마감일 정보를 불러오지 못했습니다.';
+    return '마감일 정보 없음';
   }
 
   Widget _buildDropdown(

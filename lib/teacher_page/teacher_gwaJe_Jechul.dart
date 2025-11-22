@@ -58,7 +58,7 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
 
     return Scaffold(
       floatingActionButton:
-          showAssignmentDetail
+          showAssignmentDetail || showTeacherCheck
               ? null
               : FloatingActionButton(
                 onPressed: () async {
