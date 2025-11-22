@@ -33,6 +33,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
   final controller = HaksubsilController();
   final GlobalKey _uploadButtonKey = GlobalKey();
   List<Map<String, dynamic>> _assignmentAttachments = const [];
+  final Set<String> _removedSubmissionAttachmentIds = <String>{};
 
   Widget _buildDetailHeader({
     required BuildContext context,
@@ -517,6 +518,9 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     try {
       final dio = ApiClient.instance.dio;
       await dio.delete('/api/submissions/$attachmentId');
+      setState(() {
+        _removedSubmissionAttachmentIds.add(attachmentId);
+      });
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -804,12 +808,24 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
               (item) => (item['kind'] ?? '').toString().toUpperCase() == 'URL',
             )
             .toList();
+    final filteredSubmissionFileAttachments = submissionFileAttachments.where(
+      (item) =>
+          !_removedSubmissionAttachmentIds.contains(
+            (item['attachmentId'] ?? '').toString(),
+          ),
+    );
+    final filteredSubmissionLinkAttachments = submissionLinkAttachments.where(
+      (item) =>
+          !_removedSubmissionAttachmentIds.contains(
+            (item['attachmentId'] ?? '').toString(),
+          ),
+    );
     final decoratedSubmissionFileAttachments = _decorateSubmissionAttachments(
-      submissionFileAttachments,
+      filteredSubmissionFileAttachments.toList(),
       allowRemoval: canEditAttachments,
     );
     final decoratedSubmissionLinkAttachments = _decorateSubmissionAttachments(
-      submissionLinkAttachments,
+      filteredSubmissionLinkAttachments.toList(),
       allowRemoval: canEditAttachments,
     );
     final localFileAttachments =
