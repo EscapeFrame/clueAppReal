@@ -86,6 +86,41 @@ class _AlarmState extends State<Alarm> {
     return role != 'STUDENT';
   }
 
+  Future<void> _createNotice({
+    required String type,
+    required String title,
+    required String content,
+    required List<String> fileTitles,
+    required List<_UrlDraft> urls,
+    required List<String> files,
+  }) async {
+    try {
+      final dio = ApiClient.instance.dio;
+      final body = {
+        'metadata': {
+          'type': type,
+          'title': title,
+          'content': content,
+          'fileInfo': fileTitles
+              .map((name) => {'title': name})
+              .toList(growable: false),
+          'urls': urls
+              .map((entry) => {'title': entry.title, 'value': entry.value})
+              .toList(growable: false),
+        },
+        'files': files,
+      };
+      await dio.post('/api/notice', data: body);
+      await _fetchNotices();
+    } on DioException catch (e) {
+      debugPrint('notice create failed: ${e.response?.data ?? e.message}');
+      rethrow;
+    } catch (e) {
+      debugPrint('notice create unexpected error: $e');
+      rethrow;
+    }
+  }
+
   Future<void> _fetchNoticeDetail(String noticeId) async {
     if (noticeId.isEmpty) {
       debugPrint('notice detail request skipped: empty noticeId');
@@ -163,7 +198,7 @@ class _AlarmState extends State<Alarm> {
       floatingActionButton:
           _canCreateNotice
               ? FloatingActionButton.extended(
-                onPressed: () {},
+                onPressed: _openCreateNoticeDialog,
                 backgroundColor: const Color(0xFF0077FF),
                 foregroundColor: Colors.white,
                 icon: const Icon(Icons.edit_outlined),
@@ -773,6 +808,463 @@ class _AlarmState extends State<Alarm> {
       debugPrint('attachment open error: $e');
     }
   }
+
+  void _openCreateNoticeDialog() {
+    final titleController = TextEditingController();
+    final contentController = TextEditingController();
+    final List<TextEditingController> fileInfoControllers = [];
+    final List<TextEditingController> filePayloadControllers = [];
+    final List<_UrlFieldControllers> urlControllers = [];
+    String selectedType =
+        _categories.isNotEmpty ? _categories.first.type : 'SCHOOL';
+    bool isSubmitting = false;
+
+    void disposeAll() {
+      titleController.dispose();
+      contentController.dispose();
+      for (final c in fileInfoControllers) {
+        c.dispose();
+      }
+      for (final c in filePayloadControllers) {
+        c.dispose();
+      }
+      for (final pair in urlControllers) {
+        pair.dispose();
+      }
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: !isSubmitting,
+      builder: (dialogContext) {
+        final size = MediaQuery.of(dialogContext).size;
+        final dialogWidth = size.width.clamp(320.0, 520.0);
+        final maxHeight = size.height * 0.85;
+        return StatefulBuilder(
+          builder: (modalContext, setModalState) {
+            Future<void> handleSubmit() async {
+              if (isSubmitting) return;
+              final trimmedTitle = titleController.text.trim();
+              final trimmedContent = contentController.text.trim();
+              if (trimmedTitle.isEmpty || trimmedContent.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('제목과 내용을 입력해 주세요.')),
+                );
+                return;
+              }
+              setModalState(() => isSubmitting = true);
+              final fileTitles =
+                  fileInfoControllers
+                      .map((c) => c.text.trim())
+                      .where((text) => text.isNotEmpty)
+                      .toList();
+              final urlDrafts =
+                  urlControllers
+                      .map(
+                        (pair) => _UrlDraft(
+                          title: pair.titleController.text.trim(),
+                          value: pair.valueController.text.trim(),
+                        ),
+                      )
+                      .where((entry) => entry.isValid)
+                      .toList();
+              final files =
+                  filePayloadControllers
+                      .map((c) => c.text.trim())
+                      .where((text) => text.isNotEmpty)
+                      .toList();
+              try {
+                await _createNotice(
+                  type: selectedType,
+                  title: trimmedTitle,
+                  content: trimmedContent,
+                  fileTitles: fileTitles,
+                  urls: urlDrafts,
+                  files: files,
+                );
+                if (mounted) {
+                  Navigator.of(dialogContext).pop();
+                }
+              } catch (_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('공지 작성에 실패했습니다. 다시 시도해 주세요.')),
+                );
+              } finally {
+                if (mounted) {
+                  setModalState(() => isSubmitting = false);
+                }
+              }
+            }
+
+            return Dialog(
+              insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+              backgroundColor: Colors.transparent,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: dialogWidth,
+                    maxHeight: maxHeight,
+                    minWidth: dialogWidth,
+                  ),
+                  child: Material(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Expanded(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Expanded(
+                                      child: Text(
+                                        '새 공지 작성',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed:
+                                          isSubmitting
+                                              ? null
+                                              : () {
+                                                Navigator.of(
+                                                  dialogContext,
+                                                ).pop();
+                                              },
+                                      icon: const Icon(Icons.close_rounded),
+                                      splashRadius: 20,
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                DropdownButtonFormField<String>(
+                                  value: selectedType,
+                                  decoration: const InputDecoration(
+                                    labelText: '공지 유형',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  items:
+                                      _categories
+                                          .map(
+                                            (cat) => DropdownMenuItem<String>(
+                                              value: cat.type,
+                                              child: Text(cat.label),
+                                            ),
+                                          )
+                                          .toList(),
+                                  onChanged:
+                                      isSubmitting
+                                          ? null
+                                          : (value) {
+                                            if (value == null) return;
+                                            setModalState(
+                                              () => selectedType = value,
+                                            );
+                                          },
+                                ),
+                                const SizedBox(height: 12),
+                                TextField(
+                                  controller: titleController,
+                                  enabled: !isSubmitting,
+                                  decoration: const InputDecoration(
+                                    labelText: '제목',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                TextField(
+                                  controller: contentController,
+                                  enabled: !isSubmitting,
+                                  minLines: 5,
+                                  maxLines: 8,
+                                  decoration: const InputDecoration(
+                                    labelText: '내용',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                _NoticeDialogSection(
+                                  title: '첨부 파일명',
+                                  actionLabel: '필드 추가',
+                                  onAction:
+                                      isSubmitting
+                                          ? null
+                                          : () {
+                                            setModalState(() {
+                                              fileInfoControllers.add(
+                                                TextEditingController(),
+                                              );
+                                            });
+                                          },
+                                  child: Column(
+                                    children:
+                                        fileInfoControllers.isEmpty
+                                            ? const [
+                                              Text(
+                                                '첨부 파일명이 있다면 필드를 추가해 입력하세요.',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Color(0xFF6B7280),
+                                                ),
+                                              ),
+                                            ]
+                                            : List.generate(
+                                              fileInfoControllers.length,
+                                              (index) => Padding(
+                                                padding: const EdgeInsets.only(
+                                                  bottom: 10,
+                                                ),
+                                                child: TextField(
+                                                  controller:
+                                                      fileInfoControllers[index],
+                                                  enabled: !isSubmitting,
+                                                  decoration: InputDecoration(
+                                                    labelText:
+                                                        '파일명 ${index + 1}',
+                                                    border:
+                                                        const OutlineInputBorder(),
+                                                    suffixIcon: IconButton(
+                                                      onPressed:
+                                                          isSubmitting
+                                                              ? null
+                                                              : () {
+                                                                setModalState(() {
+                                                                  fileInfoControllers
+                                                                      .removeAt(
+                                                                        index,
+                                                                      )
+                                                                      .dispose();
+                                                                });
+                                                              },
+                                                      icon: const Icon(
+                                                        Icons.close,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                _NoticeDialogSection(
+                                  title: '파일 데이터',
+                                  actionLabel: '필드 추가',
+                                  onAction:
+                                      isSubmitting
+                                          ? null
+                                          : () {
+                                            setModalState(() {
+                                              filePayloadControllers.add(
+                                                TextEditingController(),
+                                              );
+                                            });
+                                          },
+                                  child: Column(
+                                    children:
+                                        filePayloadControllers.isEmpty
+                                            ? const [
+                                              Text(
+                                                '파일 업로드 토큰이나 Base64 데이터를 직접 입력하세요.',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Color(0xFF6B7280),
+                                                ),
+                                              ),
+                                            ]
+                                            : List.generate(
+                                              filePayloadControllers.length,
+                                              (index) => Padding(
+                                                padding: const EdgeInsets.only(
+                                                  bottom: 10,
+                                                ),
+                                                child: TextField(
+                                                  controller:
+                                                      filePayloadControllers[index],
+                                                  enabled: !isSubmitting,
+                                                  decoration: InputDecoration(
+                                                    labelText:
+                                                        '파일 데이터 ${index + 1}',
+                                                    border:
+                                                        const OutlineInputBorder(),
+                                                    suffixIcon: IconButton(
+                                                      onPressed:
+                                                          isSubmitting
+                                                              ? null
+                                                              : () {
+                                                                setModalState(() {
+                                                                  filePayloadControllers
+                                                                      .removeAt(
+                                                                        index,
+                                                                      )
+                                                                      .dispose();
+                                                                });
+                                                              },
+                                                      icon: const Icon(
+                                                        Icons.close,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                _NoticeDialogSection(
+                                  title: '링크',
+                                  actionLabel: '링크 추가',
+                                  onAction:
+                                      isSubmitting
+                                          ? null
+                                          : () {
+                                            setModalState(() {
+                                              urlControllers.add(
+                                                _UrlFieldControllers(
+                                                  TextEditingController(),
+                                                  TextEditingController(),
+                                                ),
+                                              );
+                                            });
+                                          },
+                                  child: Column(
+                                    children:
+                                        urlControllers.isEmpty
+                                            ? const [
+                                              Text(
+                                                '링크 제목과 URL을 입력해 추가할 수 있어요.',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Color(0xFF6B7280),
+                                                ),
+                                              ),
+                                            ]
+                                            : List.generate(urlControllers.length, (
+                                              index,
+                                            ) {
+                                              final pair =
+                                                  urlControllers[index];
+                                              return Padding(
+                                                padding: const EdgeInsets.only(
+                                                  bottom: 12,
+                                                ),
+                                                child: Column(
+                                                  children: [
+                                                    TextField(
+                                                      controller:
+                                                          pair.titleController,
+                                                      enabled: !isSubmitting,
+                                                      decoration: InputDecoration(
+                                                        labelText:
+                                                            '링크 제목 ${index + 1}',
+                                                        border:
+                                                            const OutlineInputBorder(),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 8),
+                                                    TextField(
+                                                      controller:
+                                                          pair.valueController,
+                                                      enabled: !isSubmitting,
+                                                      decoration: InputDecoration(
+                                                        labelText:
+                                                            'URL ${index + 1}',
+                                                        border:
+                                                            const OutlineInputBorder(),
+                                                        suffixIcon: IconButton(
+                                                          onPressed:
+                                                              isSubmitting
+                                                                  ? null
+                                                                  : () {
+                                                                    setModalState(() {
+                                                                      urlControllers
+                                                                          .removeAt(
+                                                                            index,
+                                                                          )
+                                                                          .dispose();
+                                                                    });
+                                                                  },
+                                                          icon: const Icon(
+                                                            Icons.close,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            }),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed:
+                                      isSubmitting
+                                          ? null
+                                          : () {
+                                            Navigator.of(dialogContext).pop();
+                                          },
+                                  child: const Text('취소'),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: isSubmitting ? null : handleSubmit,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF0077FF),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                  ),
+                                  child:
+                                      isSubmitting
+                                          ? const SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                          : const Text(
+                                            '확인',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    ).whenComplete(disposeAll);
+  }
 }
 
 class _NoticeCategory {
@@ -792,4 +1284,60 @@ class _NoticeAttachment {
     required this.sizeLabel,
     this.url,
   });
+}
+
+class _NoticeDialogSection extends StatelessWidget {
+  final String title;
+  final String actionLabel;
+  final VoidCallback? onAction;
+  final Widget child;
+
+  const _NoticeDialogSection({
+    required this.title,
+    required this.actionLabel,
+    required this.onAction,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              title,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+            ),
+            const Spacer(),
+            TextButton(onPressed: onAction, child: Text(actionLabel)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        child,
+      ],
+    );
+  }
+}
+
+class _UrlFieldControllers {
+  final TextEditingController titleController;
+  final TextEditingController valueController;
+
+  _UrlFieldControllers(this.titleController, this.valueController);
+
+  void dispose() {
+    titleController.dispose();
+    valueController.dispose();
+  }
+}
+
+class _UrlDraft {
+  final String title;
+  final String value;
+
+  _UrlDraft({required this.title, required this.value});
+
+  bool get isValid => title.isNotEmpty && value.isNotEmpty;
 }
