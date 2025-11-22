@@ -2,6 +2,7 @@ import 'package:clue/api_client.dart';
 import 'package:clue/config/teacher_data.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class TeacherCheck extends StatefulWidget {
   final VoidCallback? onBack;
@@ -336,55 +337,58 @@ class _TeacherCheckState extends State<TeacherCheck> {
                       (_, __) => Divider(height: 1, color: Colors.grey[200]),
                   itemBuilder: (context, idx) {
                     final student = filteredStudents[idx];
-                    return Container(
-                      padding: EdgeInsets.symmetric(vertical: height * 0.015),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: width * 0.15,
-                            child: Text(
-                              student['number'],
-                              style: TextStyle(
-                                fontSize: width * 0.04,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              student['name'],
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: width * 0.04,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-
-                          SizedBox(width: width * 0.04),
-                          Expanded(
-                            flex: 1,
-                            child: Align(
-                              alignment: Alignment.centerRight,
+                    return GestureDetector(
+                      onTap: () => _showSubmissionDetail(student),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: height * 0.015),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: width * 0.15,
                               child: Text(
-                                student['submitted'] ? '제출완료' : '미제출',
+                                student['number'],
                                 style: TextStyle(
-                                  color:
-                                      student['submitted']
-                                          ? Color(0xFF1CC078)
-                                          : Colors.black,
-                                  fontWeight: FontWeight.w500,
                                   fontSize: width * 0.04,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black,
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                student['name'],
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: width * 0.04,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+
+                            SizedBox(width: width * 0.04),
+                            Expanded(
+                              flex: 1,
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Text(
+                                  student['submitted'] ? '제출완료' : '미제출',
+                                  style: TextStyle(
+                                    color:
+                                        student['submitted']
+                                            ? Color(0xFF1CC078)
+                                            : Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: width * 0.04,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -395,6 +399,60 @@ class _TeacherCheckState extends State<TeacherCheck> {
         ),
       ),
     );
+  }
+
+  Future<void> _showSubmissionDetail(Map<String, dynamic> student) async {
+    final submissionId = student['submissionId']?.toString();
+    if (submissionId == null || submissionId.isEmpty) {
+      _showSnackBar('제출 ID가 없어 상세 정보를 열 수 없습니다.');
+      return;
+    }
+    try {
+      final dio = ApiClient.instance.dio;
+      final res = await dio.get('/api/submissions/assignment/$submissionId');
+      if (!mounted) return;
+      if (res.statusCode == 200 && res.data is Map) {
+        final detail = Map<String, dynamic>.from(res.data as Map);
+        await showDialog(
+          context: context,
+          builder:
+              (ctx) => SubmissionDetailDialog(
+                detail: detail,
+                fallbackStudent: student,
+                onDownloadAttachment: (url) => _openAttachment(url),
+                onDownloadAll: (urls) async {
+                  for (final url in urls) {
+                    await _openAttachment(url);
+                  }
+                },
+              ),
+        );
+      } else {
+        _showSnackBar('제출 정보를 불러오지 못했습니다 (${res.statusCode}).');
+      }
+    } on DioException catch (e) {
+      _showSnackBar(e.message ?? '제출 정보를 불러오지 못했습니다.');
+    } catch (e) {
+      _showSnackBar('제출 정보를 불러오지 못했습니다: $e');
+    }
+  }
+
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _openAttachment(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      _showSnackBar('잘못된 링크입니다.');
+      return;
+    }
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      _showSnackBar('파일을 열 수 없습니다.');
+    }
   }
 
   String _buildDueDateLabel() {
@@ -445,4 +503,263 @@ class _TeacherCheckState extends State<TeacherCheck> {
       ),
     );
   }
+}
+
+class SubmissionDetailDialog extends StatelessWidget {
+  final Map<String, dynamic> detail;
+  final Map<String, dynamic> fallbackStudent;
+  final Future<void> Function(String url)? onDownloadAttachment;
+  final Future<void> Function(List<String> urls)? onDownloadAll;
+
+  const SubmissionDetailDialog({
+    super.key,
+    required this.detail,
+    required this.fallbackStudent,
+    this.onDownloadAttachment,
+    this.onDownloadAll,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final submitted =
+        detail['IsSubmitted'] == true || detail['isSubmitted'] == true;
+    final submittedAtRaw = detail['submittedAt']?.toString();
+    final submittedAt =
+        submittedAtRaw != null && submittedAtRaw.isNotEmpty
+            ? DateTime.tryParse(submittedAtRaw)
+            : null;
+    final attachments = _parseAttachments();
+    final name =
+        detail['userName']?.toString().isNotEmpty == true
+            ? detail['userName'].toString()
+            : (fallbackStudent['name']?.toString() ?? '');
+    final number = fallbackStudent['number']?.toString() ?? '';
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  submitted ? '제출완료' : '미제출',
+                  style: TextStyle(
+                    color:
+                        submitted
+                            ? const Color(0xff2563EB)
+                            : const Color(0xffDC2626),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                const CircleAvatar(
+                  radius: 28,
+                  backgroundColor: Color(0xffE2E8F0),
+                  child: Icon(Icons.person, color: Color(0xff475569)),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$name $number',
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      if (submittedAt != null)
+                        Text(
+                          '제출일: ${_formatDateTime(submittedAt)}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xff6B7280),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '제출 파일 ${attachments.length}개',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (attachments.isNotEmpty)
+                  TextButton(
+                    onPressed:
+                        onDownloadAll != null
+                            ? () {
+                              final urls =
+                                  attachments
+                                      .map((e) => e.url)
+                                      .where((url) => url.isNotEmpty)
+                                      .toList();
+                              if (urls.isNotEmpty) {
+                                onDownloadAll!(urls);
+                              }
+                            }
+                            : null,
+                    child: const Text('전체 다운로드'),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (attachments.isEmpty)
+              const Text(
+                '제출된 파일이 없습니다.',
+                style: TextStyle(color: Color(0xff6B7280)),
+              )
+            else
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: attachments.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final attachment = attachments[index];
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xffF8FAFC),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xffE2E8F0)),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                attachment.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                attachment.sizeLabel,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xff6B7280),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        OutlinedButton(
+                          onPressed:
+                              (onDownloadAttachment != null &&
+                                      attachment.url.isNotEmpty)
+                                  ? () => onDownloadAttachment!(attachment.url)
+                                  : null,
+                          style: OutlinedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text('다운로드'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<SubmissionAttachment> _parseAttachments() {
+    final rawList = detail['submissionAttachmentResponses'];
+    if (rawList is! List) return const <SubmissionAttachment>[];
+    return rawList.whereType<Map>().map((item) {
+      final map = Map<String, dynamic>.from(item);
+      final fileName =
+          map['originalFileName']?.toString().isNotEmpty == true
+              ? map['originalFileName'].toString()
+              : (map['value']?.toString() ?? '첨부 파일');
+      final sizeLabel = _formatFileSize(map['size']);
+      return SubmissionAttachment(
+        id: map['submissionAttachmentId']?.toString() ?? '',
+        name: fileName,
+        url: map['value']?.toString() ?? '',
+        type: map['type']?.toString() ?? '',
+        sizeLabel: sizeLabel,
+      );
+    }).toList();
+  }
+
+  String _formatFileSize(dynamic size) {
+    final intVal =
+        size is int
+            ? size
+            : size is String
+            ? int.tryParse(size) ?? 0
+            : int.tryParse(size?.toString() ?? '') ?? 0;
+    if (intVal >= 1024 * 1024) {
+      return '${(intVal / (1024 * 1024)).toStringAsFixed(1)}MB';
+    }
+    if (intVal >= 1024) {
+      return '${(intVal / 1024).toStringAsFixed(1)}KB';
+    }
+    if (intVal > 0) {
+      return '${intVal}B';
+    }
+    return '용량 정보 없음';
+  }
+
+  String _formatDateTime(DateTime date) {
+    final local = date.toLocal();
+    final mm = local.month.toString().padLeft(2, '0');
+    final dd = local.day.toString().padLeft(2, '0');
+    final hh = local.hour.toString().padLeft(2, '0');
+    final min = local.minute.toString().padLeft(2, '0');
+    return '${local.year}.$mm.$dd $hh:$min';
+  }
+}
+
+class SubmissionAttachment {
+  final String id;
+  final String name;
+  final String url;
+  final String type;
+  final String sizeLabel;
+
+  const SubmissionAttachment({
+    required this.id,
+    required this.name,
+    required this.url,
+    required this.type,
+    required this.sizeLabel,
+  });
 }

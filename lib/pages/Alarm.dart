@@ -2,6 +2,7 @@ import 'package:clue/api_client.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Alarm extends StatefulWidget {
   const Alarm({super.key});
@@ -62,18 +63,35 @@ class _AlarmState extends State<Alarm> {
 
   Future<void> _fetchNoticeDetail(String noticeId) async {
     if (noticeId.isEmpty) {
-      debugPrint('공지 상세 요청: noticeId가 비어있음');
+      debugPrint('notice detail request skipped: empty noticeId');
       return;
     }
     try {
       final dio = ApiClient.instance.dio;
       final res = await dio.get('/api/notice/$noticeId');
-      debugPrint('공지 상세($noticeId): ${res.data}');
+      final detail = _coerceToMap(res.data);
+      debugPrint('notice detail($noticeId): ${res.data}');
+      if (detail == null) {
+        debugPrint('notice detail parse failed ($noticeId)');
+        return;
+      }
+      if (!mounted) return;
+      _showNoticeDetailModal(detail);
     } on DioException catch (e) {
-      debugPrint('공지 상세 요청 실패($noticeId): ${e.response?.data ?? e.message}');
+      debugPrint(
+        'notice detail request failed($noticeId): ${e.response?.data ?? e.message}',
+      );
     } catch (e) {
-      debugPrint('공지 상세 알 수 없는 오류($noticeId): $e');
+      debugPrint('notice detail unexpected error($noticeId): $e');
     }
+  }
+
+  Map<String, dynamic>? _coerceToMap(dynamic data) {
+    if (data is Map<String, dynamic>) return data;
+    if (data is Map) {
+      return data.map((key, value) => MapEntry(key.toString(), value));
+    }
+    return null;
   }
 
   void _applyCategoryFilter() {
@@ -435,6 +453,287 @@ class _AlarmState extends State<Alarm> {
       ),
     );
   }
+
+  void _showNoticeDetailModal(Map<String, dynamic> detail) {
+    final attachments = _normalizeNoticeDocuments(detail['noticeDocuments']);
+    final title = (detail['title'] ?? '').toString().trim();
+    final content = (detail['content'] ?? '').toString().trim();
+    final createdAt = _formatNoticeDate(detail['createdAt']?.toString());
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.35),
+      builder: (dialogContext) {
+        final size = MediaQuery.of(dialogContext).size;
+        final dialogWidth = size.width.clamp(320.0, 500.0);
+        final maxHeight = size.height * 0.8;
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          backgroundColor: Colors.transparent,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: dialogWidth,
+                maxHeight: maxHeight,
+                minWidth: dialogWidth,
+              ),
+              child: Material(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                clipBehavior: Clip.antiAlias,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title.isEmpty ? '공지 제목' : title,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                if (createdAt != '-')
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 6),
+                                    child: Text(
+                                      createdAt,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFF9CA3AF),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            splashRadius: 20,
+                            onPressed: () => Navigator.of(dialogContext).pop(),
+                            icon: const Icon(Icons.close_rounded),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        content.isEmpty ? '내용을 불러올 수 없어요.' : content,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: Color(0xFF6B7280),
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        '첨부 파일',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      if (attachments.isEmpty)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 18,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF6F7FB),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFE5E7EB)),
+                          ),
+                          child: Text(
+                            '첨부된 파일이 없습니다.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        )
+                      else
+                        ...attachments.map(
+                          (attachment) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _buildAttachmentTile(
+                              dialogContext,
+                              attachment,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  List<_NoticeAttachment> _normalizeNoticeDocuments(dynamic raw) {
+    if (raw is! List) return const [];
+    final List<_NoticeAttachment> attachments = [];
+    for (final entry in raw) {
+      if (entry is Map<String, dynamic>) {
+        attachments.add(_mapToAttachment(entry));
+      } else if (entry is Map) {
+        attachments.add(
+          _mapToAttachment(
+            entry.map((key, value) => MapEntry(key.toString(), value)),
+          ),
+        );
+      }
+    }
+    return attachments;
+  }
+
+  _NoticeAttachment _mapToAttachment(Map<String, dynamic> raw) {
+    final name =
+        (raw['fileName'] ??
+                raw['originalName'] ??
+                raw['name'] ??
+                raw['documentName'] ??
+                '파일명')
+            .toString()
+            .trim();
+    final sizeLabel = _formatFileSizeLabel(raw['fileSize'] ?? raw['size']);
+    final urlValue =
+        (raw['url'] ??
+                raw['fileUrl'] ??
+                raw['downloadUrl'] ??
+                raw['filePath'] ??
+                '')
+            .toString()
+            .trim();
+    return _NoticeAttachment(
+      name: name.isEmpty ? '파일명' : name,
+      sizeLabel: sizeLabel,
+      url: urlValue.isEmpty ? null : urlValue,
+    );
+  }
+
+  String _formatFileSizeLabel(dynamic raw) {
+    if (raw == null) return '파일사이즈';
+    if (raw is num) {
+      double value = raw.toDouble();
+      const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+      int unit = 0;
+      while (value >= 1024 && unit < units.length - 1) {
+        value /= 1024;
+        unit++;
+      }
+      final text =
+          value >= 100 ? value.round().toString() : value.toStringAsFixed(1);
+      return '$text ${units[unit]}';
+    }
+    final fallback = raw.toString().trim();
+    return fallback.isEmpty ? '파일사이즈' : fallback;
+  }
+
+  Widget _buildAttachmentTile(
+    BuildContext context,
+    _NoticeAttachment attachment,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    attachment.name,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    attachment.sizeLabel,
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: OutlinedButton(
+              onPressed:
+                  attachment.url == null
+                      ? null
+                      : () => _openAttachmentUrl(attachment.url!),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF111827),
+                side: const BorderSide(color: Color(0xFFD5D6DB)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 10,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text(
+                '다운로드',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openAttachmentUrl(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      debugPrint('invalid attachment url: $url');
+      return;
+    }
+    try {
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        debugPrint('attachment launch failed: $url');
+      }
+    } catch (e) {
+      debugPrint('attachment open error: $e');
+    }
+  }
 }
 
 class _NoticeCategory {
@@ -442,4 +741,16 @@ class _NoticeCategory {
   final String type;
 
   const _NoticeCategory({required this.label, required this.type});
+}
+
+class _NoticeAttachment {
+  final String name;
+  final String sizeLabel;
+  final String? url;
+
+  const _NoticeAttachment({
+    required this.name,
+    required this.sizeLabel,
+    this.url,
+  });
 }

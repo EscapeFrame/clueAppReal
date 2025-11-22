@@ -191,8 +191,8 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
       filename: filename,
       contentType: MediaType.parse(mime),
     );
-    final formData = FormData.fromMap({'file': multipart});
-    await dio.put('/api/user/me/image', data: formData);
+    final formData = FormData.fromMap({'image': multipart});
+    await dio.patch('/api/user/me/image', data: formData);
   }
 
   @override
