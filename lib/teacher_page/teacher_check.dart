@@ -352,10 +352,12 @@ class _TeacherCheckState extends State<TeacherCheck> {
                             ),
                           ),
 
-                          SizedBox(
-                            width: width * 0.2,
+                          Expanded(
+                            flex: 2,
                             child: Text(
                               student['name'],
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: width * 0.04,
                                 fontWeight: FontWeight.w500,
@@ -364,19 +366,25 @@ class _TeacherCheckState extends State<TeacherCheck> {
                             ),
                           ),
 
+                          SizedBox(width: width * 0.04),
                           Expanded(
-                            child: Text(
-                              student['submitted'] ? '제출완료' : '미제출',
-                              style: TextStyle(
-                                color:
-                                    student['submitted']
-                                        ? Color(0xFF1CC078)
-                                        : Colors.black,
-                                fontWeight: FontWeight.w500,
-                                fontSize: width * 0.04,
+                            flex: 1,
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: Text(
+                                student['submitted'] ? '제출완료' : '미제출',
+                                style: TextStyle(
+                                  color:
+                                      student['submitted']
+                                          ? Color(0xFF1CC078)
+                                          : Colors.black,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: width * 0.04,
+                                ),
                               ),
                             ),
                           ),
+                          SizedBox(width: width * 0.1),
 
                           GestureDetector(
                             onTap: () {
