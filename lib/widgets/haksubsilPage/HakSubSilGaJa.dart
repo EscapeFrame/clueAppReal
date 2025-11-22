@@ -406,6 +406,108 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
         false;
   }
 
+  Future<bool> _showActionConfirmDialog({
+    required String title,
+    required String message,
+    required String confirmLabel,
+  }) async {
+    final width = MediaQuery.of(context).size.width;
+    return await showDialog<bool>(
+          context: context,
+          builder:
+              (ctx) => Dialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                insetPadding: EdgeInsets.symmetric(
+                  horizontal: width * 0.08,
+                  vertical: width * 0.04,
+                ),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            title,
+                            style: TextStyle(
+                              fontSize: width * 0.045,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(ctx, false),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        message,
+                        style: TextStyle(
+                          fontSize: width * 0.038,
+                          color: const Color(0xff4B5563),
+                          height: 1.45,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              style: OutlinedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: width * 0.028,
+                                ),
+                                side: const BorderSide(
+                                  color: Color(0xffCBD5F5),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text('취소'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: width * 0.028,
+                                ),
+                                backgroundColor: const Color(0xff3B82F6),
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text(confirmLabel),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+        ) ??
+        false;
+  }
+
   Future<void> _handleServerSubmissionAttachmentRemoval({
     required String attachmentId,
     required String name,
@@ -434,13 +536,14 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
   }
 
   List<Map<String, dynamic>> _decorateSubmissionAttachments(
-    List<Map<String, dynamic>> attachments,
-  ) {
+    List<Map<String, dynamic>> attachments, {
+    required bool allowRemoval,
+  }) {
     return attachments.map((item) {
       final copy = Map<String, dynamic>.from(item);
       final attachmentId = (copy['attachmentId'] ?? '').toString();
       final displayName = (copy['name'] ?? '첨부파일').toString();
-      if (attachmentId.isNotEmpty) {
+      if (allowRemoval && attachmentId.isNotEmpty) {
         copy['onRemove'] = () {
           _handleServerSubmissionAttachmentRemoval(
             attachmentId: attachmentId,
@@ -462,6 +565,11 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       return;
     }
     final dio = ApiClient.instance.dio;
+    final submitPayload = {
+      'submissionId': submissionId,
+      'IsSubmitted': true,
+      'submittedAt': DateTime.now().toUtc().toIso8601String(),
+    };
     try {
       if (controller.uploadedUrls.isNotEmpty) {
         final payload =
@@ -480,6 +588,10 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
           await dio.post('/api/submissions/$submissionId/file', data: formData);
         }
       }
+      await dio.patch(
+        '/api/submissions/$submissionId/submit',
+        data: submitPayload,
+      );
       setState(() {
         controller.uploadedFiles.clear();
         controller.uploadedUrls.clear();
@@ -501,6 +613,73 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('제출 실패: $e')));
+    }
+  }
+
+  Future<void> _cancelSubmission() async {
+    final submissionId = _resolveCurrentSubmissionId();
+    if (submissionId == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('제출 ID를 찾지 못했습니다.')));
+      return;
+    }
+    final dio = ApiClient.instance.dio;
+    final payload = {
+      'submissionId': submissionId,
+      'IsSubmitted': false,
+      'submittedAt': DateTime.now().toUtc().toIso8601String(),
+    };
+    try {
+      await dio.patch('/api/submissions/$submissionId/cancel', data: payload);
+      setState(() {
+        controller.submitted = false;
+      });
+      controller.notifyListeners();
+      await _loadDetail();
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('제출이 취소되었습니다.')));
+    } on DioException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('취소 실패: ${e.message ?? '알 수 없는 오류'}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('취소 실패: $e')));
+    }
+  }
+
+  Future<void> _handleToggleSubmit() async {
+    if (controller.submitted) {
+      final confirmed = await _showActionConfirmDialog(
+        title: '제출 취소',
+        message: '제출을 취소하시겠습니까?',
+        confirmLabel: '제출 취소',
+      );
+      if (confirmed) {
+        await _cancelSubmission();
+      }
+      return;
+    }
+    final hasPendingUploads =
+        controller.uploadedFiles.isNotEmpty ||
+        controller.uploadedUrls.isNotEmpty;
+    final dialogTitle = hasPendingUploads ? '제출 확인' : '안내';
+    final dialogMessage =
+        hasPendingUploads ? '과제 제출을 완료하시겠습니까?' : '업로드한 파일이 없습니다.\n제출하시겠습니까?';
+    final confirmed = await _showActionConfirmDialog(
+      title: dialogTitle,
+      message: dialogMessage,
+      confirmLabel: '제출',
+    );
+    if (confirmed) {
+      await _submitPendingAttachments();
     }
   }
 
@@ -562,9 +741,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       final submissionResponses =
           (detail['submissionAttachmentResponses'] as List?) ?? const [];
       if (submissionResponses.isNotEmpty) {
-        submissionAttachments = _decorateSubmissionAttachments(
-          mapAttachments(submissionResponses),
-        );
+        submissionAttachments = mapAttachments(submissionResponses);
       }
       final sources = [
         (detail['AssignmentAttachments'] as List?) ?? const [],
@@ -598,11 +775,23 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
           (widget.assignment['submissionAttachmentResponses'] as List?) ??
           const [];
       if (submissionFallback.isNotEmpty) {
-        submissionAttachments = _decorateSubmissionAttachments(
-          mapAttachments(submissionFallback),
-        );
+        submissionAttachments = mapAttachments(submissionFallback);
       }
     }
+    bool submissionState = controller.submitted;
+    final dynamic submissionRaw =
+        detail?['IsSubmitted'] ??
+        detail?['isSubmitted'] ??
+        widget.assignment['IsSubmitted'] ??
+        widget.assignment['isSubmitted'];
+    if (submissionRaw != null) {
+      submissionState = _parseBool(submissionRaw);
+    }
+    if (controller.submitted != submissionState) {
+      controller.submitted = submissionState;
+    }
+    final bool canEditAttachments = !controller.submitted;
+
     final submissionFileAttachments =
         submissionAttachments
             .where(
@@ -615,6 +804,14 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
               (item) => (item['kind'] ?? '').toString().toUpperCase() == 'URL',
             )
             .toList();
+    final decoratedSubmissionFileAttachments = _decorateSubmissionAttachments(
+      submissionFileAttachments,
+      allowRemoval: canEditAttachments,
+    );
+    final decoratedSubmissionLinkAttachments = _decorateSubmissionAttachments(
+      submissionLinkAttachments,
+      allowRemoval: canEditAttachments,
+    );
     final localFileAttachments =
         controller.uploadedFiles.asMap().entries.map((entry) {
           final file = entry.value;
@@ -624,14 +821,19 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
             'contentType': file.extension ?? 'FILE',
             'kind': 'FILE',
             'url': '',
-            'onRemove': () async {
-              final confirmed = await _confirmAttachmentDeletion(file.name);
-              if (!confirmed) return;
-              if (!mounted) return;
-              setState(() {
-                controller.removeFileAt(entry.key);
-              });
-            },
+            'onRemove':
+                canEditAttachments
+                    ? () async {
+                      final confirmed = await _confirmAttachmentDeletion(
+                        file.name,
+                      );
+                      if (!confirmed) return;
+                      if (!mounted) return;
+                      setState(() {
+                        controller.removeFileAt(entry.key);
+                      });
+                    }
+                    : null,
           };
         }).toList();
     final localLinkAttachments =
@@ -643,22 +845,25 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
             'contentType': 'URL',
             'kind': 'URL',
             'url': url,
-            'onRemove': () async {
-              final confirmed = await _confirmAttachmentDeletion(url);
-              if (!confirmed) return;
-              if (!mounted) return;
-              setState(() {
-                controller.removeUrlAt(entry.key);
-              });
-            },
+            'onRemove':
+                canEditAttachments
+                    ? () async {
+                      final confirmed = await _confirmAttachmentDeletion(url);
+                      if (!confirmed) return;
+                      if (!mounted) return;
+                      setState(() {
+                        controller.removeUrlAt(entry.key);
+                      });
+                    }
+                    : null,
           };
         }).toList();
     final uploadedFileAttachments = [
-      ...submissionFileAttachments,
+      ...decoratedSubmissionFileAttachments,
       ...localFileAttachments,
     ];
     final uploadedLinkAttachments = [
-      ...submissionLinkAttachments,
+      ...decoratedSubmissionLinkAttachments,
       ...localLinkAttachments,
     ];
 
@@ -672,15 +877,6 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     final endDate = _parseDate(endDateStr);
     final dueDateText = _formatDue(endDate);
     final timeLeftText = _formatTimeLeft(endDate);
-    bool submissionState = controller.submitted;
-    final dynamic submissionRaw =
-        detail?['IsSubmitted'] ??
-        detail?['isSubmitted'] ??
-        widget.assignment['IsSubmitted'] ??
-        widget.assignment['isSubmitted'];
-    if (submissionRaw != null) {
-      submissionState = _parseBool(submissionRaw);
-    }
     final submissionBadgeLabel = submissionState ? '제출됨' : '미제출';
     final submissionBadgeColor =
         submissionState ? const Color(0xff16A34A) : const Color(0xffDC2626);
@@ -759,127 +955,12 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
               SizedBox(height: height * 0.05),
               ActionsSection(
                 isSubmitted: controller.submitted,
-                onUploadPressed: _handleUploadMenu,
-                onToggleSubmit: () async {
-                  final width = MediaQuery.of(context).size.width;
-                  final hasPendingUploads =
-                      controller.uploadedFiles.isNotEmpty ||
-                      controller.uploadedUrls.isNotEmpty;
-                  final dialogTitle = hasPendingUploads ? '제출 확인' : '안내';
-                  final dialogMessage =
-                      hasPendingUploads
-                          ? '과제 제출을 완료하시겠습니까?'
-                          : '업로드한 파일이 없습니다.\n제출하시겠습니까?';
-                  final confirmed = await showDialog<bool>(
-                    context: context,
-                    builder:
-                        (ctx) => Dialog(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          insetPadding: EdgeInsets.symmetric(
-                            horizontal: width * 0.08,
-                            vertical: width * 0.04,
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      dialogTitle,
-                                      style: TextStyle(
-                                        fontSize: width * 0.045,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                    IconButton(
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(),
-                                      icon: const Icon(Icons.close),
-                                      onPressed:
-                                          () => Navigator.pop(ctx, false),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  dialogMessage,
-                                  style: TextStyle(
-                                    fontSize: width * 0.038,
-                                    color: const Color(0xff4B5563),
-                                    height: 1.45,
-                                  ),
-                                ),
-                                const SizedBox(height: 18),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: OutlinedButton(
-                                        onPressed:
-                                            () => Navigator.pop(ctx, false),
-                                        style: OutlinedButton.styleFrom(
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: width * 0.028,
-                                          ),
-                                          side: const BorderSide(
-                                            color: Color(0xffCBD5F5),
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                          ),
-                                          foregroundColor: Colors.black,
-                                          backgroundColor: Colors.white,
-                                        ),
-                                        child: const Text('취소'),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: ElevatedButton(
-                                        onPressed:
-                                            () => Navigator.pop(ctx, true),
-                                        style: ElevatedButton.styleFrom(
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: width * 0.028,
-                                          ),
-                                          backgroundColor: const Color(
-                                            0xff3B82F6,
-                                          ),
-                                          foregroundColor: Colors.white,
-                                          elevation: 0,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                          ),
-                                        ),
-                                        child: const Text('제출'),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                  );
-                  if (confirmed == true) {
-                    await _submitPendingAttachments();
-                  }
-                },
+                onUploadPressed:
+                    canEditAttachments ? () => _handleUploadMenu() : null,
+                onToggleSubmit: _handleToggleSubmit,
                 uploadButtonKey: _uploadButtonKey,
+                submitButtonLabel: '과제 제출하기',
+                submittedButtonLabel: '제출 취소하기',
               ),
               SizedBox(height: height * 0.05),
             ],

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 
 class ActionsSection extends StatelessWidget {
   final bool isSubmitted;
-  final VoidCallback onUploadPressed;
-  final VoidCallback onToggleSubmit;
+  final VoidCallback? onUploadPressed;
+  final Future<void> Function() onToggleSubmit;
   final Key? uploadButtonKey;
   final String submitButtonLabel;
   final String submittedButtonLabel;
@@ -48,7 +48,9 @@ class ActionsSection extends StatelessWidget {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: onToggleSubmit,
+            onPressed: () {
+              onToggleSubmit();
+            },
             icon: Icon(Icons.upload, size: width * 0.045),
             label: Text(isSubmitted ? submittedButtonLabel : submitButtonLabel),
             style: ElevatedButton.styleFrom(
