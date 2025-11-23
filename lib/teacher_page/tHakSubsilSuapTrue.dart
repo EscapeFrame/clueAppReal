@@ -1198,27 +1198,6 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                                                       ],
                                                     ),
                                                   ),
-                                                  PopupMenuItem<
-                                                    _DirectoryAction
-                                                  >(
-                                                    value:
-                                                        _DirectoryAction
-                                                            .addResource,
-                                                    child: Row(
-                                                      children: const [
-                                                        Icon(
-                                                          Icons
-                                                              .add_circle_outline,
-                                                          size: 18,
-                                                          color: Color(
-                                                            0xff0077FF,
-                                                          ),
-                                                        ),
-                                                        SizedBox(width: 8),
-                                                        Text('자료 추가'),
-                                                      ],
-                                                    ),
-                                                  ),
                                                 ],
                                           ),
                                           children:

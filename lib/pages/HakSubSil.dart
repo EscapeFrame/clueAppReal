@@ -185,6 +185,10 @@ class _HaksubsilState extends State<Haksubsil> {
           data
               .whereType<Map>()
               .map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e))
+              .where(
+                (item) =>
+                    !(item['activation'] is bool) || item['activation'] == true,
+              )
               .toList();
 
       if (!mounted) return;
