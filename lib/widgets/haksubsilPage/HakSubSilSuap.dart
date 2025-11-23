@@ -103,12 +103,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
       final markdownContent = (response.data?.toString() ?? '').trim();
       final rendered = markdownContent.isEmpty ? markdowndata : markdownContent;
       await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => Markdown_(
-            markdowndata: rendered,
-            title: document['title']?.toString(),
-          ),
-        ),
+        MaterialPageRoute(builder: (_) => Markdown_(markdowndata: rendered)),
       );
     } on DioException catch (e) {
       debugPrint('document download error: $e');
@@ -292,32 +287,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                   ),
                 ),
                 SizedBox(height: height * 0.003),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 3),
-                  child: Text(
-                    widget.notice['description'].toString(),
-                    style: TextStyle(fontSize: width * 0.035),
-                  ),
-                ),
-                SizedBox(height: height * 0.004),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.person,
-                      size: width * 0.06,
-                      color: Colors.black54,
-                    ),
-                    SizedBox(width: width * 0.005),
-                    Text(
-                      teacherNameText,
-                      style: TextStyle(
-                        fontSize: width * 0.035,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black45,
-                      ),
-                    ),
-                  ],
-                ),
+                SizedBox(height: height * 0.01),
                 SizedBox(height: 12),
                 Row(
                   children: [
@@ -455,10 +425,11 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                                   return Column(
                                                     children: [
                                                       GestureDetector(
-                                                        onTap: () =>
-                                                            _openDocumentMarkdown(
-                                                              doc,
-                                                            ),
+                                                        onTap:
+                                                            () =>
+                                                                _openDocumentMarkdown(
+                                                                  doc,
+                                                                ),
                                                         child: Container(
                                                           margin:
                                                               EdgeInsets.only(

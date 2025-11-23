@@ -148,28 +148,6 @@ class _GwajejechulState extends State<Gwajejechul> {
                                   color: const Color(0xff1F2937),
                                 ),
                               ),
-                              if (teacher.isNotEmpty) ...[
-                                SizedBox(height: height * 0.006),
-                                Text(
-                                  '담당 · $teacher',
-                                  style: TextStyle(
-                                    fontSize: width * 0.032,
-                                    color: const Color(0xff6B7280),
-                                  ),
-                                ),
-                              ],
-                              if (content.trim().isNotEmpty) ...[
-                                SizedBox(height: height * 0.01),
-                                Text(
-                                  content,
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: width * 0.034,
-                                    color: const Color(0xff374151),
-                                  ),
-                                ),
-                              ],
                             ],
                           ),
                         ),
@@ -223,7 +201,6 @@ class _GwajejechulState extends State<Gwajejechul> {
                       ],
                     ),
                     if (period.isNotEmpty) ...[
-                      SizedBox(height: height * 0.015),
                       Text(
                         period,
                         style: TextStyle(
@@ -232,7 +209,7 @@ class _GwajejechulState extends State<Gwajejechul> {
                         ),
                       ),
                     ],
-                    SizedBox(height: height * 0.02),
+                    SizedBox(height: height * 0.01),
                     Row(
                       children: [
                         Expanded(
