@@ -153,11 +153,8 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
               : <Map<String, dynamic>>[];
 
       if (list.isEmpty) {
-        return _fallbackAssignments
-            .map((e) => Map<String, dynamic>.from(e))
-            .toList();
+        return const <Map<String, dynamic>>[];
       }
-
       return list;
     } on DioException catch (e) {
       debugPrint('status : ${e.response?.statusCode}');
@@ -168,15 +165,11 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
 
       debugPrint('msg    : ${e.message}');
 
-      return _fallbackAssignments
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
+      return const <Map<String, dynamic>>[];
     } catch (e) {
       debugPrint('assignments load error: $e');
 
-      return _fallbackAssignments
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
+      return const <Map<String, dynamic>>[];
     }
   }
 
@@ -562,6 +555,19 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                           final list =
                                               snapshot.data ??
                                               const <Map<String, dynamic>>[];
+                                          if (list.isEmpty) {
+                                            return Center(
+                                              child: Text(
+                                                '과제가 없습니다.',
+                                                style: TextStyle(
+                                                  fontSize: width * 0.04,
+                                                  color: const Color(
+                                                    0xff6B7280,
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          }
                                           return Gwajejechul(
                                             key: const ValueKey('list'),
                                             dataList: list,

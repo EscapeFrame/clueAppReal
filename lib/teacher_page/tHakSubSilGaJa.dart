@@ -1,5 +1,8 @@
 // 페이지: 학습실 과제 상세/제출 화면의 메인 구현입니다.
+import 'dart:io';
+
 import 'package:clue/api_client.dart';
+import 'package:clue/teacher_page/t_haksubsil/data/haksubsil_service.dart';
 import 'package:clue/widgets/haksubsil/dialogs/upload_choice_menu.dart';
 import 'package:clue/widgets/haksubsil/dialogs/upload_file_dialog.dart';
 import 'package:clue/widgets/haksubsil/dialogs/url_input_dialog.dart';
@@ -15,6 +18,8 @@ import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
 
 class Haksubsilgaja extends StatefulWidget {
   final Map<String, dynamic> assignment;
@@ -564,6 +569,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                 AttachmentsSection(
                   title: '첨부된 파일',
                   attachments: fileAttachments,
+                  onTap: _handleFileAttachmentTap,
                 ),
               if (linkAttachments.isNotEmpty)
                 AttachmentsSection(
@@ -754,6 +760,72 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
           ),
         ),
       ),
-    );
+      );
+    }
+
+  Future<void> _handleFileAttachmentTap(Map<String, dynamic> attachment) async {
+    final kind = (attachment['kind'] ?? '').toString().toUpperCase();
+    if (kind != 'FILE') return;
+    final attachmentId = (attachment['attachmentId'] ?? '').toString();
+    if (attachmentId.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('업로드된 파일만 다운로드할 수 있어요.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    final fileName = (attachment['name'] ?? 'attachment').toString();
+    await _downloadAssignmentAttachment(attachmentId, fileName);
   }
+
+  Future<void> _downloadAssignmentAttachment(
+    String attachmentId,
+    String fileName,
+  ) async {
+    try {
+      final bytes =
+          await HaksubsilService.downloadAttachmentBytes(attachmentId);
+      if (bytes == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('파일을 다운로드할 수 없어요. 다시 시도해 주세요.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+      final safeName = _sanitizeFileName(
+        fileName.isEmpty ? 'attachment-$attachmentId' : fileName,
+      );
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File('${dir.path}/$safeName');
+      await file.writeAsBytes(bytes, flush: true);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('다운로드 완료: $safeName'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      await OpenFile.open(file.path);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('다운로드 중 오류가 발생했어요: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  String _sanitizeFileName(String name) {
+    final sanitized = name.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+    return sanitized.isEmpty ? 'attachment' : sanitized;
+  }
+
 }
