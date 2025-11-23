@@ -59,6 +59,77 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
     });
   }
 
+  Future<void> _openDocumentMarkdown(Map<String, dynamic> document) async {
+    final rawId =
+        document['documentId'] ??
+        document['document_id'] ??
+        document['id'] ??
+        document['documentNo'];
+    final docId = rawId == null ? '' : rawId.toString();
+    if (docId.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('문서 정보를 찾을 수 없어요.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final navigator = Navigator.of(context, rootNavigator: true);
+    var loaderClosed = false;
+    void closeLoader() {
+      if (!loaderClosed) {
+        navigator.pop();
+        loaderClosed = true;
+      }
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final dio = ApiClient.instance.dio;
+      final response = await dio.get(
+        '/api/document/$docId/download',
+        options: Options(responseType: ResponseType.plain),
+      );
+      closeLoader();
+      if (!mounted) return;
+      final markdownContent = (response.data?.toString() ?? '').trim();
+      final rendered = markdownContent.isEmpty ? markdowndata : markdownContent;
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => Markdown_(markdowndata: rendered),
+        ),
+      );
+    } on DioException catch (e) {
+      debugPrint('document download error: $e');
+      closeLoader();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('문서를 불러오는 중 오류가 발생했어요. (${e.message})'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      debugPrint('document download unexpected error: $e');
+      closeLoader();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('문서를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   Future<List<Map<String, dynamic>>> gwaJeJeChul() async {
     try {
       final assignmentsApi = ApiClient.instance.dio;
@@ -372,24 +443,19 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                             ...(((lesson['documentList']
                                                         as List?) ??
                                                     const []))
-                                                .map<Widget>(
-                                                  (item) => Column(
+                                                .map<Widget>((item) {
+                                                  final doc =
+                                                      Map<String, dynamic>.from(
+                                                        (item as Map?) ??
+                                                            const {},
+                                                      );
+                                                  return Column(
                                                     children: [
                                                       GestureDetector(
-                                                        onTap: () {
-                                                          Navigator.push(
-                                                            context,
-                                                            MaterialPageRoute(
-                                                              builder:
-                                                                  (
-                                                                    context,
-                                                                  ) => Markdown_(
-                                                                    markdowndata:
-                                                                        markdowndata,
-                                                                  ),
+                                                        onTap: () =>
+                                                            _openDocumentMarkdown(
+                                                              doc,
                                                             ),
-                                                          );
-                                                        },
                                                         child: Container(
                                                           margin:
                                                               EdgeInsets.only(
@@ -447,8 +513,9 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                                                       0.04,
                                                                 ),
                                                             title: Text(
-                                                              item['title']
-                                                                  .toString(),
+                                                              doc['title']
+                                                                      ?.toString() ??
+                                                                  '',
                                                               style: TextStyle(
                                                                 fontWeight:
                                                                     FontWeight
@@ -462,8 +529,8 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                                         ),
                                                       ),
                                                     ],
-                                                  ),
-                                                ),
+                                                  );
+                                                }),
                                           ],
                                         ),
                                       ),
