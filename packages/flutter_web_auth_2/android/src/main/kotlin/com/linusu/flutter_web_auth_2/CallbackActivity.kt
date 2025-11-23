@@ -11,8 +11,16 @@ class CallbackActivity: Activity() {
     val url = intent?.data
     val scheme = url?.scheme
 
-    if (scheme != null) {
-      FlutterWebAuth2Plugin.callbacks.remove(scheme)?.success(url.toString())
+    if (scheme != null && url != null) {
+      val encodedFragment = url.encodedFragment
+      val urlWithFragment =
+        if (!encodedFragment.isNullOrEmpty() && !url.toString().contains("#")) {
+          Uri.parse("${url.toString()}#${encodedFragment}")
+        } else {
+          url
+        }
+
+      FlutterWebAuth2Plugin.callbacks.remove(scheme)?.success(urlWithFragment.toString())
     }
 
     finish()

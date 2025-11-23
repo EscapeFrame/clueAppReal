@@ -76,6 +76,7 @@ class _LoginState extends State<Login> {
 
       // 콜백 URI 수신
       final returnedUri = Uri.parse(resultUri);
+      final redirectPath = _readRedirectPath(returnedUri);
       debugPrint('✅ OAuth 콜백 수신: uri=$returnedUri');
 
       // --- 토큰 파싱 (query 우선, 없으면 fragment fallback)
@@ -102,8 +103,19 @@ class _LoginState extends State<Login> {
       }
 
       if (token.isEmpty) {
-        debugPrint('❌ OAuth callback missing token. uri=$returnedUri');
-        _snack('로그인 결과에 토큰이 없습니다.');
+        if (redirectPath != null) {
+          debugPrint('⚠️ Token missing but redirect=$redirectPath detected. Navigating to redirect path.');
+          if (!_navigated) {
+            _navigated = true;
+            Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil(redirectPath, (route) => false);
+            debugPrint('✅ Redirecting to $redirectPath via 서버 응답');
+          }
+        } else {
+          debugPrint('❌ OAuth callback missing token. uri=$returnedUri');
+          _snack('로그인 결과에 토큰이 없습니다.');
+        }
         setState(() => _loggingIn = false);
         return;
       }
@@ -126,7 +138,6 @@ class _LoginState extends State<Login> {
       debugPrint('✅ AuthGateBridge.refresh() 완료');
 
       // --- 전역 네비게이터로 전환 (항상 같은 루트로 이동)
-      final redirectPath = _readRedirectPath(returnedUri);
       if (!_navigated) {
         _navigated = true;
         if (redirectPath != null) {

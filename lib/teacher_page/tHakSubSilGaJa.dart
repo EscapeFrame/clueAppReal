@@ -805,12 +805,6 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       final file = File('${dir.path}/$safeName');
       await file.writeAsBytes(bytes, flush: true);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('다운로드 완료: $safeName'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
       await OpenFile.open(file.path);
     } catch (e) {
       if (!mounted) return;

@@ -25,6 +25,11 @@ List<Map<String, dynamic>> mapAttachments(List src) {
         m['assignmentAttachmentId'] ??
         m['attachmentId'] ??
         m['assignment_attachment_id'] ??
+        m['attachmentResponseId'] ??
+        m['submissionAttachmentResponseId'] ??
+        m['assignmentAttachmentResponseId'] ??
+        m['submission_attachment_id'] ??
+        m['assignment_attachment_response_id'] ??
         m['id'];
     final attachmentId = attachmentRaw == null ? '' : attachmentRaw.toString();
 
