@@ -86,7 +86,7 @@ class _HomeTimetableSectionState extends State<HomeTimetableSection> {
       if (dayLabel == null || period == null) continue;
       final entry = _TimetableEntry(
         period: period,
-        subject: (map['subject'] ?? '자습').toString(),
+        subject: _sanitizeSubject(map['subject']),
         location:
             (map['location'] ??
                     map['room'] ??
@@ -199,6 +199,16 @@ class _HomeTimetableSectionState extends State<HomeTimetableSection> {
     } catch (_) {
       return null;
     }
+  }
+
+
+  String _sanitizeSubject(dynamic value) {
+    const fallback = '??';
+    if (value == null) return fallback;
+    final raw = value.toString().trim();
+    if (raw.isEmpty) return fallback;
+    final cleaned = raw.replaceFirst(RegExp(r'^\*+\s*'), '');
+    return cleaned.isEmpty ? fallback : cleaned;
   }
 
   @override
