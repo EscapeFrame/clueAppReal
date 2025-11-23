@@ -1,5 +1,8 @@
 ﻿// 페이지: 학습실 과제 상세/제출 화면의 메인 구현입니다.
+import 'dart:io';
+
 import 'package:clue/api_client.dart';
+import 'package:clue/teacher_page/t_haksubsil/data/haksubsil_service.dart';
 import 'package:clue/widgets/haksubsil/dialogs/upload_choice_menu.dart';
 import 'package:clue/widgets/haksubsil/dialogs/upload_file_dialog.dart';
 import 'package:clue/widgets/haksubsil/dialogs/url_input_dialog.dart';
@@ -13,6 +16,8 @@ import 'package:clue/widgets/haksubsil/widgets/sections/description_section.dart
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Haksubsilgaja extends StatefulWidget {
@@ -157,6 +162,72 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     if (url != null) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     }
+  }
+
+  Future<void> _handleAssignmentAttachmentTap(
+    Map<String, dynamic> attachment,
+  ) async {
+    final kind = (attachment['kind'] ?? '').toString().toUpperCase();
+    if (kind == 'URL') {
+      await _openAttachmentLink(attachment);
+      return;
+    }
+    final attachmentId = (attachment['attachmentId'] ?? '').toString();
+    if (attachmentId.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('다운로드할 첨부 정보를 찾을 수 없습니다.')));
+      return;
+    }
+    final fileName = (attachment['name'] ?? 'attachment').toString();
+    await _downloadAssignmentAttachment(attachmentId, fileName);
+  }
+
+  Future<void> _handleAttachmentTap(Map<String, dynamic> attachment) async {
+    await _handleAssignmentAttachmentTap(attachment);
+  }
+
+  Future<void> _downloadAssignmentAttachment(
+    String attachmentId,
+    String fileName,
+  ) async {
+    try {
+      final bytes = await HaksubsilService.downloadAttachmentBytes(
+        attachmentId,
+      );
+      if (bytes == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('파일 다운로드에 실패했습니다. 다시 시도해주세요.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+      final safeName = _sanitizeFileName(
+        fileName.isEmpty ? 'attachment-$attachmentId' : fileName,
+      );
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File('${dir.path}/$safeName');
+      await file.writeAsBytes(bytes, flush: true);
+      if (!mounted) return;
+      await OpenFile.open(file.path);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('파일 다운로드 중 오류가 발생했습니다: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  String _sanitizeFileName(String name) {
+    final sanitized = name.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+    return sanitized.isEmpty ? 'attachment' : sanitized;
   }
 
   @override
@@ -837,6 +908,9 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
             'contentType': file.extension ?? 'FILE',
             'kind': 'FILE',
             'url': '',
+            'attachmentId': '',
+            'localPath': file.path ?? '',
+            'localBytes': file.bytes,
             'onRemove':
                 canEditAttachments
                     ? () async {
@@ -922,12 +996,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                 AttachmentsSection(
                   title: '첨부파일',
                   attachments: assignmentAttachments,
-                  onTap: (item) {
-                    if ((item['kind'] ?? '').toString().toUpperCase() ==
-                        'URL') {
-                      _openAttachmentLink(item);
-                    }
-                  },
+                  onTap: _handleAttachmentTap,
                 ),
               if (uploadedFileAttachments.isNotEmpty)
                 AttachmentsSection(
