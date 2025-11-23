@@ -3,6 +3,7 @@ import 'package:clue/teacher_page/tHakSubSilSetting.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 enum _DirectoryAction { rename, delete, addResource }
@@ -742,6 +743,83 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
     }
   }
 
+  Future<void> _openDocumentMarkdown(Map<String, dynamic> doc) async {
+    final docId = doc['documentId']?.toString();
+    if (docId == null || docId.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            '\ubb38\uc11c \uc815\ubcf4\ub97c \ucc3e\uc744 \uc218 \uc5c6\uc5b4\uc694.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    final String title = doc['title']?.toString() ?? '';
+    final navigator = Navigator.of(context, rootNavigator: true);
+    var loaderClosed = false;
+    void closeLoader() {
+      if (!loaderClosed) {
+        navigator.pop();
+        loaderClosed = true;
+      }
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
+
+    try {
+      final dio = ApiClient.instance.dio;
+      final response = await dio.get(
+        '/api/document/$docId/download',
+        options: Options(responseType: ResponseType.plain),
+      );
+      closeLoader();
+      if (!mounted) return;
+      final markdownContent = response.data?.toString() ?? '';
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder:
+              (_) => _DocumentMarkdownPage(
+                title: title,
+                markdown: markdownContent,
+              ),
+        ),
+      );
+    } on DioException catch (e) {
+      debugPrint('document fetch error: $e');
+      closeLoader();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '\ubb38\uc11c\ub97c \ubd88\ub7ec\uc624\ub294 \uc911 \uc624\ub958\uac00 \ubc1c\uc0dd\ud588\uc5b4\uc694. (${e.message})',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      debugPrint('document fetch unexpected error: $e');
+      closeLoader();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            '\ubb38\uc11c\ub97c \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc5b4\uc694. \uc7a0\uc2dc \ud6c4 \ub2e4\uc2dc \uc2dc\ub3c4\ud574 \uc8fc\uc138\uc694.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   Widget _buildAddLessonCard(double width, double height) {
     final borderRadius = width * 0.03;
     return Padding(
@@ -1146,8 +1224,10 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                                           children:
                                               documents.map<Widget>((docItem) {
                                                 final doc =
-                                                    (docItem as Map?) ??
-                                                    const {};
+                                                    Map<String, dynamic>.from(
+                                                      (docItem as Map?) ??
+                                                          const {},
+                                                    );
                                                 return Column(
                                                   children: [
                                                     Container(
@@ -1178,6 +1258,11 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                                                                 12,
                                                               ),
                                                         ),
+                                                        onTap:
+                                                            () =>
+                                                                _openDocumentMarkdown(
+                                                                  doc,
+                                                                ),
                                                         contentPadding:
                                                             EdgeInsets.symmetric(
                                                               horizontal:
@@ -1285,6 +1370,117 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DocumentMarkdownPage extends StatelessWidget {
+  final String title;
+  final String markdown;
+
+  const _DocumentMarkdownPage({required this.title, required this.markdown});
+
+  @override
+  Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final width = mediaQuery.size.width;
+    final theme = Theme.of(context);
+    final baseTextTheme = theme.textTheme;
+    final markdownStyle = MarkdownStyleSheet.fromTheme(
+      theme.copyWith(
+        textTheme: baseTextTheme.apply(
+          bodyColor: const Color(0xff111827),
+          displayColor: const Color(0xff111827),
+        ),
+      ),
+    ).copyWith(
+      h1: baseTextTheme.headlineSmall?.copyWith(
+        fontWeight: FontWeight.w700,
+        color: const Color(0xff111827),
+      ),
+      h2: baseTextTheme.titleLarge?.copyWith(
+        fontWeight: FontWeight.w700,
+        color: const Color(0xff111827),
+      ),
+      p: baseTextTheme.bodyMedium?.copyWith(
+        height: 1.5,
+        fontSize: baseTextTheme.bodyMedium?.fontSize ?? 14,
+        color: const Color(0xff1f2937),
+      ),
+      listBullet: baseTextTheme.bodyMedium?.copyWith(
+        color: const Color(0xff1f2937),
+      ),
+    );
+
+    final content =
+        markdown.trim().isEmpty
+            ? '\ud45c\uc2dc\ud560 \ub0b4\uc6a9\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.'
+            : markdown;
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SvgPicture.asset(
+                    'assets/images/realLogo.svg',
+                    width: width * 0.25,
+                  ),
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.arrow_back),
+                        color: Colors.black87,
+                        iconSize: width * 0.07,
+                        tooltip: '\ub4a4\ub85c',
+                      ),
+                      SizedBox(width: width * 0.03),
+                      IconButton(
+                        onPressed: () {},
+                        icon: SvgPicture.asset(
+                          'assets/images/bars-3.svg',
+                          width: width * 0.074,
+                        ),
+                        tooltip: '\uba54\ub274',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1, color: Color(0xffe2e8f0)),
+            if (title.isNotEmpty && !content.trimLeft().startsWith('#'))
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    title,
+                    style: baseTextTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xff111827),
+                    ),
+                  ),
+                ),
+              ),
+            Expanded(
+              child: Markdown(
+                data: content,
+                selectable: true,
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+                styleSheet: markdownStyle,
+                shrinkWrap: false,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
