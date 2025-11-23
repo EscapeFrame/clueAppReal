@@ -104,7 +104,10 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
       final rendered = markdownContent.isEmpty ? markdowndata : markdownContent;
       await Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => Markdown_(markdowndata: rendered),
+          builder: (_) => Markdown_(
+            markdowndata: rendered,
+            title: document['title']?.toString(),
+          ),
         ),
       );
     } on DioException catch (e) {
