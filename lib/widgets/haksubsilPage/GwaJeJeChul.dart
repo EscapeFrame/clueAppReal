@@ -148,6 +148,16 @@ class _GwajejechulState extends State<Gwajejechul> {
                                   color: const Color(0xff1F2937),
                                 ),
                               ),
+                              if (period.isNotEmpty) ...[
+                                SizedBox(height: height * 0.006),
+                                Text(
+                                  period,
+                                  style: TextStyle(
+                                    fontSize: width * 0.034,
+                                    color: const Color(0xff475467),
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -172,64 +182,7 @@ class _GwajejechulState extends State<Gwajejechul> {
                                   ),
                                 ),
                               ),
-                            SizedBox(height: height * 0.006),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color:
-                                    isSubmitted
-                                        ? const Color(0xffDCFCE7)
-                                        : const Color(0xffFEE2E2),
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                              child: Text(
-                                isSubmitted ? '제출완료' : '미제출',
-                                style: TextStyle(
-                                  color:
-                                      isSubmitted
-                                          ? const Color(0xff15803D)
-                                          : const Color(0xffB91C1C),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
                           ],
-                        ),
-                      ],
-                    ),
-                    if (period.isNotEmpty) ...[
-                      Text(
-                        period,
-                        style: TextStyle(
-                          fontSize: width * 0.034,
-                          color: const Color(0xff475467),
-                        ),
-                      ),
-                    ],
-                    SizedBox(height: height * 0.01),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildMetaTile(
-                            icon: Icons.calendar_today,
-                            label: '시작일',
-                            value: _formatDate(startDate),
-                            color: const Color(0xff4C5674),
-                            width: width,
-                          ),
-                        ),
-                        SizedBox(width: width * 0.02),
-                        Expanded(
-                          child: _buildMetaTile(
-                            icon: Icons.flag,
-                            label: '마감일',
-                            value: _formatDate(endDate),
-                            color: accent,
-                            width: width,
-                          ),
                         ),
                       ],
                     ),
