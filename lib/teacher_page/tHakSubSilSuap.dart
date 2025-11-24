@@ -350,13 +350,13 @@ class _CreateClassDialog extends StatefulWidget {
 class _CreateClassDialogState extends State<_CreateClassDialog> {
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _sortController = TextEditingController();
   final _targetController = TextEditingController();
 
   final _nameFocus = FocusNode();
   final _descriptionFocus = FocusNode();
-  final _sortFocus = FocusNode();
   final _targetFocus = FocusNode();
+
+  final List<String> _sortOptions = ['인문과목', '전공과목', '방과후'];
 
   final _scrollController = ScrollController();
 
@@ -367,13 +367,14 @@ class _CreateClassDialogState extends State<_CreateClassDialog> {
 
   bool _isActivation = true;
   bool _isSubmitting = false;
+  String? _selectedSort;
 
   @override
   void initState() {
     super.initState();
+    _selectedSort = _sortOptions.first;
     _registerAutoScroll(_nameFocus, _nameFieldKey);
     _registerAutoScroll(_descriptionFocus, _descriptionFieldKey);
-    _registerAutoScroll(_sortFocus, _sortFieldKey);
     _registerAutoScroll(_targetFocus, _targetFieldKey);
   }
 
@@ -397,13 +398,11 @@ class _CreateClassDialogState extends State<_CreateClassDialog> {
   void dispose() {
     _nameFocus.dispose();
     _descriptionFocus.dispose();
-    _sortFocus.dispose();
     _targetFocus.dispose();
     _scrollController.dispose();
 
     _nameController.dispose();
     _descriptionController.dispose();
-    _sortController.dispose();
     _targetController.dispose();
     super.dispose();
   }
@@ -411,10 +410,10 @@ class _CreateClassDialogState extends State<_CreateClassDialog> {
   Future<void> _handleSubmit() async {
     final name = _nameController.text.trim();
     final description = _descriptionController.text.trim();
-    final sort = _sortController.text.trim();
+    final sort = _selectedSort?.trim();
     final target = _targetController.text.trim();
 
-    if (name.isEmpty || sort.isEmpty || target.isEmpty) {
+    if (name.isEmpty || sort == null || sort.isEmpty || target.isEmpty) {
       ScaffoldMessenger.of(widget.hostContext).showSnackBar(
         const SnackBar(content: Text('name, sort, target을 입력해 주세요.')),
       );
@@ -650,10 +649,40 @@ class _CreateClassDialogState extends State<_CreateClassDialog> {
                               requiredMark: true,
                               widthFactor: width,
                               fieldKey: _sortFieldKey,
-                              child: TextFormField(
-                                controller: _sortController,
-                                focusNode: _sortFocus,
-                                decoration: inputDecoration('예: 인문과목, 전공과목'),
+                              child: DropdownButtonFormField<String>(
+                                value: _selectedSort,
+                                isExpanded: true,
+                                menuMaxHeight: 260,
+                                borderRadius: BorderRadius.circular(14),
+                                dropdownColor: Colors.white,
+                                items:
+                                    _sortOptions
+                                        .map(
+                                          (option) => DropdownMenuItem(
+                                            value: option,
+                                            child: Text(
+                                              option,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: width * 0.035,
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                                decoration: inputDecoration('과목 분류를 선택해 주세요'),
+                                icon: const Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  color: Color(0xff578FCA),
+                                ),
+                                style: TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: width * 0.035,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                onChanged:
+                                    (value) =>
+                                        setState(() => _selectedSort = value),
                               ),
                             ),
                             const SizedBox(height: 18),
