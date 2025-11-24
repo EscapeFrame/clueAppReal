@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:clue/api_client.dart';
+import 'package:clue/auth_storage.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -22,6 +24,8 @@ class _SignupState extends State<Signup> {
   String? _email;
   String? _username;
   String? _role;
+  String? _sessionId;
+  bool _routeResolved = false;
 
   File? _pickedImage;
   int? _grade;
@@ -29,18 +33,86 @@ class _SignupState extends State<Signup> {
   String? _number;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_routeResolved) return;
+    _routeResolved = true;
+    _resolveSessionId();
+  }
+
+  Future<void> _resolveSessionId() async {
+    String? sid = _extractSessionIdFromRouteSync();
+    sid ??= await AuthStorage.instance.readSessionId();
+
+    if (!mounted) return;
+    setState(() {
+      _sessionId = sid;
+    });
+
+    if (_sessionId == null || _sessionId!.isEmpty) {
+      setState(() {
+        _firstRegisterError = '세션 정보가 없습니다.';
+        _loadingInitial = false;
+      });
+      return;
+    }
     _loadFirstRegister();
   }
 
+  String? _extractSessionIdFromRouteSync() {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Map && args['sessionId'] != null) {
+      final value = args['sessionId'];
+      if (value != null && value.toString().isNotEmpty) {
+        return value.toString();
+      }
+    }
+
+    final routeName = ModalRoute.of(context)?.settings.name;
+    if (routeName != null && routeName.contains('session_id=')) {
+      try {
+        final uri = Uri.parse('scheme://host$routeName');
+        final sid = uri.queryParameters['session_id'];
+        if (sid != null && sid.isNotEmpty) return sid;
+      } catch (_) {
+        // ignore malformed route name
+      }
+    }
+
+    final base = Uri.base;
+    final sidFromQuery = base.queryParameters['session_id'];
+    if (sidFromQuery != null && sidFromQuery.isNotEmpty) return sidFromQuery;
+
+    if (base.fragment.isNotEmpty) {
+      for (final pair in base.fragment.split('&')) {
+        final parts = pair.split('=');
+        if (parts.length != 2) continue;
+        if (parts[0] == 'session_id' && parts[1].isNotEmpty) {
+          return Uri.decodeComponent(parts[1]);
+        }
+      }
+    }
+    return null;
+  }
+
   Future<void> _loadFirstRegister() async {
+    if (_sessionId == null || _sessionId!.isEmpty) {
+      setState(() {
+        _firstRegisterError = '세션 정보가 없습니다.';
+        _loadingInitial = false;
+      });
+      return;
+    }
     setState(() {
       _loadingInitial = true;
       _firstRegisterError = null;
     });
     try {
-      final response = await ApiClient.instance.dio.get('/first-register');
+      final response = await ApiClient.instance.dio.get(
+        '/first-register',
+        queryParameters: {'session_id': _sessionId},
+        options: Options(headers: {'session_id': _sessionId}),
+      );
       final data = response.data;
       final map = data is Map
           ? Map<String, dynamic>.from(data.cast<String, dynamic>())
@@ -52,7 +124,12 @@ class _SignupState extends State<Signup> {
         _loadingInitial = false;
       });
     } catch (e) {
-      debugPrint('failed to load first-register: $e');
+      if (e is DioException) {
+        debugPrint(
+            'failed to load first-register: status=${e.response?.statusCode} data=${e.response?.data}');
+      } else {
+        debugPrint('failed to load first-register: $e');
+      }
       setState(() {
         _firstRegisterError = '회원정보를 불러오는 데 실패했습니다.';
         _loadingInitial = false;
@@ -73,6 +150,14 @@ class _SignupState extends State<Signup> {
     if (_submitting || _grade == null || _klass == null || _number == null) {
       return;
     }
+    if (_sessionId == null || _sessionId!.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('세션 정보가 없습니다. 다시 시도해주세요.')),
+        );
+      }
+      return;
+    }
     final intNumber = int.tryParse(_number!) ?? 0;
     setState(() => _submitting = true);
     try {
@@ -88,7 +173,12 @@ class _SignupState extends State<Signup> {
         },
         'image': imageString,
       };
-      await ApiClient.instance.dio.post('/register', data: payload);
+      await ApiClient.instance.dio.post(
+        '/register',
+        data: payload,
+        queryParameters: {'session_id': _sessionId},
+        options: Options(headers: {'session_id': _sessionId}),
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('회원가입 정보가 저장되었습니다.')),

@@ -7,6 +7,7 @@ class AuthStorage {
 
   static const _kAccessToken = 'access_token';
   static const _kRefreshToken = 'refresh_token';
+  static const _kSessionId = 'session_id';
 
   Future<void> saveAccessToken(String token) async {
     await _storage.write(key: _kAccessToken, value: token);
@@ -22,6 +23,14 @@ class AuthStorage {
 
   Future<String?> readRefreshToken() async {
     return _storage.read(key: _kRefreshToken);
+  }
+
+  Future<void> saveSessionId(String sessionId) async {
+    await _storage.write(key: _kSessionId, value: sessionId);
+  }
+
+  Future<String?> readSessionId() async {
+    return _storage.read(key: _kSessionId);
   }
 
   Future<void> clear() async {

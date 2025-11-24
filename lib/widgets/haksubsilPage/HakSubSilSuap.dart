@@ -352,157 +352,175 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                               color: const Color.fromARGB(255, 245, 245, 245),
                               // color:Colors.white,
                             ),
-                            child: ListView.builder(
-                              itemCount:
-                                  ((widget.notice['directoryList'] as List?) ??
-                                          const [])
-                                      .length,
-                              itemBuilder: (context, index) {
-                                final lesson =
-                                    ((widget.notice['directoryList']
-                                                as List?) ??
-                                            const [])[index]
-                                        as Map? ??
-                                    const {};
-                                return Column(
-                                  children: [
-                                    SizedBox(height: height * 0.01),
-                                    Container(
-                                      margin: EdgeInsets.symmetric(
-                                        horizontal: width * 0.05,
-                                        vertical: height * 0.003,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.grey.withOpacity(0.1),
-                                            spreadRadius: 5,
-                                            blurRadius: 7,
-                                            offset: Offset(
-                                              0,
-                                              3,
-                                            ), // changes position of shadow
-                                          ),
-                                        ],
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          width: 0.25,
-                                          color: Color(0xffCCCCCC),
-                                        ),
-                                        color: Colors.white,
-                                      ),
-                                      child: Theme(
-                                        data: Theme.of(context).copyWith(
-                                          dividerColor: Colors.transparent,
-                                        ),
-                                        child: ExpansionTile(
-                                          title: Text(
-                                            lesson['directoryName'].toString(),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: width * 0.045,
-                                            ),
-                                          ),
-                                          children: [
-                                            ...(((lesson['documentList']
-                                                        as List?) ??
-                                                    const []))
-                                                .map<Widget>((item) {
-                                                  final doc =
-                                                      Map<String, dynamic>.from(
-                                                        (item as Map?) ??
-                                                            const {},
-                                                      );
-                                                  return Column(
-                                                    children: [
-                                                      GestureDetector(
-                                                        onTap:
-                                                            () =>
-                                                                _openDocumentMarkdown(
-                                                                  doc,
-                                                                ),
-                                                        child: Container(
-                                                          margin:
-                                                              EdgeInsets.only(
-                                                                left:
-                                                                    width *
-                                                                    0.028,
-                                                                right:
-                                                                    width *
-                                                                    0.028,
-                                                                bottom:
-                                                                    height *
-                                                                    0.012,
-                                                              ),
-                                                          decoration: BoxDecoration(
-                                                            color: Color(
-                                                              0xffF5F5F5,
-                                                            ),
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  12,
-                                                                ),
-                                                            // boxShadow: [
-                                                            //   BoxShadow(
-                                                            //     color: Colors
-                                                            //         .black
-                                                            //         .withOpacity(
-                                                            //           0.05,
-                                                            //         ),
-                                                            //     blurRadius: 6,
-                                                            //     offset: Offset(
-                                                            //       0,
-                                                            //       2,
-                                                            //     ),
-                                                            //   ),
-                                                            // ],
-                                                            // color: const Color.fromARGB(255, 245, 245, 245),
-                                                            border: Border.all(
-                                                              width: 0.01,
-                                                              color: Color(
-                                                                0xffCCCCCC,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          child: ListTile(
-                                                            shape: RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius.circular(
-                                                                    12,
-                                                                  ),
-                                                            ),
-                                                            contentPadding:
-                                                                EdgeInsets.symmetric(
-                                                                  horizontal:
-                                                                      width *
-                                                                      0.04,
-                                                                ),
-                                                            title: Text(
-                                                              doc['title']
-                                                                      ?.toString() ??
-                                                                  '',
-                                                              style: TextStyle(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                fontSize:
-                                                                    width *
-                                                                    0.035,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  );
-                                                }),
-                                          ],
-                                        ),
+                            child: Builder(
+                              builder: (context) {
+                                final lessons =
+                                    (widget.notice['directoryList'] as List?) ??
+                                    const [];
+                                if (lessons.isEmpty) {
+                                  return Center(
+                                    child: Text(
+                                      '수업이 없습니다.',
+                                      style: TextStyle(
+                                        fontSize: width * 0.04,
+                                        color: const Color(0xff6B7280),
                                       ),
                                     ),
-                                  ],
+                                  );
+                                }
+                                return ListView.builder(
+                                  itemCount: lessons.length,
+                                  itemBuilder: (context, index) {
+                                    final lesson =
+                                        (lessons[index] as Map?) ?? const {};
+                                    return Column(
+                                      children: [
+                                        SizedBox(height: height * 0.01),
+                                        Container(
+                                          margin: EdgeInsets.symmetric(
+                                            horizontal: width * 0.05,
+                                            vertical: height * 0.003,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.grey.withOpacity(
+                                                  0.1,
+                                                ),
+                                                spreadRadius: 5,
+                                                blurRadius: 7,
+                                                offset: Offset(
+                                                  0,
+                                                  3,
+                                                ), // changes position of shadow
+                                              ),
+                                            ],
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            border: Border.all(
+                                              width: 0.25,
+                                              color: Color(0xffCCCCCC),
+                                            ),
+                                            color: Colors.white,
+                                          ),
+                                          child: Theme(
+                                            data: Theme.of(context).copyWith(
+                                              dividerColor:
+                                                  Colors.transparent,
+                                            ),
+                                            child: ExpansionTile(
+                                              title: Text(
+                                                lesson['directoryName']
+                                                        .toString(),
+                                                maxLines: 1,
+                                                overflow:
+                                                    TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: width * 0.045,
+                                                ),
+                                              ),
+                                              children: [
+                                                ...(((lesson['documentList']
+                                                            as List?) ??
+                                                        const []))
+                                                    .map<Widget>((item) {
+                                                      final doc =
+                                                          Map<String, dynamic>.from(
+                                                            (item as Map?) ??
+                                                                const {},
+                                                          );
+                                                      return Column(
+                                                        children: [
+                                                          GestureDetector(
+                                                            onTap:
+                                                                () =>
+                                                                    _openDocumentMarkdown(
+                                                                      doc,
+                                                                    ),
+                                                            child: Container(
+                                                              margin:
+                                                                  EdgeInsets.only(
+                                                                    left:
+                                                                        width *
+                                                                        0.028,
+                                                                    right:
+                                                                        width *
+                                                                        0.028,
+                                                                    bottom:
+                                                                        height *
+                                                                        0.012,
+                                                                  ),
+                                                              decoration: BoxDecoration(
+                                                                color: Color(
+                                                                  0xffF5F5F5,
+                                                                ),
+                                                                borderRadius:
+                                                                    BorderRadius.circular(
+                                                                      12,
+                                                                    ),
+                                                                // boxShadow: [
+                                                                //   BoxShadow(
+                                                                //     color: Colors
+                                                                //         .black
+                                                                //         .withOpacity(
+                                                                //           0.05,
+                                                                //         ),
+                                                                //     blurRadius: 6,
+                                                                //     offset: Offset(
+                                                                //       0,
+                                                                //       2,
+                                                                //     ),
+                                                                //   ),
+                                                                // ],
+                                                                // color: const Color.fromARGB(255, 245, 245, 245),
+                                                                border: Border.all(
+                                                                  width: 0.01,
+                                                                  color: Color(
+                                                                    0xffCCCCCC,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              child: ListTile(
+                                                                shape: RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(
+                                                                        12,
+                                                                      ),
+                                                                ),
+                                                                contentPadding:
+                                                                    EdgeInsets.symmetric(
+                                                                      horizontal:
+                                                                          width *
+                                                                          0.04,
+                                                                    ),
+                                                                title: Text(
+                                                                  doc['title']
+                                                                          ?.toString() ??
+                                                                      '',
+                                                                  style:
+                                                                      TextStyle(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    fontSize:
+                                                                        width *
+                                                                        0.035,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    }),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
                                 );
                               },
                             ),

@@ -77,7 +77,12 @@ class _LoginState extends State<Login> {
       // 콜백 URI 수신
       final returnedUri = Uri.parse(resultUri);
       final redirectPath = _readRedirectPath(returnedUri);
+      final sessionId = _readSessionId(returnedUri);
       debugPrint('✅ OAuth 콜백 수신: uri=$returnedUri');
+      if (sessionId != null && sessionId.isNotEmpty) {
+        await AuthStorage.instance.saveSessionId(sessionId);
+        debugPrint('ℹ️ session_id captured: $sessionId');
+      }
 
       // --- 토큰 파싱 (query 우선, 없으면 fragment fallback)
       String token =
@@ -166,6 +171,16 @@ class _LoginState extends State<Login> {
     }
   }
 
+  void _navigateRedirectPath(String redirectPath, {String? sessionId}) {
+    if (_navigated || !mounted) return;
+    _navigated = true;
+    final args = redirectPath == '/signup' ? {'sessionId': sessionId} : null;
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(redirectPath, (route) => false, arguments: args);
+    debugPrint('✅ Redirecting to $redirectPath via 서버 응답');
+  }
+
   void _snack(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(
@@ -189,6 +204,25 @@ class _LoginState extends State<Login> {
     }
     if (candidate == null || candidate.isEmpty) return null;
     return candidate.startsWith('/') ? candidate : '/$candidate';
+  }
+
+  String? _readSessionId(Uri uri) {
+    final qp = uri.queryParameters['session_id'];
+    if (qp != null && qp.isNotEmpty) return qp;
+
+    // session_id in fragment: session_id=...&redirect=...
+    if (uri.fragment.isNotEmpty) {
+      final pairs = uri.fragment.split('&');
+      for (final pair in pairs) {
+        final parts = pair.split('=');
+        if (parts.length != 2) continue;
+        if (parts[0] == 'session_id') {
+          final value = Uri.decodeComponent(parts[1]);
+          if (value.isNotEmpty) return value;
+        }
+      }
+    }
+    return null;
   }
 
   String? _extractFragmentValue(Uri uri, List<String> keys) {
