@@ -18,25 +18,62 @@ class _HaksubsilState extends State<Haksubsil> {
   final List<String> categories = ['전체', '인문과목', '전공과목', '방과후'];
   int selectedIndex = 0; //기본선택 : 전체
   bool _isLoading = true;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
-  Future<void> haksubsilJoin(String code) async {
-    debugPrint("ccooddee : $code");
+  Future<bool> haksubsilJoin(String code) async {
+    final trimmed = code.trim();
+    if (trimmed.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('학습실 코드를 입력해 주세요.')),
+        );
+      }
+      return false;
+    }
+    debugPrint("ccooddee : $trimmed");
     try {
       final dio = ApiClient.instance.dio;
-      final api = await dio.post('/api/class/$code/members');
-      debugPrint(api.toString());
+      final res = await dio.post('/api/class/$trimmed/members');
+      debugPrint(res.toString());
+      return true;
     } on DioException catch (e) {
       debugPrint("dioerror : ${e.message}");
       debugPrint("dioerror : ${e.error}");
+      if (mounted) {
+        final code = e.response?.statusCode;
+        final rawMsg = e.response?.data?.toString() ?? e.message ?? 'unknown';
+        if (code == 500 && rawMsg.contains('이미')) {
+          await _response(); // 이미 참여한 교실이면 목록을 새로고침해 UI에 반영
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('이미 참여한 학습실입니다. 목록을 새로고침했어요.')),
+            );
+          }
+          return true;
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('참여 실패: $code $rawMsg')),
+          );
+        }
+      }
     } catch (e) {
       debugPrint("error: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('참여 실패: $e')),
+        );
+      }
     }
+    return false;
   }
 
   Widget _buildTabContent() {
     if (_isLoading && _classList.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
+    final query = _searchQuery.trim().toLowerCase();
     const filters = [null, 'inmoon', 'jeongong', 'banggwahoo'];
     final clampedIndex = selectedIndex.clamp(0, filters.length - 1).toInt();
     final filter = filters[clampedIndex];
@@ -47,13 +84,21 @@ class _HaksubsilState extends State<Haksubsil> {
       '방과후 학습실이 없습니다.',
     ];
 
+    final filteredBySearch =
+        query.isEmpty
+            ? _classList
+            : _classList.where((item) {
+              final name = (item['name'] ?? '').toString().toLowerCase();
+              return name.contains(query);
+            }).toList();
+
     return RefreshIndicator(
       onRefresh: _response,
       color: const Color(0xFF5FA8FF),
       backgroundColor: const Color(0xFFD6EAFF),
       child: HakSubSilBaroGaBoJa(
         key: ValueKey(filter ?? 'all'),
-        noticeList: _classList,
+        noticeList: filteredBySearch,
         subjectFilter: filter,
         emptyMessage: emptyMessages[clampedIndex],
       ),
@@ -155,9 +200,16 @@ class _HaksubsilState extends State<Haksubsil> {
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 10),
                         ),
-                        onPressed: () {
+                        onPressed: () async {
                           final code = codeController.text;
-                          haksubsilJoin(code);
+                          final joined = await haksubsilJoin(code);
+                          if (!joined || !mounted) return;
+                          Navigator.pop(context);
+                          await _response();
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('학습실에 참여했어요.')),
+                          );
                         },
                         child: const Text('확인'),
                       ),
@@ -216,6 +268,12 @@ class _HaksubsilState extends State<Haksubsil> {
     super.initState();
     debugPrint('진입함');
     _response();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -324,6 +382,7 @@ class _HaksubsilState extends State<Haksubsil> {
                         child: ConstrainedBox(
                           constraints: BoxConstraints(maxWidth: maxFieldWidth),
                           child: TextField(
+                            controller: _searchController,
                             decoration: InputDecoration(
                               hintText: "검색할 내용을 입력하세요",
                               hintStyle: TextStyle(
@@ -379,6 +438,9 @@ class _HaksubsilState extends State<Haksubsil> {
                                 ),
                               ),
                             ),
+                            onChanged: (value) {
+                              setState(() => _searchQuery = value);
+                            },
                           ),
                         ),
                       );

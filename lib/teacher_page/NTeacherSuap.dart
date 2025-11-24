@@ -16,6 +16,16 @@ class TeacherSuapListSection extends StatelessWidget {
   final Future<void> Function()? onRefresh;
   final String? emptyMessage;
 
+  String _iconKeyFromSort(dynamic sortValue) {
+    final normalized =
+        (sortValue ?? '').toString().replaceAll(' ', '').toLowerCase();
+    if (normalized.contains('인문')) return 'inmoon';
+    if (normalized.contains('전공') || normalized.contains('전문')) {
+      return 'jeongong';
+    }
+    return 'banggwahoo';
+  }
+
   List<Map<String, dynamic>> _filteredItems() {
     if (activationFilter == null) {
       return teacherHakSubSil.map(Map<String, dynamic>.from).toList();
@@ -87,10 +97,9 @@ class TeacherSuapListSection extends StatelessWidget {
           final String sort = (tsuap['sort'] ?? '').toString();
           final String target = (tsuap['target'] ?? '').toString();
           final String studentCount = (tsuap['studentCount'] ?? '-').toString();
-          final String iconKey =
-              (tsuap['subject'] ?? tsuap['sort'] ?? '')
-                  .toString()
-                  .toLowerCase();
+          final String iconKey = _iconKeyFromSort(
+            tsuap['sort'] ?? tsuap['subject'],
+          );
           final bool isActivated = (tsuap['activation'] ?? false) == true;
 
           return GestureDetector(

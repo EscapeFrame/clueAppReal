@@ -16,6 +16,16 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
   final String? subjectFilter;
   final String? emptyMessage;
 
+  String _iconKeyFromSort(dynamic sortValue) {
+    final normalized =
+        (sortValue ?? '').toString().replaceAll(' ', '').toLowerCase();
+    if (normalized.contains('인문')) return 'inmoon';
+    if (normalized.contains('전공') || normalized.contains('전문')) {
+      return 'jeongong';
+    }
+    return 'banggwahoo';
+  }
+
   List<Map<String, dynamic>> _filteredNotices() {
     final validNotices =
         noticeList
@@ -32,7 +42,7 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
               }
               return copy;
             })
-            .toList();
+        .toList();
 
     if (subjectFilter == null || subjectFilter!.isEmpty) {
       return validNotices;
@@ -40,7 +50,9 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
 
     return validNotices
         .where(
-          (notice) => (notice['subject'] ?? '').toString() == subjectFilter,
+          (notice) =>
+              _iconKeyFromSort(notice['sort'] ?? notice['subject']) ==
+              subjectFilter,
         )
         .toList();
   }
@@ -73,7 +85,6 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final filtered = _filteredNotices();
-    final iconChanger = 'asdfasdf'; //임시
     if (filtered.isEmpty) {
       return LayoutBuilder(
         builder: (context, constraints) {
@@ -112,6 +123,8 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
         separatorBuilder: (_, __) => SizedBox(height: width * 0.02),
         itemBuilder: (context, index) {
           final notice = filtered[index];
+          final iconKey =
+              _iconKeyFromSort(notice['sort'] ?? notice['subject']);
           return GestureDetector(
             onTap: () async {
               final detail = await _classRoomDetailApi(notice);
@@ -151,32 +164,29 @@ class HakSubSilBaroGaBoJa extends StatelessWidget {
                                 color: Colors.blue[50],
                                 borderRadius: BorderRadius.circular(50),
                               ),
-                              child:
-                                  iconChanger == 'inmoon'
-                                      ? Transform.scale(
-                                        scale: width * 0.06 / 20,
-                                        child: SvgPicture.asset(
-                                          'assets/images/bookIcon.svg',
-
-                                          fit: BoxFit.scaleDown,
-                                        ),
-                                      )
-                                      : iconChanger == 'jeongong'
-                                      ? Transform.scale(
-                                        scale: width * 0.06 / 20,
-                                        child: SvgPicture.asset(
-                                          'assets/images/capIcon.svg',
-
-                                          fit: BoxFit.scaleDown,
-                                        ),
-                                      )
-                                      : Transform.scale(
-                                        scale: width * 0.06 / 20,
-                                        child: SvgPicture.asset(
-                                          'assets/images/bangGwaHooIcon.svg',
-                                          fit: BoxFit.scaleDown,
-                                        ),
+                              child: iconKey == 'inmoon'
+                                  ? Transform.scale(
+                                      scale: width * 0.06 / 20,
+                                      child: SvgPicture.asset(
+                                        'assets/images/bookIcon.svg',
+                                        fit: BoxFit.scaleDown,
                                       ),
+                                    )
+                                  : iconKey == 'jeongong'
+                                      ? Transform.scale(
+                                          scale: width * 0.06 / 20,
+                                          child: SvgPicture.asset(
+                                            'assets/images/capIcon.svg',
+                                            fit: BoxFit.scaleDown,
+                                          ),
+                                        )
+                                      : Transform.scale(
+                                          scale: width * 0.06 / 20,
+                                          child: SvgPicture.asset(
+                                            'assets/images/bangGwaHooIcon.svg',
+                                            fit: BoxFit.scaleDown,
+                                          ),
+                                        ),
                             ),
                             SizedBox(width: width * 0.027),
                             Text(
