@@ -1,5 +1,4 @@
 import 'package:clue/api_client.dart';
-import 'package:clue/config/teacher_data.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -87,8 +86,8 @@ class _TeacherCheckState extends State<TeacherCheck> {
   @override
   void initState() {
     super.initState();
-    _allStudents = TeacherData.getStudentJechul();
-    filteredStudents = List<Map<String, dynamic>>.from(_allStudents);
+    _allStudents = [];
+    filteredStudents = [];
     final idStr = (widget.assignmentId ?? '').toString();
     if (idStr.isNotEmpty) {
       _fetchAssignmentDetail(idStr);
@@ -331,65 +330,84 @@ class _TeacherCheckState extends State<TeacherCheck> {
               SizedBox(height: height * 0.02),
 
               Expanded(
-                child: ListView.separated(
-                  itemCount: filteredStudents.length,
-                  separatorBuilder:
-                      (_, __) => Divider(height: 1, color: Colors.grey[200]),
-                  itemBuilder: (context, idx) {
-                    final student = filteredStudents[idx];
-                    return GestureDetector(
-                      onTap: () => _showSubmissionDetail(student),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(vertical: height * 0.015),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: width * 0.15,
-                              child: Text(
-                                student['number'],
-                                style: TextStyle(
-                                  fontSize: width * 0.04,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black,
-                                ),
-                              ),
+                child: Builder(
+                  builder: (context) {
+                    if (_studentsLoading && filteredStudents.isEmpty) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (_studentsError != null && filteredStudents.isEmpty) {
+                      return Center(
+                        child: Text(
+                          _studentsError!,
+                          style: const TextStyle(color: Colors.redAccent),
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    }
+                    return ListView.separated(
+                      itemCount: filteredStudents.length,
+                      separatorBuilder:
+                          (_, __) =>
+                              Divider(height: 1, color: Colors.grey[200]),
+                      itemBuilder: (context, idx) {
+                        final student = filteredStudents[idx];
+                        return GestureDetector(
+                          onTap: () => _showSubmissionDetail(student),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              vertical: height * 0.015,
                             ),
-
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                student['name'],
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: width * 0.04,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ),
-
-                            SizedBox(width: width * 0.04),
-                            Expanded(
-                              flex: 1,
-                              child: Align(
-                                alignment: Alignment.centerRight,
-                                child: Text(
-                                  student['submitted'] ? '제출완료' : '미제출',
-                                  style: TextStyle(
-                                    color:
-                                        student['submitted']
-                                            ? Color(0xFF1CC078)
-                                            : Colors.black,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: width * 0.04,
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: width * 0.15,
+                                  child: Text(
+                                    student['number'],
+                                    style: TextStyle(
+                                      fontSize: width * 0.04,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black,
+                                    ),
                                   ),
                                 ),
-                              ),
+
+                                Expanded(
+                                  flex: 2,
+                                  child: Text(
+                                    student['name'],
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: width * 0.04,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+
+                                SizedBox(width: width * 0.04),
+                                Expanded(
+                                  flex: 1,
+                                  child: Align(
+                                    alignment: Alignment.centerRight,
+                                    child: Text(
+                                      student['submitted'] ? '제출완료' : '미제출',
+                                      style: TextStyle(
+                                        color:
+                                            student['submitted']
+                                                ? Color(0xFF1CC078)
+                                                : Colors.black,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: width * 0.04,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
+                          ),
+                        );
+                      },
                     );
                   },
                 ),

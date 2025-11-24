@@ -24,9 +24,15 @@ class Thaksubsilsuaptrue extends StatefulWidget {
 class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
   late List<Map<String, dynamic>> assignments;
   Map<String, dynamic> _detail = {};
+  bool _isLoading = true;
   final TextEditingController _lessonNameController = TextEditingController();
 
   Future<void> _loadDetail() async {
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
     try {
       final api = ApiClient.instance.dio;
       final id =
@@ -73,6 +79,12 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
       }
     } catch (e) {
       debugPrint('classRoom load error: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -890,6 +902,12 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     final header = _detail.isNotEmpty ? _detail : widget.tsuap;
     final title =
         (header['classRoomName'] ?? header['title'] ?? header['name'])
