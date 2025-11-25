@@ -154,7 +154,6 @@ class _CluelinkState extends State<Cluelink> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -414,9 +413,15 @@ class _CluelinkState extends State<Cluelink> {
                             restrictByGrade: item['restrictByGrade'] == true,
                             restrictByClass: item['restrictByClass'] == true,
                             createdAt: item['createdAt'] as String?,
-                            onDelete: originalIndex == -1 ? null : () async {
-                              await _deleteLink(item['id'] as int?, originalIndex);
-                            },
+                            onDelete:
+                                originalIndex == -1
+                                    ? null
+                                    : () async {
+                                      await _deleteLink(
+                                        item['id'] as int?,
+                                        originalIndex,
+                                      );
+                                    },
                             onEdit:
                                 originalIndex == -1
                                     ? null
