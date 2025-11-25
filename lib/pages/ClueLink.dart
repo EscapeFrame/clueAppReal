@@ -137,6 +137,9 @@ class _CluelinkState extends State<Cluelink> {
   Map<String, dynamic>? _mapApiLinkToUi(Map<String, dynamic> item) {
     final subjectType = item['subjectType'] as String?;
     final subjectLabel = _subjectTypeToLabel(subjectType);
+    final authorization = (item['authorizationType'] as String? ?? '').trim();
+    final isPublic = authorization == 'PUBLIC';
+    final isClassOnly = authorization == 'CLASS_ONLY';
     return {
       'id': item['id'],
       'title': item['title'] as String? ?? '',
@@ -145,8 +148,8 @@ class _CluelinkState extends State<Cluelink> {
       'tags': [
         if (subjectLabel != null && subjectLabel.isNotEmpty) subjectLabel,
       ],
-      'restrictByGrade': false,
-      'restrictByClass': false,
+      'restrictByGrade': isPublic,
+      'restrictByClass': isClassOnly,
       'createdAt': item['createdAt'] as String?,
       'mine': item['mine'] == true,
     };
@@ -248,6 +251,43 @@ class _CluelinkState extends State<Cluelink> {
       );
     } catch (e) {
       debugPrint('링크 추가 처리 중 오류: $e');
+    }
+  }
+
+  Future<void> _submitEditLink(int id, link_edit.LinkEditPayload edited) async {
+    final subjectLabel =
+        (edited.tags.isNotEmpty ? edited.tags.first : null)?.trim();
+    final subjectType = _subjectTypeFromTag(subjectLabel);
+    final authorizationType = _resolveAuthorization(
+      edited.restrictByGrade,
+      edited.restrictByClass,
+    );
+
+    final payload = {
+      'grade': _userGrade ?? '',
+      'clas': _userClass ?? '',
+      'title': edited.title,
+      'description': edited.description,
+      'link': edited.url,
+      'authorizationType': authorizationType,
+      'subjectType': subjectType,
+    };
+
+    try {
+      debugPrint('링크 수정 payload: $payload');
+      final res = await ApiClient.instance.dio.patch(
+        '/api/linksave/$id',
+        data: payload,
+      );
+      debugPrint('링크 수정 응답 (status: ${res.statusCode})');
+      await _fetchLinkSave();
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      debugPrint(
+        '링크 수정 요청 실패 (status: $status): ${e.response?.data ?? e.message}',
+      );
+    } catch (e) {
+      debugPrint('링크 수정 처리 중 오류: $e');
     }
   }
 
@@ -491,6 +531,7 @@ class _CluelinkState extends State<Cluelink> {
                               (item['tags'] as List?)?.cast<String>() ??
                               const <String>[];
                           final canModify = item['mine'] == true;
+                          final id = item['id'] as int?;
                           final originalIndex = _links.indexOf(item);
                           return LinkList(
                             title: item['title'] as String? ?? '',
@@ -511,7 +552,7 @@ class _CluelinkState extends State<Cluelink> {
                                       );
                                     },
                             onEdit:
-                                !canModify || originalIndex == -1
+                                !canModify || originalIndex == -1 || id == null
                                     ? null
                                     : () async {
                                       final edited = await link_edit
@@ -536,23 +577,7 @@ class _CluelinkState extends State<Cluelink> {
                                             allTags: _collectAllTags(),
                                           );
                                       if (edited != null) {
-                                        setState(() {
-                                          final updated =
-                                              Map<String, dynamic>.from(
-                                                _links[originalIndex],
-                                              );
-                                          updated
-                                            ..['title'] = edited.title
-                                            ..['url'] = edited.url
-                                            ..['description'] =
-                                                edited.description
-                                            ..['tags'] = edited.tags
-                                            ..['restrictByGrade'] =
-                                                edited.restrictByGrade
-                                            ..['restrictByClass'] =
-                                                edited.restrictByClass;
-                                          _links[originalIndex] = updated;
-                                        });
+                                        await _submitEditLink(id, edited);
                                         if (!context.mounted) return;
                                         await showDialog<void>(
                                           context: context,

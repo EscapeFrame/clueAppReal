@@ -23,8 +23,12 @@ Future<LinkEditPayload?> showLinkEditDialog(
   required LinkEditPayload initial,
   List<String>? allTags,
 }) {
-  final tags =
-      <String>{..._defaultTags, ...initial.tags, ...?allTags}.toList()..sort();
+  // 원하는 표시 순서: 인문과목 → 전공과목 → 방과후 → 나머지
+  final merged = <String>{..._defaultTags, ...initial.tags, ...?allTags};
+  final tags = [
+    ..._defaultTags.where(merged.contains),
+    ...merged.where((t) => !_defaultTags.contains(t)),
+  ];
 
   return showDialog<LinkEditPayload>(
     context: context,
@@ -201,7 +205,7 @@ class _LinkEditDialogState extends State<_LinkEditDialog> {
                           context,
                           label: '태그',
                           requiredMark: true,
-                          helper: '중복선택이 가능하며 1개 이상 선택해주셔야합니다.',
+                          helper: '중복 선택은 불가하며 1개만 선택해주세요.',
                           child: Padding(
                             padding: const EdgeInsets.only(top: 6),
                             child: Wrap(
@@ -215,11 +219,10 @@ class _LinkEditDialogState extends State<_LinkEditDialog> {
                                           selected: _selected.contains(tag),
                                           onTap: () {
                                             setState(() {
-                                              if (_selected.contains(tag)) {
-                                                _selected.remove(tag);
-                                              } else {
-                                                _selected.add(tag);
-                                              }
+                                              // 단일 선택: 선택한 태그만 유지
+                                              _selected
+                                                ..clear()
+                                                ..add(tag);
                                             });
                                           },
                                         ),
@@ -233,7 +236,7 @@ class _LinkEditDialogState extends State<_LinkEditDialog> {
                           context,
                           label: '공개범위',
                           requiredMark: true,
-                          helper: '중복선택이 가능하며 1개이상 선택해주셔야합니다.',
+                          helper: '학년/반 중 하나만 선택 가능합니다.',
                           child: Wrap(
                             spacing: 18,
                             children: [
@@ -243,6 +246,7 @@ class _LinkEditDialogState extends State<_LinkEditDialog> {
                                 onChanged:
                                     (value) => setState(() {
                                       _byGrade = value;
+                                      if (value) _byClass = false;
                                     }),
                               ),
                               _LinkScopeToggle(
@@ -251,6 +255,7 @@ class _LinkEditDialogState extends State<_LinkEditDialog> {
                                 onChanged:
                                     (value) => setState(() {
                                       _byClass = value;
+                                      if (value) _byGrade = false;
                                     }),
                               ),
                             ],
