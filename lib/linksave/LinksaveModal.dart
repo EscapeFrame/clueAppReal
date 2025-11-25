@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 class LinkFormResult {
   final String title;
   final String url;
-  final String? description;
+  final String description;
   final List<String> tags;
   final bool restrictByGrade;
   final bool restrictByClass;
@@ -12,7 +12,7 @@ class LinkFormResult {
     required this.title,
     required this.url,
     required this.tags,
-    this.description,
+    required this.description,
     this.restrictByGrade = false,
     this.restrictByClass = false,
   });
@@ -52,6 +52,7 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
     void listener() => setState(() {});
     _titleC.addListener(listener);
     _urlC.addListener(listener);
+    _descC.addListener(listener);
   }
 
   @override
@@ -72,13 +73,13 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: LayoutBuilder(
-        builder: (context, c) {
-          final width =
-              c.hasBoundedWidth
-                  ? c.maxWidth
-                  : MediaQuery.of(context).size.width;
+        builder: (context, constraints) {
+          final width = constraints.hasBoundedWidth
+              ? constraints.maxWidth
+              : MediaQuery.of(context).size.width;
           final viewInsets = MediaQuery.of(context).viewInsets;
-          final minWidth = c.hasBoundedWidth ? c.maxWidth : 0.0;
+          final minWidth = constraints.hasBoundedWidth ? constraints.maxWidth : 0.0;
+
           return ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 520),
             child: AnimatedPadding(
@@ -87,8 +88,7 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
               padding: EdgeInsets.only(bottom: viewInsets.bottom),
               child: SingleChildScrollView(
                 physics: const ClampingScrollPhysics(),
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
                 child: Form(
                   key: _formKey,
@@ -101,7 +101,7 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                         Row(
                           children: [
                             Text(
-                              '링크수정',
+                              '링크추가',
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.w600,
                                 fontSize: width * 0.05,
@@ -126,11 +126,10 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                               hintText: '제목을 입력해주세요.',
                               hintStyle: TextStyle(fontSize: width * 0.03 + 3),
                             ),
-                            validator:
-                                (v) =>
-                                    (v == null || v.trim().isEmpty)
-                                        ? '제목은 필수입니다.'
-                                        : null,
+                            validator: (v) =>
+                                (v == null || v.trim().isEmpty)
+                                    ? '제목은 필수입니다.'
+                                    : null,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -149,9 +148,10 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                               if (v == null || v.trim().isEmpty) {
                                 return 'URL은 필수입니다.';
                               }
+                              final trimmed = v.trim();
                               final hasScheme =
-                                  v.startsWith('http://') ||
-                                  v.startsWith('https://');
+                                  trimmed.startsWith('http://') ||
+                                  trimmed.startsWith('https://');
                               return hasScheme ? null : '올바른 주소를 입력해주세요';
                             },
                           ),
@@ -159,14 +159,19 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                         const SizedBox(height: 16),
                         _buildLabeledField(
                           context,
-                          label: '설명',
+                          label: '내용',
+                          requiredMark: true,
                           child: TextFormField(
                             controller: _descC,
                             maxLines: 2,
                             decoration: InputDecoration(
-                              hintText: 'URL에 대한 설명을 간단히 적어주세요.',
+                              hintText: 'URL의 간단한 설명을 입력해주세요.',
                               hintStyle: TextStyle(fontSize: width * 0.03 + 3),
                             ),
+                            validator: (v) =>
+                                (v == null || v.trim().isEmpty)
+                                    ? '내용은 필수입니다.'
+                                    : null,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -180,22 +185,20 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                             child: Wrap(
                               spacing: width * 0.003 + 7,
                               runSpacing: width * 0.003 + 7,
-                              children:
-                                  _allTags.map((tag) {
-                                    final selected = _selected.contains(tag);
-                                    return _LinkOptionChip(
-                                      label: tag,
-                                      selected: selected,
-                                      onTap: () {
-                                        setState(() {
-                                          // 단일 선택: 선택한 태그만 유지
-                                          _selected
-                                            ..clear()
-                                            ..add(tag);
-                                        });
-                                      },
-                                    );
-                                  }).toList(),
+                              children: _allTags.map((tag) {
+                                final selected = _selected.contains(tag);
+                                return _LinkOptionChip(
+                                  label: tag,
+                                  selected: selected,
+                                  onTap: () {
+                                    setState(() {
+                                      _selected
+                                        ..clear()
+                                        ..add(tag);
+                                    });
+                                  },
+                                );
+                              }).toList(),
                             ),
                           ),
                         ),
@@ -238,16 +241,14 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                                     color: Color(0xff86C1FF),
                                   ),
                                 ),
-                                child: const Text('취소', style:TextStyle(color:Colors.black)),
+                                child: const Text('취소', style: TextStyle(color: Colors.black)),
                               ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: FilledButton(
                                 onPressed: () {
-                                  final valid =
-                                      _formKey.currentState?.validate() ??
-                                      false;
+                                  final valid = _formKey.currentState?.validate() ?? false;
                                   if (!valid) return;
                                   if (_selected.isEmpty) {
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -262,10 +263,7 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                                     LinkFormResult(
                                       title: _titleC.text.trim(),
                                       url: _urlC.text.trim(),
-                                      description:
-                                          _descC.text.trim().isEmpty
-                                              ? null
-                                              : _descC.text.trim(),
+                                      description: _descC.text.trim(),
                                       tags: _selected.toList(),
                                       restrictByGrade: _byGrade,
                                       restrictByClass: _byClass,
@@ -273,12 +271,8 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                                   );
                                 },
                                 style: FilledButton.styleFrom(
-                                  backgroundColor:
-                                      canSubmit
-                                          ? const Color(0xFF86C1FF)
-                                          : const Color(0xFFE4E4E4),
-                                  foregroundColor:
-                                       Colors.black87,
+                                  backgroundColor: canSubmit ? const Color(0xFF86C1FF) : const Color(0xFFE4E4E4),
+                                  foregroundColor: Colors.black87,
                                 ),
                                 child: const Text('확인'),
                               ),
@@ -300,11 +294,10 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
   bool get _canSubmit {
     final titleFilled = _titleC.text.trim().isNotEmpty;
     final urlText = _urlC.text.trim();
-    final urlFilled = urlText.isNotEmpty;
-    final hasScheme =
-        urlText.startsWith('http://') || urlText.startsWith('https://');
+    final urlValid = urlText.isNotEmpty && (urlText.startsWith('http://') || urlText.startsWith('https://'));
+    final descFilled = _descC.text.trim().isNotEmpty;
     final hasTags = _selected.isNotEmpty;
-    return titleFilled && urlFilled && hasScheme && hasTags;
+    return titleFilled && urlValid && descFilled && hasTags;
   }
 
   Widget _buildLabeledField(
@@ -315,7 +308,6 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
     String? helper,
   }) {
     final width = MediaQuery.of(context).size.width;
-
     final base = Theme.of(context);
     final labelStyle = base.textTheme.bodyMedium?.copyWith(
       fontWeight: FontWeight.w600,
@@ -343,15 +335,14 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
           text: TextSpan(
             text: label,
             style: labelStyle,
-            children:
-                requiredMark
-                    ? [
-                      TextSpan(
-                        text: ' *',
-                        style: labelStyle?.copyWith(color: Colors.blue),
-                      ),
-                    ]
-                    : null,
+            children: requiredMark
+                ? [
+                    TextSpan(
+                      text: ' *',
+                      style: labelStyle?.copyWith(color: Colors.blue),
+                    ),
+                  ]
+                : null,
           ),
         ),
         if (helper != null) ...[
@@ -445,8 +436,7 @@ class _LinkScopeToggle extends StatelessWidget {
               },
             ),
             thumbColor: WidgetStateProperty.all(Colors.white),
-            trackOutlineColor:
-                WidgetStateProperty.all(Colors.transparent),
+            trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
           ),
         ),
       ],

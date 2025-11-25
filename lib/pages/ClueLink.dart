@@ -564,8 +564,9 @@ class _CluelinkState extends State<Cluelink> {
                                                   '',
                                               url: item['url'] as String? ?? '',
                                               description:
-                                                  item['description']
-                                                      as String?,
+                                                  (item['description']
+                                                      as String?) ??
+                                                  '',
                                               tags: List<String>.from(tags),
                                               restrictByGrade:
                                                   item['restrictByGrade'] ==
