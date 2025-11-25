@@ -156,6 +156,80 @@ class _SettingsSetState extends State<SettingsSet> {
           buildNavigationTile(
             '로그아웃',
             onTap: () async {
+              final shouldLogout = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      titlePadding:
+                          const EdgeInsets.fromLTRB(24, 20, 24, 8),
+                      contentPadding:
+                          const EdgeInsets.fromLTRB(24, 0, 24, 12),
+                      actionsPadding:
+                          const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      title: Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE9F2FF),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.logout_rounded,
+                              color: Color(0xFF0D6EFD),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            '로그아웃',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      content: const Text(
+                        '로그아웃하시겠습니까?\n저장된 토큰이 삭제되고 로그인 화면으로 이동합니다.',
+                        style: TextStyle(
+                          height: 1.4,
+                          color: Color(0xFF374151),
+                        ),
+                      ),
+                      actionsAlignment: MainAxisAlignment.spaceBetween,
+                      actions: [
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            foregroundColor: const Color(0xFF6B7280),
+                          ),
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text('취소'),
+                        ),
+                        FilledButton(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF0D6EFD),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: const Text('로그아웃'),
+                        ),
+                      ],
+                    ),
+                  ) ??
+                  false;
+
+              if (!shouldLogout) return;
+
               await AuthStorage.instance.clear();
               if (!mounted) return;
               ScaffoldMessenger.of(
