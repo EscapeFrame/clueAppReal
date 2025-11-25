@@ -15,6 +15,7 @@ class LinkList extends StatelessWidget {
     this.createdAt,
     this.onEdit,
     this.onDelete,
+    this.showActions = true,
   });
 
   final String title;
@@ -26,6 +27,7 @@ class LinkList extends StatelessWidget {
   final String? createdAt;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final bool showActions;
 
   @override
   Widget build(BuildContext context) {
@@ -82,11 +84,11 @@ class LinkList extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
@@ -109,30 +111,32 @@ class LinkList extends StatelessWidget {
                           ),
                         ],
                       ],
+                      ),
                     ),
-                  ),
-                  _ActionIcon(
-                    icon: Icons.edit_outlined,
-                    color: const Color(0xff0077FF),
-                    scale: scale,
-                    onTap: onEdit,
-                  ),
-                  const SizedBox(width: 6),
-                  _ActionIcon(
-                    icon: Icons.delete_outline,
-                    color: const Color(0xffFF6D6D),
-                    scale: scale,
-                    onTap: () async {
-                      await LinkDeleteDialog.show(
-                        context,
-                        itemTitle: title,
-                        itemDescription: description,
-                        onConfirmed: onDelete,
-                      );
-                    },
-                  ),
-                ],
-              ),
+                    if (showActions) ...[
+                      _ActionIcon(
+                        icon: Icons.edit_outlined,
+                        color: const Color(0xff0077FF),
+                        scale: scale,
+                        onTap: onEdit,
+                      ),
+                      const SizedBox(width: 6),
+                      _ActionIcon(
+                        icon: Icons.delete_outline,
+                        color: const Color(0xffFF6D6D),
+                        scale: scale,
+                        onTap: () async {
+                          await LinkDeleteDialog.show(
+                            context,
+                            itemTitle: title,
+                            itemDescription: description,
+                            onConfirmed: onDelete,
+                          );
+                        },
+                      ),
+                    ],
+                  ],
+                ),
               const SizedBox(height: 10),
               if ((description ?? '').trim().isNotEmpty) ...[
                 const SizedBox(height: 6),

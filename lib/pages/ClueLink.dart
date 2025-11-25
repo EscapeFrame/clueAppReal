@@ -148,6 +148,7 @@ class _CluelinkState extends State<Cluelink> {
       'restrictByGrade': false,
       'restrictByClass': false,
       'createdAt': item['createdAt'] as String?,
+      'mine': item['mine'] == true,
     };
   }
 
@@ -489,6 +490,7 @@ class _CluelinkState extends State<Cluelink> {
                           final tags =
                               (item['tags'] as List?)?.cast<String>() ??
                               const <String>[];
+                          final canModify = item['mine'] == true;
                           final originalIndex = _links.indexOf(item);
                           return LinkList(
                             title: item['title'] as String? ?? '',
@@ -498,8 +500,9 @@ class _CluelinkState extends State<Cluelink> {
                             restrictByGrade: item['restrictByGrade'] == true,
                             restrictByClass: item['restrictByClass'] == true,
                             createdAt: item['createdAt'] as String?,
+                            showActions: canModify,
                             onDelete:
-                                originalIndex == -1
+                                !canModify || originalIndex == -1
                                     ? null
                                     : () async {
                                       await _deleteLink(
@@ -508,7 +511,7 @@ class _CluelinkState extends State<Cluelink> {
                                       );
                                     },
                             onEdit:
-                                originalIndex == -1
+                                !canModify || originalIndex == -1
                                     ? null
                                     : () async {
                                       final edited = await link_edit
