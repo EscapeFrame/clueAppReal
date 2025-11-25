@@ -138,19 +138,26 @@ class _CluelinkState extends State<Cluelink> {
   }
 
   Future<void> _deleteLink(int? id, int originalIndex) async {
+    Map<String, dynamic>? removed;
+    if (originalIndex >= 0 && originalIndex < _links.length) {
+      removed = Map<String, dynamic>.from(_links[originalIndex]);
+      setState(() => _links.removeAt(originalIndex));
+    }
     try {
       if (id != null) {
         await ApiClient.instance.dio.delete('/api/linksave/$id');
       }
-      setState(() {
-        if (originalIndex >= 0 && originalIndex < _links.length) {
-          _links.removeAt(originalIndex);
-        }
-      });
+      await _fetchLinkSave();
     } on DioException catch (e) {
       debugPrint('링크 삭제 요청 실패: ${e.response?.data ?? e.message}');
+      if (removed != null && mounted) {
+        setState(() => _links.insert(originalIndex, removed!));
+      }
     } catch (e) {
       debugPrint('링크 삭제 처리 중 오류: $e');
+      if (removed != null && mounted) {
+        setState(() => _links.insert(originalIndex, removed!));
+      }
     }
   }
 
@@ -503,7 +510,7 @@ class _LinkSideMenu extends StatelessWidget {
 
       child: SafeArea(
         child: Container(
-          decoration: BoxDecoration(color: Colors.white),
+          decoration: const BoxDecoration(color: Colors.white),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
             child: Column(
