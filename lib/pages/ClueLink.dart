@@ -87,6 +87,9 @@ class _CluelinkState extends State<Cluelink> {
         return;
       }
 
+      debugPrint('링크 목록 응답 (status: ${res.statusCode}) count: ${data.length}');
+      debugPrint('링크 목록 샘플: ${data.take(3).toList()}');
+
       final fetched =
           data
               .whereType<Map<String, dynamic>>()
@@ -101,7 +104,10 @@ class _CluelinkState extends State<Cluelink> {
           ..addAll(fetched);
       });
     } on DioException catch (e) {
-      debugPrint('링크 저장 요청 실패: ${e.response?.data ?? e.message}');
+      final status = e.response?.statusCode;
+      debugPrint(
+        '링크 저장 요청 실패 (status: $status): ${e.response?.data ?? e.message}',
+      );
     } catch (e) {
       debugPrint('링크 저장 데이터 변환 오류: $e');
     }
@@ -137,6 +143,27 @@ class _CluelinkState extends State<Cluelink> {
     }
   }
 
+  String? _subjectTypeFromTag(String? tag) {
+    switch (tag) {
+      case '인문과목':
+      case '인문':
+        return 'General';
+      case '전공과목':
+      case '이공과목':
+        return 'Professional';
+      case '방과후':
+        return 'AfterSchool';
+      default:
+        return null;
+    }
+  }
+
+  String _resolveAuthorization(bool byGrade, bool byClass) {
+    if (byGrade && byClass) return 'PUBLIC';
+    if (!byGrade && byClass) return 'CLASS_ONLY';
+    return 'PRIVATE';
+  }
+
   Future<void> _deleteLink(int? id, int originalIndex) async {
     Map<String, dynamic>? removed;
     if (originalIndex >= 0 && originalIndex < _links.length) {
@@ -149,7 +176,10 @@ class _CluelinkState extends State<Cluelink> {
       }
       await _fetchLinkSave();
     } on DioException catch (e) {
-      debugPrint('링크 삭제 요청 실패: ${e.response?.data ?? e.message}');
+      final status = e.response?.statusCode;
+      debugPrint(
+        '링크 삭제 요청 실패 (status: $status): ${e.response?.data ?? e.message}',
+      );
       if (removed != null && mounted) {
         setState(() => _links.insert(originalIndex, removed!));
       }
@@ -158,6 +188,44 @@ class _CluelinkState extends State<Cluelink> {
       if (removed != null && mounted) {
         setState(() => _links.insert(originalIndex, removed!));
       }
+    }
+  }
+
+  Future<void> _submitNewLink(link_add.LinkFormResult result) async {
+    final subjectLabel =
+        (result.tags.isNotEmpty ? result.tags.first : null)?.trim();
+    final subjectType = _subjectTypeFromTag(subjectLabel);
+    final authorizationType = _resolveAuthorization(
+      result.restrictByGrade,
+      result.restrictByClass,
+    );
+
+    final payload = {
+      'grade': '',
+      'clas': '',
+      'title': result.title,
+      'description': result.description,
+      'link': result.url,
+      'authorizationType': authorizationType,
+      'subjectType': subjectType,
+    };
+
+    try {
+      debugPrint('링크 추가 payload: $payload');
+      final res = await ApiClient.instance.dio.post(
+        '/api/linksave',
+        data: payload,
+      );
+      debugPrint('링크 추가 응답 (status: ${res.statusCode})');
+      debugPrint('링크 추가 응답 body: ${res.data}');
+      await _fetchLinkSave();
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      debugPrint(
+        '링크 추가 요청 실패 (status: $status): ${e.response?.data ?? e.message}',
+      );
+    } catch (e) {
+      debugPrint('링크 추가 처리 중 오류: $e');
     }
   }
 
@@ -176,17 +244,7 @@ class _CluelinkState extends State<Cluelink> {
         onPressed: () async {
           final result = await link_add.showLinkAddDialog(context);
           if (result != null) {
-            setState(() {
-              _links.insert(0, {
-                'title': result.title,
-                'url': result.url,
-                'description': result.description,
-                'tags': result.tags,
-                'restrictByGrade': result.restrictByGrade,
-                'restrictByClass': result.restrictByClass,
-                'createdAt': _formatDate(DateTime.now()),
-              });
-            });
+            await _submitNewLink(result);
           }
         },
         backgroundColor: const Color(0xff0077FF),
@@ -231,7 +289,6 @@ class _CluelinkState extends State<Cluelink> {
                           ),
                           SizedBox(width: width * 0.03),
                           GestureDetector(
-                            // onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
                             child: SvgPicture.asset(
                               'assets/images/bars-3.svg',
                               width: width * 0.074,

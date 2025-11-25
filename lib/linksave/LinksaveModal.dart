@@ -174,7 +174,7 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                           context,
                           label: '태그',
                           requiredMark: true,
-                          helper: '중복선택이 가능하며 1개 이상 선택해주셔야합니다.',
+                          helper: '중복 선택은 불가하며 1개만 선택해주세요.',
                           child: Padding(
                             padding: const EdgeInsets.only(top: 6),
                             child: Wrap(
@@ -188,11 +188,10 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                                       selected: selected,
                                       onTap: () {
                                         setState(() {
-                                          if (selected) {
-                                            _selected.remove(tag);
-                                          } else {
-                                            _selected.add(tag);
-                                          }
+                                          // 단일 선택: 선택한 태그만 유지
+                                          _selected
+                                            ..clear()
+                                            ..add(tag);
                                         });
                                       },
                                     );
@@ -205,7 +204,7 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                           context,
                           label: '공개범위',
                           requiredMark: true,
-                          helper: '중복선택이 가능하며 1개이상 선택해주셔야합니다.',
+                          helper: '중복 선택은 불가하며 1개만 선택해주세요.',
                           child: Wrap(
                             spacing: 18,
                             children: [
@@ -214,7 +213,7 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                                 selected: _byGrade,
                                 onChanged:
                                     (value) => setState(() {
-                                      _byGrade = value;
+                                      _byGrade = value; if (value) _byClass = false;
                                     }),
                               ),
                               _LinkScopeToggle(
@@ -222,7 +221,7 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                                 selected: _byClass,
                                 onChanged:
                                     (value) => setState(() {
-                                      _byClass = value;
+                                      _byClass = value; if (value) _byGrade = false;
                                     }),
                               ),
                             ],
