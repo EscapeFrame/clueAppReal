@@ -161,12 +161,12 @@ class _SettingsSetState extends State<SettingsSet> {
               ScaffoldMessenger.of(
                 context,
               ).showSnackBar(const SnackBar(content: Text('로그아웃 되었습니다.')));
-              // 메인으로 돌아가 초기 상태로 전환
+              // Clear navigation stack and go to login
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 Navigator.of(
                   context,
                   rootNavigator: true,
-                ).pushNamedAndRemoveUntil('/main', (route) => false);
+                ).pushNamedAndRemoveUntil('/login', (route) => false);
               });
             },
           ),
