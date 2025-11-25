@@ -203,26 +203,26 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                         _buildLabeledField(
                           context,
                           label: '공개범위',
-                          requiredMark: true,
-                          helper: '중복 선택은 불가하며 1개만 선택해주세요.',
+                          requiredMark: false,
+                          helper: '선택하지 않으면 비공개로 저장됩니다. (학년/반 중 하나만 선택 가능)',
                           child: Wrap(
                             spacing: 18,
                             children: [
                               _LinkScopeToggle(
                                 label: '학년',
                                 selected: _byGrade,
-                                onChanged:
-                                    (value) => setState(() {
-                                      _byGrade = value; if (value) _byClass = false;
-                                    }),
+                                onChanged: (value) => setState(() {
+                                  _byGrade = value;
+                                  if (value) _byClass = false;
+                                }),
                               ),
                               _LinkScopeToggle(
                                 label: '반',
                                 selected: _byClass,
-                                onChanged:
-                                    (value) => setState(() {
-                                      _byClass = value; if (value) _byGrade = false;
-                                    }),
+                                onChanged: (value) => setState(() {
+                                  _byClass = value;
+                                  if (value) _byGrade = false;
+                                }),
                               ),
                             ],
                           ),
@@ -253,14 +253,6 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text('태그를 1개 이상 선택해주세요.'),
-                                      ),
-                                    );
-                                    return;
-                                  }
-                                  if (!_byGrade && !_byClass) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('공개범위를 1개 이상 선택해주세요.'),
                                       ),
                                     );
                                     return;
@@ -312,13 +304,11 @@ class _LinkAddDialogState extends State<_LinkAddDialog> {
     final hasScheme =
         urlText.startsWith('http://') || urlText.startsWith('https://');
     final hasTags = _selected.isNotEmpty;
-    final hasScope = _byGrade || _byClass;
-    return titleFilled && urlFilled && hasScheme && hasTags && hasScope;
+    return titleFilled && urlFilled && hasScheme && hasTags;
   }
 
   Widget _buildLabeledField(
     BuildContext context, {
-
     required String label,
     required Widget child,
     bool requiredMark = false,

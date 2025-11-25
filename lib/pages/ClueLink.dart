@@ -21,6 +21,8 @@ class _CluelinkState extends State<Cluelink> {
   final List<String> categories = ['전체', '인문과목', '전공과목', '방과후'];
   int selectedIndex = 0; // 기본 선택 : 전체
   final List<Map<String, dynamic>> _links = [];
+  String? _userGrade;
+  String? _userClass;
   late final TextEditingController _searchController;
   String _searchQuery = '';
 
@@ -68,6 +70,7 @@ class _CluelinkState extends State<Cluelink> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+    _fetchUserInfo();
     _fetchLinkSave();
   }
 
@@ -110,6 +113,24 @@ class _CluelinkState extends State<Cluelink> {
       );
     } catch (e) {
       debugPrint('링크 저장 데이터 변환 오류: $e');
+    }
+  }
+
+  Future<void> _fetchUserInfo() async {
+    try {
+      final res = await ApiClient.instance.dio.get('/api/user/me');
+      final data = res.data;
+      if (data is Map) {
+        final grade = data['grade'];
+        final classNo = data['classNo'];
+        setState(() {
+          _userGrade = grade == null || grade == 0 ? '' : grade.toString();
+          _userClass =
+              classNo == null || classNo == 0 ? '' : classNo.toString();
+        });
+      }
+    } catch (e) {
+      debugPrint('사용자 정보 조회 실패: $e');
     }
   }
 
@@ -159,7 +180,7 @@ class _CluelinkState extends State<Cluelink> {
   }
 
   String _resolveAuthorization(bool byGrade, bool byClass) {
-    if (byGrade && byClass) return 'PUBLIC';
+    if (byGrade && !byClass) return 'PUBLIC';
     if (!byGrade && byClass) return 'CLASS_ONLY';
     return 'PRIVATE';
   }
@@ -201,8 +222,8 @@ class _CluelinkState extends State<Cluelink> {
     );
 
     final payload = {
-      'grade': '',
-      'clas': '',
+      'grade': _userGrade ?? '',
+      'clas': _userClass ?? '',
       'title': result.title,
       'description': result.description,
       'link': result.url,
