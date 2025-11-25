@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import 'LinkDelete.dart';
 
@@ -31,100 +32,131 @@ class LinkList extends StatelessWidget {
     final mediaQuery = MediaQuery.of(context);
     final width = mediaQuery.size.width;
     final scale = (width / 360).clamp(0.85, 1.2);
-    double scaled(double base) =>
-        double.parse((base * scale).toStringAsFixed(2));
+    double scaled(double base) => double.parse((base * scale).toStringAsFixed(2));
 
     final scopes = <String>[];
     if (restrictByGrade) scopes.add('학년');
     if (restrictByClass) scopes.add('반');
+    final dateText = (createdAt ?? '').trim();
+    final normalizedUrl = url.trim();
 
-    return Container(
+    Future<void> _openLink() async {
+      if (normalizedUrl.isEmpty) return;
+      final uri = Uri.tryParse(normalizedUrl);
+      final isHttp = uri != null && (uri.isScheme('http') || uri.isScheme('https'));
+      if (!isHttp) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('올바른 링크가 아닙니다.')),
+        );
+        return;
+      }
+      final launched = await launchUrlString(
+        normalizedUrl,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('링크를 열지 못했습니다.')),
+        );
+      }
+    }
 
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.09),
-            blurRadius: 12,
-            spreadRadius: 1,
-            offset: Offset.zero,
-          ),
-        ],
-        color: Colors.white,
-
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    createdAt ?? '',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
-                      fontSize: scaled(13),
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: _openLink,
+      child: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.09),
+              blurRadius: 12,
+              spreadRadius: 1,
+              offset: Offset.zero,
+            ),
+          ],
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black,
+                                fontSize: scaled(18),
+                              ),
+                        ),
+                        if (dateText.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            dateText,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: scaled(13),
+                                ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                ),
-                _ActionIcon(
-                  icon: Icons.edit_outlined,
-                  color: const Color(0xff0077FF),
-                  scale: scale,
-                  onTap: onEdit,
-                ),
-                const SizedBox(width: 6),
-                _ActionIcon(
-                  icon: Icons.delete_outline,
-                  color: const Color(0xffFF6D6D),
-                  scale: scale,
-                  onTap: () async {
-                    await LinkDeleteDialog.show(
-                      context,
-                      itemTitle: title,
-                      itemDescription: description,
-                      onConfirmed: onDelete,
-                    );
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: Colors.black,
-                fontSize: scaled(18),
-              ),
-            ),
-            if ((description ?? '').trim().isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                description!.trim(),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[600],
-                  fontSize: scaled(13),
-                ),
-              ),
-            ],
-            if (scopes.isNotEmpty || tags.isNotEmpty) ...[
-              const SizedBox(height: 18),
-              Wrap(
-                spacing: 10,
-                runSpacing: 8,
-                children: [
-                  ...scopes.map((scope) => _ScopeChip(scope, scale: scale)),
-                  ...tags.map(
-                    (tag) => _ScopeChip(tag, tag: true, scale: scale),
+                  _ActionIcon(
+                    icon: Icons.edit_outlined,
+                    color: const Color(0xff0077FF),
+                    scale: scale,
+                    onTap: onEdit,
+                  ),
+                  const SizedBox(width: 6),
+                  _ActionIcon(
+                    icon: Icons.delete_outline,
+                    color: const Color(0xffFF6D6D),
+                    scale: scale,
+                    onTap: () async {
+                      await LinkDeleteDialog.show(
+                        context,
+                        itemTitle: title,
+                        itemDescription: description,
+                        onConfirmed: onDelete,
+                      );
+                    },
                   ),
                 ],
               ),
+              const SizedBox(height: 10),
+              if ((description ?? '').trim().isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  description!.trim(),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.grey[600],
+                        fontSize: scaled(13),
+                      ),
+                ),
+              ],
+              if (scopes.isNotEmpty || tags.isNotEmpty) ...[
+                const SizedBox(height: 18),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 8,
+                  children: [
+                    ...scopes.map((scope) => _ScopeChip(scope, scale: scale)),
+                    ...tags.map((tag) => _ScopeChip(tag, tag: true, scale: scale)),
+                  ],
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

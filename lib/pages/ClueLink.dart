@@ -1,5 +1,4 @@
-import 'package:clue/api_client.dart';
-import 'package:clue/config/app_data_.dart';
+﻿import 'package:clue/api_client.dart';
 import 'package:clue/linksave/LinkList.dart';
 import 'package:clue/linksave/LinkSuccessDialog.dart';
 import 'package:clue/linksave/LinkSujeong.dart' as link_edit;
@@ -20,19 +19,32 @@ class Cluelink extends StatefulWidget {
 class _CluelinkState extends State<Cluelink> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final List<String> categories = ['전체', '인문과목', '전공과목', '방과후'];
-  int selectedIndex = 0; //기본선택 : 전체
-  final List<Map<String, dynamic>> _links =
-      AppData.getLinkDummyList()
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
+  int selectedIndex = 0; // 기본 선택 : 전체
+  final List<Map<String, dynamic>> _links = [];
+  late final TextEditingController _searchController;
+  String _searchQuery = '';
 
   List<Map<String, dynamic>> get _filteredLinks {
-    if (selectedIndex == 0) return _links;
-    final category = categories[selectedIndex];
-    return _links.where((link) {
-      final tags = (link['tags'] as List?)?.cast<String>() ?? const <String>[];
-      return tags.contains(category);
-    }).toList();
+    final query = _searchQuery.trim().toLowerCase();
+    Iterable<Map<String, dynamic>> items = _links;
+
+    if (selectedIndex != 0) {
+      final category = categories[selectedIndex];
+      items = items.where((link) {
+        final tags =
+            (link['tags'] as List?)?.cast<String>() ?? const <String>[];
+        return tags.contains(category);
+      });
+    }
+
+    if (query.isNotEmpty) {
+      items = items.where((link) {
+        final title = (link['title'] as String? ?? '').toLowerCase();
+        return title.contains(query);
+      });
+    }
+
+    return items.toList();
   }
 
   List<String> _collectAllTags() {
@@ -55,18 +67,73 @@ class _CluelinkState extends State<Cluelink> {
   @override
   void initState() {
     super.initState();
+    _searchController = TextEditingController();
     _fetchLinkSave();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchLinkSave() async {
     try {
       final dio = ApiClient.instance.dio;
       final res = await dio.get('/api/linksave');
-      debugPrint('링크 저장 데이터: ${res.data}');
+      final data = res.data;
+      if (data is! List) {
+        debugPrint('링크 저장 응답 형식이 리스트가 아닙니다: ${data.runtimeType}');
+        return;
+      }
+
+      final fetched =
+          data
+              .whereType<Map<String, dynamic>>()
+              .map(_mapApiLinkToUi)
+              .whereType<Map<String, dynamic>>()
+              .toList();
+
+      if (!mounted) return;
+      setState(() {
+        _links
+          ..clear()
+          ..addAll(fetched);
+      });
     } on DioException catch (e) {
       debugPrint('링크 저장 요청 실패: ${e.response?.data ?? e.message}');
     } catch (e) {
-      debugPrint('링크 저장 알 수 없는 오류: $e');
+      debugPrint('링크 저장 데이터 변환 오류: $e');
+    }
+  }
+
+  Map<String, dynamic>? _mapApiLinkToUi(Map<String, dynamic> item) {
+    final subjectType = item['subjectType'] as String?;
+    final subjectLabel = _subjectTypeToLabel(subjectType);
+    return {
+      'id': item['id'],
+      'title': item['title'] as String? ?? '',
+      'url': item['link'] as String? ?? '',
+      'description': item['description'] as String?,
+      'tags': [
+        if (subjectLabel != null && subjectLabel.isNotEmpty) subjectLabel,
+      ],
+      'restrictByGrade': false,
+      'restrictByClass': false,
+      'createdAt': item['createdAt'] as String?,
+    };
+  }
+
+  String? _subjectTypeToLabel(String? subjectType) {
+    switch (subjectType) {
+      case 'General':
+        return '인문과목';
+      case 'Professional':
+        return '전공과목';
+      case 'AfterSchool':
+        return '방과후';
+      default:
+        return null;
     }
   }
 
@@ -188,6 +255,10 @@ class _CluelinkState extends State<Cluelink> {
                               maxWidth: maxFieldWidth,
                             ),
                             child: TextField(
+                              controller: _searchController,
+                              onChanged:
+                                  (value) =>
+                                      setState(() => _searchQuery = value),
                               decoration: InputDecoration(
                                 hintText: "검색할 내용을 입력하세요",
                                 hintStyle: TextStyle(
