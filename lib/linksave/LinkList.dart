@@ -172,20 +172,21 @@ class _ScopeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const borderColor = Color(0xFF86C1FF);
+    const chipBg = Color(0xFFEBF6FF);
+    const textColor = Color(0xFF0077FF);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: tag ? Colors.grey[400]! : const Color(0xFF0D6EFD),
-        ),
-        color: tag ? Colors.grey[100] : Colors.white,
+        border: Border.all(color: borderColor),
+        color: chipBg,
       ),
       child: Text(
         tag ? '#$label' : label,
         style: TextStyle(
           fontSize: (13 * scale).clamp(11, 16),
-          color: tag ? Colors.grey[700] : const Color(0xFF0D6EFD),
+          color: textColor,
           fontWeight: FontWeight.w500,
         ),
       ),

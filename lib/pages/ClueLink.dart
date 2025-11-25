@@ -137,6 +137,24 @@ class _CluelinkState extends State<Cluelink> {
     }
   }
 
+  Future<void> _deleteLink(int? id, int originalIndex) async {
+    try {
+      if (id != null) {
+        await ApiClient.instance.dio.delete('/api/linksave/$id');
+      }
+      setState(() {
+        if (originalIndex >= 0 && originalIndex < _links.length) {
+          _links.removeAt(originalIndex);
+        }
+      });
+    } on DioException catch (e) {
+      debugPrint('링크 삭제 요청 실패: ${e.response?.data ?? e.message}');
+    } catch (e) {
+      debugPrint('링크 삭제 처리 중 오류: $e');
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -396,6 +414,9 @@ class _CluelinkState extends State<Cluelink> {
                             restrictByGrade: item['restrictByGrade'] == true,
                             restrictByClass: item['restrictByClass'] == true,
                             createdAt: item['createdAt'] as String?,
+                            onDelete: originalIndex == -1 ? null : () async {
+                              await _deleteLink(item['id'] as int?, originalIndex);
+                            },
                             onEdit:
                                 originalIndex == -1
                                     ? null
