@@ -16,6 +16,8 @@ class _ThaksubsilsuapState extends State<Thaksubsilsuap> {
   final List<String> categories = ['전체', '활성화', '비활성화'];
   int selectedIndex = 0; //기본선택 : 전체
   bool _isLoading = false;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
   Future<void> tHakSubSilApi() async {
     if (mounted) {
       setState(() => _isLoading = true);
@@ -59,9 +61,17 @@ class _ThaksubsilsuapState extends State<Thaksubsilsuap> {
     if (_isLoading && teacherHakSubSil.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
+    final query = _searchQuery.trim().toLowerCase();
     const filters = [null, true, false];
     final clampedIndex = selectedIndex.clamp(0, filters.length - 1).toInt();
     final filter = filters[clampedIndex];
+    final filteredBySearch =
+        query.isEmpty
+            ? teacherHakSubSil
+            : teacherHakSubSil.where((item) {
+              final name = (item['name'] ?? '').toString().toLowerCase();
+              return name.contains(query);
+            }).toList();
     final emptyMessages = [
       '등록된 학습실이 없습니다.',
       '활성화된 학습실이 없습니다.',
@@ -70,7 +80,7 @@ class _ThaksubsilsuapState extends State<Thaksubsilsuap> {
 
     return TeacherSuapListSection(
       key: ValueKey(filter ?? 'all'),
-      teacherHakSubSil: teacherHakSubSil,
+      teacherHakSubSil: filteredBySearch,
       activationFilter: filter,
       emptyMessage: emptyMessages[clampedIndex],
       onRefresh: tHakSubSilApi,
@@ -81,6 +91,16 @@ class _ThaksubsilsuapState extends State<Thaksubsilsuap> {
   void initState() {
     super.initState();
     tHakSubSilApi();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _handleSearchChanged(String value) {
+    setState(() => _searchQuery = value);
   }
 
   @override
@@ -187,6 +207,8 @@ class _ThaksubsilsuapState extends State<Thaksubsilsuap> {
                               maxWidth: maxFieldWidth,
                             ),
                             child: TextField(
+                              controller: _searchController,
+                              onChanged: _handleSearchChanged,
                               decoration: InputDecoration(
                                 hintText: "검색할 내용을 입력하세요",
                                 hintStyle: TextStyle(
