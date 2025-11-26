@@ -24,7 +24,7 @@ class _SignupState extends State<Signup> {
   String? _email;
   String? _username;
   String? _role;
-  String? _sessionId;
+  String? _registerToken;
   bool _routeResolved = false;
 
   File? _pickedImage;
@@ -37,19 +37,23 @@ class _SignupState extends State<Signup> {
     super.didChangeDependencies();
     if (_routeResolved) return;
     _routeResolved = true;
-    _resolveSessionId();
+    _resolveRegisterToken();
   }
 
-  Future<void> _resolveSessionId() async {
-    String? sid = _extractSessionIdFromRouteSync();
-    sid ??= await AuthStorage.instance.readSessionId();
+  Future<void> _resolveRegisterToken() async {
+    String? sid = _extractTokenFromRouteSync();
+    sid ??= await AuthStorage.instance.readRegisterToken();
 
     if (!mounted) return;
     setState(() {
-      _sessionId = sid;
+      _registerToken = sid;
     });
 
-    if (_sessionId == null || _sessionId!.isEmpty) {
+    if (sid != null && sid.isNotEmpty) {
+      await AuthStorage.instance.saveRegisterToken(sid);
+    }
+
+    if (_registerToken == null || _registerToken!.isEmpty) {
       setState(() {
         _firstRegisterError = '세션 정보가 없습니다.';
         _loadingInitial = false;
@@ -59,20 +63,20 @@ class _SignupState extends State<Signup> {
     _loadFirstRegister();
   }
 
-  String? _extractSessionIdFromRouteSync() {
+  String? _extractTokenFromRouteSync() {
     final args = ModalRoute.of(context)?.settings.arguments;
-    if (args is Map && args['sessionId'] != null) {
-      final value = args['sessionId'];
+    if (args is Map && args['signupToken'] != null) {
+      final value = args['signupToken'];
       if (value != null && value.toString().isNotEmpty) {
         return value.toString();
       }
     }
 
     final routeName = ModalRoute.of(context)?.settings.name;
-    if (routeName != null && routeName.contains('session_id=')) {
+    if (routeName != null && routeName.contains('token=')) {
       try {
         final uri = Uri.parse('scheme://host$routeName');
-        final sid = uri.queryParameters['session_id'];
+        final sid = uri.queryParameters['token'];
         if (sid != null && sid.isNotEmpty) return sid;
       } catch (_) {
         // ignore malformed route name
@@ -80,14 +84,14 @@ class _SignupState extends State<Signup> {
     }
 
     final base = Uri.base;
-    final sidFromQuery = base.queryParameters['session_id'];
+    final sidFromQuery = base.queryParameters['token'];
     if (sidFromQuery != null && sidFromQuery.isNotEmpty) return sidFromQuery;
 
     if (base.fragment.isNotEmpty) {
       for (final pair in base.fragment.split('&')) {
         final parts = pair.split('=');
         if (parts.length != 2) continue;
-        if (parts[0] == 'session_id' && parts[1].isNotEmpty) {
+        if (parts[0] == 'token' && parts[1].isNotEmpty) {
           return Uri.decodeComponent(parts[1]);
         }
       }
@@ -96,7 +100,7 @@ class _SignupState extends State<Signup> {
   }
 
   Future<void> _loadFirstRegister() async {
-    if (_sessionId == null || _sessionId!.isEmpty) {
+    if (_registerToken == null || _registerToken!.isEmpty) {
       setState(() {
         _firstRegisterError = '세션 정보가 없습니다.';
         _loadingInitial = false;
@@ -109,14 +113,15 @@ class _SignupState extends State<Signup> {
     });
     try {
       final response = await ApiClient.instance.dio.get(
-        '/first-register',
-        queryParameters: {'session_id': _sessionId},
-        options: Options(headers: {'session_id': _sessionId}),
+        '/app/first-register',
+        queryParameters: {'token': _registerToken},
+        options: Options(headers: {'token': _registerToken}),
       );
       final data = response.data;
-      final map = data is Map
-          ? Map<String, dynamic>.from(data.cast<String, dynamic>())
-          : <String, dynamic>{};
+      final map =
+          data is Map
+              ? Map<String, dynamic>.from(data.cast<String, dynamic>())
+              : <String, dynamic>{};
       setState(() {
         _email = map['email']?.toString() ?? '';
         _username = map['username']?.toString() ?? '';
@@ -126,7 +131,8 @@ class _SignupState extends State<Signup> {
     } catch (e) {
       if (e is DioException) {
         debugPrint(
-            'failed to load first-register: status=${e.response?.statusCode} data=${e.response?.data}');
+          'failed to load first-register: status=${e.response?.statusCode} data=${e.response?.data}',
+        );
       } else {
         debugPrint('failed to load first-register: $e');
       }
@@ -150,7 +156,7 @@ class _SignupState extends State<Signup> {
     if (_submitting || _grade == null || _klass == null || _number == null) {
       return;
     }
-    if (_sessionId == null || _sessionId!.isEmpty) {
+    if (_registerToken == null || _registerToken!.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('세션 정보가 없습니다. 다시 시도해주세요.')),
@@ -161,9 +167,10 @@ class _SignupState extends State<Signup> {
     final intNumber = int.tryParse(_number!) ?? 0;
     setState(() => _submitting = true);
     try {
-      final imageString = _pickedImage == null
-          ? ''
-          : base64Encode(await _pickedImage!.readAsBytes());
+      final imageString =
+          _pickedImage == null
+              ? ''
+              : base64Encode(await _pickedImage!.readAsBytes());
       final payload = <String, dynamic>{
         'user': {
           'grade': _grade,
@@ -174,26 +181,25 @@ class _SignupState extends State<Signup> {
         'image': imageString,
       };
       await ApiClient.instance.dio.post(
-        '/register',
+        '/app/register',
         data: payload,
-        queryParameters: {'session_id': _sessionId},
-        options: Options(headers: {'session_id': _sessionId}),
+        queryParameters: {'token': _registerToken},
+        options: Options(headers: {'token': _registerToken}),
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('회원가입 정보가 저장되었습니다.')),
-        );
-        await Navigator.of(context).pushNamedAndRemoveUntil(
-          '/main',
-          (route) => false,
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('회원가입 정보가 저장되었습니다.')));
+        await Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil('/main', (route) => false);
       }
     } catch (e) {
       debugPrint('register failed: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('회원가입 실패: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('회원가입 실패: $e')));
       }
     } finally {
       if (mounted) {
@@ -244,10 +250,7 @@ class _SignupState extends State<Signup> {
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ],
     );
@@ -266,228 +269,237 @@ class _SignupState extends State<Signup> {
         elevation: 0,
         foregroundColor: Colors.black,
       ),
-      body: _loadingInitial
-          ? const Center(child: CircularProgressIndicator())
-          : _firstRegisterError != null
+      body:
+          _loadingInitial
+              ? const Center(child: CircularProgressIndicator())
+              : _firstRegisterError != null
               ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(_firstRegisterError!),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: _loadFirstRegister,
-                        child: const Text('다시 시도'),
-                      ),
-                    ],
-                  ),
-                )
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_firstRegisterError!),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: _loadFirstRegister,
+                      child: const Text('다시 시도'),
+                    ),
+                  ],
+                ),
+              )
               : SingleChildScrollView(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: const Color(0xFFE5E7EB)),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x11000000),
-                              blurRadius: 15,
-                              offset: Offset(0, 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 20,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFE5E7EB)),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x11000000),
+                            blurRadius: 15,
+                            offset: Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '정보를 입력해주세요',
+                              style: TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                          ],
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                '정보를 입력해주세요',
-                                style: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              const Text(
-                                '원활한 서비스 사용을 위해 현재 내용을 작성해주세요.',
-                                style: TextStyle(color: Colors.black54),
-                              ),
-                              const SizedBox(height: 24),
-                              _buildInfoRow('이메일', _email ?? '알 수 없음'),
+                            const SizedBox(height: 10),
+                            const Text(
+                              '원활한 서비스 사용을 위해 현재 내용을 작성해주세요.',
+                              style: TextStyle(color: Colors.black54),
+                            ),
+                            const SizedBox(height: 24),
+                            _buildInfoRow('이메일', _email ?? '알 수 없음'),
+                            const SizedBox(height: 12),
+                            _buildInfoRow('이름', _username ?? '알 수 없음'),
+                            if (_role != null && _role!.isNotEmpty) ...[
                               const SizedBox(height: 12),
-                              _buildInfoRow('이름', _username ?? '알 수 없음'),
-                              if (_role != null && _role!.isNotEmpty) ...[
-                                const SizedBox(height: 12),
-                                _buildInfoRow('역할', _role!),
-                              ],
-                              const SizedBox(height: 24),
-                              const Text(
-                                '학년*',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF111827),
+                              _buildInfoRow('역할', _role!),
+                            ],
+                            const SizedBox(height: 24),
+                            const Text(
+                              '학년*',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF111827),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Wrap(
+                              spacing: 10,
+                              runSpacing: 8,
+                              children: List.generate(3, (index) {
+                                final label = '${index + 1}학년';
+                                final selected = _grade == index + 1;
+                                return _buildChoice(
+                                  label: label,
+                                  selected: selected,
+                                  onTap:
+                                      () => setState(() => _grade = index + 1),
+                                );
+                              }),
+                            ),
+                            const SizedBox(height: 24),
+                            const Text(
+                              '반*',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF111827),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Wrap(
+                              spacing: 10,
+                              runSpacing: 8,
+                              children: List.generate(4, (index) {
+                                final label = '${index + 1}반';
+                                final selected = _klass == index + 1;
+                                return _buildChoice(
+                                  label: label,
+                                  selected: selected,
+                                  onTap:
+                                      () => setState(() => _klass = index + 1),
+                                );
+                              }),
+                            ),
+                            const SizedBox(height: 24),
+                            const Text(
+                              '번호*',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF111827),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            DropdownButtonFormField<String>(
+                              value: _number,
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: const Color(0xFFF8FAFC),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
                                 ),
-                              ),
-                              const SizedBox(height: 12),
-                              Wrap(
-                                spacing: 10,
-                                runSpacing: 8,
-                                children: List.generate(3, (index) {
-                                  final label = '${index + 1}학년';
-                                  final selected = _grade == index + 1;
-                                  return _buildChoice(
-                                    label: label,
-                                    selected: selected,
-                                    onTap: () => setState(() => _grade = index + 1),
-                                  );
-                                }),
-                              ),
-                              const SizedBox(height: 24),
-                              const Text(
-                                '반*',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF111827),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Wrap(
-                                spacing: 10,
-                                runSpacing: 8,
-                                children: List.generate(4, (index) {
-                                  final label = '${index + 1}반';
-                                  final selected = _klass == index + 1;
-                                  return _buildChoice(
-                                    label: label,
-                                    selected: selected,
-                                    onTap: () => setState(() => _klass = index + 1),
-                                  );
-                                }),
-                              ),
-                              const SizedBox(height: 24),
-                              const Text(
-                                '번호*',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF111827),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              DropdownButtonFormField<String>(
-                                value: _number,
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: const Color(0xFFF8FAFC),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 14,
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFE5E7EB),
-                                    ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFFE5E7EB),
                                   ),
                                 ),
-                                hint: const Text('번호를 선택해주세요'),
-                                items: _numbers
-                                    .map(
-                                      (value) => DropdownMenuItem(
-                                        value: value,
-                                        child: Text('$value번'),
-                                      ),
-                                    )
-                                    .toList(),
-                                onChanged: (value) =>
-                                    setState(() => _number = value),
                               ),
-                              const SizedBox(height: 24),
-                              const Text(
-                                '이미지',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF111827),
-                                ),
+                              hint: const Text('번호를 선택해주세요'),
+                              items:
+                                  _numbers
+                                      .map(
+                                        (value) => DropdownMenuItem(
+                                          value: value,
+                                          child: Text('$value번'),
+                                        ),
+                                      )
+                                      .toList(),
+                              onChanged:
+                                  (value) => setState(() => _number = value),
+                            ),
+                            const SizedBox(height: 24),
+                            const Text(
+                              '이미지',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF111827),
                               ),
-                              const SizedBox(height: 12),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  CircleAvatar(
-                                    radius: 46,
-                                    backgroundColor: const Color(0xFFE5E7EB),
-                                    backgroundImage: _pickedImage != null
-                                        ? FileImage(_pickedImage!)
-                                        : null,
-                                    child: _pickedImage == null
-                                        ? const Icon(
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                CircleAvatar(
+                                  radius: 46,
+                                  backgroundColor: const Color(0xFFE5E7EB),
+                                  backgroundImage:
+                                      _pickedImage != null
+                                          ? FileImage(_pickedImage!)
+                                          : null,
+                                  child:
+                                      _pickedImage == null
+                                          ? const Icon(
                                             Icons.person,
                                             size: 44,
                                             color: Colors.white54,
                                           )
-                                        : null,
-                                  ),
-                                  const SizedBox(width: 18),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      ElevatedButton(
-                                        onPressed: _pickImage,
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.white,
-                                          foregroundColor: Colors.black,
-                                          side: const BorderSide(
-                                            color: Color(0xFFE5E7EB),
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(12),
+                                          : null,
+                                ),
+                                const SizedBox(width: 18),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: _pickImage,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        foregroundColor: Colors.black,
+                                        side: const BorderSide(
+                                          color: Color(0xFFE5E7EB),
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
                                           ),
                                         ),
-                                        child: const Text('사진변경'),
                                       ),
-                                      const SizedBox(height: 6),
-                                      const Text(
-                                        'JPG, PNG 파일만 업로드 가능합니다.',
-                                        style: TextStyle(
-                                          color: Colors.black54,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 32),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: canSubmit ? _submitProfile : null,
-                                  style: ElevatedButton.styleFrom(
-                                    minimumSize: const Size.fromHeight(52),
-                                    backgroundColor: canSubmit
-                                        ? const Color(0xFF111827)
-                                        : const Color(0xFFE5E7EB),
-                                    foregroundColor: canSubmit
-                                        ? Colors.white
-                                        : Colors.black54,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
+                                      child: const Text('사진변경'),
                                     ),
+                                    const SizedBox(height: 6),
+                                    const Text(
+                                      'JPG, PNG 파일만 업로드 가능합니다.',
+                                      style: TextStyle(
+                                        color: Colors.black54,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 32),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: canSubmit ? _submitProfile : null,
+                                style: ElevatedButton.styleFrom(
+                                  minimumSize: const Size.fromHeight(52),
+                                  backgroundColor:
+                                      canSubmit
+                                          ? const Color(0xFF111827)
+                                          : const Color(0xFFE5E7EB),
+                                  foregroundColor:
+                                      canSubmit ? Colors.white : Colors.black54,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
                                   ),
-                                  child: _submitting
-                                      ? const SizedBox(
+                                ),
+                                child:
+                                    _submitting
+                                        ? const SizedBox(
                                           width: 22,
                                           height: 22,
                                           child: CircularProgressIndicator(
@@ -495,22 +507,22 @@ class _SignupState extends State<Signup> {
                                             color: Colors.white,
                                           ),
                                         )
-                                      : const Text(
+                                        : const Text(
                                           '회원가입',
                                           style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
-                                ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+              ),
     );
   }
 }

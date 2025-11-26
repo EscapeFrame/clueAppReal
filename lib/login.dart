@@ -109,7 +109,14 @@ class _LoginState extends State<Login> {
 
       if (token.isEmpty) {
         if (redirectPath != null) {
-          debugPrint('⚠️ Token missing but redirect=$redirectPath detected. Navigating to redirect path.');
+          if (redirectPath == '/signup') {
+            _snack('회원가입 토큰이 없습니다. 다시 시도해주세요.');
+            setState(() => _loggingIn = false);
+            return;
+          }
+          debugPrint(
+            '⚠️ Token missing but redirect=$redirectPath detected. Navigating to redirect path.',
+          );
           if (!_navigated) {
             _navigated = true;
             Navigator.of(
@@ -128,6 +135,7 @@ class _LoginState extends State<Login> {
       // --- 저장
       final bearer = token.startsWith('Bearer ') ? token : 'Bearer $token';
       await AuthStorage.instance.saveAccessToken(bearer);
+      await AuthStorage.instance.saveRegisterToken(token);
 
       final rt = returnedUri.queryParameters['refresh_token'];
       if (rt != null && rt.isNotEmpty) {
@@ -146,9 +154,13 @@ class _LoginState extends State<Login> {
       if (!_navigated) {
         _navigated = true;
         if (redirectPath != null) {
-          Navigator.of(
-            context,
-          ).pushNamedAndRemoveUntil(redirectPath, (route) => false);
+          final signupArgs =
+              redirectPath == '/signup' ? {'signupToken': token} : null;
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            redirectPath,
+            (route) => false,
+            arguments: signupArgs,
+          );
           debugPrint('✅ Redirecting to $redirectPath via 서버 응답');
         } else {
           await AppNavigator.goMain();
@@ -161,7 +173,9 @@ class _LoginState extends State<Login> {
     } on PlatformException catch (e) {
       debugPrint('❌ PlatformException: ${e.code} / ${e.message}');
       const cancel = {'CANCELED', 'CANCELLED', 'userCancelled', 'userCanceled'};
-      _snack(cancel.contains(e.code) ? '로그인을 취소했어요.' : '로그인 중 오류가 발생했습니다.');
+      _snack(
+        cancel.contains(e.code) ? '로그인을 취소했어요.' : '로그인 중 오류가 발생했습니다.',
+      );
     } catch (e, st) {
       debugPrint('❌ OAuth 예외: $e');
       debugPrintStack(stackTrace: st);
@@ -171,10 +185,11 @@ class _LoginState extends State<Login> {
     }
   }
 
-  void _navigateRedirectPath(String redirectPath, {String? sessionId}) {
+  void _navigateRedirectPath(String redirectPath, {String? signupToken}) {
     if (_navigated || !mounted) return;
     _navigated = true;
-    final args = redirectPath == '/signup' ? {'sessionId': sessionId} : null;
+    final args =
+        redirectPath == '/signup' ? {'signupToken': signupToken} : null;
     Navigator.of(
       context,
     ).pushNamedAndRemoveUntil(redirectPath, (route) => false, arguments: args);
@@ -343,8 +358,8 @@ class _LoginStyledUi extends StatelessWidget {
                               height: 30,
                             ),
 
-                            SizedBox(width: 15),
-                            Text(
+                            const SizedBox(width: 15),
+                            const Text(
                               'Google 계정으로 로그인하기',
                               style: TextStyle(color: Color(0xFF111111)),
                             ),
