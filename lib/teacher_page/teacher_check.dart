@@ -425,7 +425,17 @@ class _TeacherCheckState extends State<TeacherCheck> {
   }
 
   Future<void> _openAttachment(String url) async {
-    final uri = Uri.tryParse(url);
+    var normalized = url.trim();
+    if (normalized.isEmpty) {
+      _showSnackBar('잘못된 링크입니다.');
+      return;
+    }
+    // 스킴이 없으면 https를 붙여 외부 브라우저에서 열리도록 보정
+    final hasScheme = Uri.tryParse(normalized)?.hasScheme == true;
+    if (!hasScheme) {
+      normalized = 'https://$normalized';
+    }
+    final uri = Uri.tryParse(normalized);
     if (uri == null) {
       _showSnackBar('잘못된 링크입니다.');
       return;
