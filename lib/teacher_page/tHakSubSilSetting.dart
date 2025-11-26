@@ -19,11 +19,13 @@ class Thaksubsilsetting extends StatefulWidget {
 }
 
 class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
+  static const List<String> _sortOptions = ['인문과목', '전공과목', '방과후'];
   late final TextEditingController _titleController;
   late final TextEditingController _languageController;
   late final TextEditingController _descriptionController;
   late final TextEditingController _gradeController;
   late final TextEditingController _banController;
+  String? _selectedSort;
   late bool _isActivated;
   late bool isChatAllowed;
 
@@ -48,6 +50,8 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
     _banController = TextEditingController(
       text: targetParts.length > 1 ? targetParts[1] : '',
     );
+    final sortText = _languageController.text.trim();
+    _selectedSort = _sortOptions.contains(sortText) ? sortText : null;
 
     _isActivated =
         (widget.tsuap['activation'] == true) ||
@@ -258,10 +262,53 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
                 ),
                 const SizedBox(height: 16),
                 buildLabel('분류 (sort)'),
-                TextField(
-                  controller: _languageController,
-                  decoration: buildInputDecoration('예) 프로그래밍'),
-                  style: TextStyle(fontSize: inputFontSize),
+                DropdownButtonFormField<String>(
+                  value: _selectedSort,
+                  decoration: buildInputDecoration(
+                    '클릭해서 분류를 선택하세요 (인문/전공/방과후)',
+                  ),
+                  icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                  isExpanded: true,
+                  borderRadius: BorderRadius.circular(14),
+                  dropdownColor: Colors.white,
+                  menuMaxHeight: height * 0.45,
+                  style: TextStyle(
+                    fontSize: inputFontSize,
+                    color: const Color(0xff1F2A44),
+                  ),
+                  items:
+                      _sortOptions
+                          .map(
+                            (option) => DropdownMenuItem<String>(
+                              value: option,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.circle,
+                                    size: 10,
+                                    color: accent.withOpacity(0.55),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    option,
+                                    style: TextStyle(
+                                      fontSize: inputFontSize,
+                                      color: const Color(0xff1F2A44),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                          .toList(),
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setState(() {
+                      _selectedSort = value;
+                      _languageController.text = value;
+                    });
+                  },
                 ),
                 const SizedBox(height: 16),
                 buildLabel('설명'),
@@ -361,11 +408,12 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
                       ),
                     ),
                     OutlinedButton(
-                      onPressed: widget.onDeleteClass == null
-                          ? null
-                          : () {
-                              widget.onDeleteClass!.call();
-                            },
+                      onPressed:
+                          widget.onDeleteClass == null
+                              ? null
+                              : () {
+                                widget.onDeleteClass!.call();
+                              },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Color(0xffB3261E)),
                         foregroundColor: const Color(0xffB3261E),
