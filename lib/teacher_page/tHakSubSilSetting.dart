@@ -264,9 +264,7 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
                 buildLabel('분류 (sort)'),
                 DropdownButtonFormField<String>(
                   value: _selectedSort,
-                  decoration: buildInputDecoration(
-                    '클릭해서 분류를 선택하세요 (인문/전공/방과후)',
-                  ),
+                  decoration: buildInputDecoration('클릭해서 분류를 선택하세요'),
                   icon: const Icon(Icons.keyboard_arrow_down_rounded),
                   isExpanded: true,
                   borderRadius: BorderRadius.circular(14),

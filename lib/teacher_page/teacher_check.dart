@@ -5,7 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 class TeacherCheck extends StatefulWidget {
   final VoidCallback? onBack;
-  final assignmentId;
+  final dynamic assignmentId;
   const TeacherCheck({super.key, this.onBack, required this.assignmentId});
 
   @override
@@ -31,13 +31,12 @@ class _TeacherCheckState extends State<TeacherCheck> {
       _detailLoading = true;
       _detailError = null;
     });
-    debugPrint("idSSSSTTTTRRR:  $idStr");
     try {
       final dio = ApiClient.instance.dio;
       final res = await dio.get('/api/assignments/$idStr');
       final data = res.data;
       final Map<String, dynamic>? detailMap =
-          data is Map ? Map<String, dynamic>.from(data as Map) : null;
+          data is Map ? Map<String, dynamic>.from(data) : null;
       final String? detailTitle = detailMap?['title']?.toString();
       final String? endDateStr = detailMap?['endDate']?.toString();
       final DateTime? parsedEndDate =
@@ -60,10 +59,7 @@ class _TeacherCheckState extends State<TeacherCheck> {
           _detailLoading = false;
         });
       }
-      debugPrint("응답값 : ${data.toString()}");
     } on DioException catch (e) {
-      debugPrint("DioError:  ${e.error}");
-      debugPrint("DioError:  ${e.message}");
       if (!mounted) return;
       setState(() {
         _assignmentTitle = null;
@@ -72,7 +68,6 @@ class _TeacherCheckState extends State<TeacherCheck> {
         _detailLoading = false;
       });
     } catch (e) {
-      debugPrint("Errrrrrrorrrr:$e");
       if (!mounted) return;
       setState(() {
         _assignmentTitle = null;
@@ -136,7 +131,6 @@ class _TeacherCheckState extends State<TeacherCheck> {
       final res = await dio.get('/api/submissions/$idStr/check');
       if (!mounted) return;
       if (res.statusCode == 200 && res.data is List) {
-        debugPrint('Submission check response: ${res.data}');
         final list =
             (res.data as List)
                 .map((item) {
@@ -222,21 +216,10 @@ class _TeacherCheckState extends State<TeacherCheck> {
                           (_detailLoading
                               ? '과제 정보를 불러오는 중입니다.'
                               : _detailError ?? '과제 제목 정보 없음'),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: width * 0.055,
-                        color: Colors.black87,
-                      ),
                     ),
                   ),
                   GestureDetector(
-                    onTap: () {
-                      if (widget.onBack != null) {
-                        widget.onBack!();
-                      }
-                    },
+                    onTap: () => widget.onBack?.call(),
                     child: Icon(
                       Icons.close,
                       color: Colors.black,
@@ -263,28 +246,7 @@ class _TeacherCheckState extends State<TeacherCheck> {
                   ),
                 ],
               ),
-              SizedBox(height: height * 0.015),
-
-              if (false)
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today,
-                      size: width * 0.04,
-                      color: Colors.grey,
-                    ),
-                    SizedBox(width: width * 0.01),
-                    Text(
-                      '마감일: 2025.04.15 23:59:59',
-                      style: TextStyle(
-                        fontSize: width * 0.035,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
-                ),
               SizedBox(height: height * 0.02),
-
               _buildDropdown(selectedStatus, ['상태', '제출완료', '미제출'], (val) {
                 setState(() {
                   selectedStatus = val!;
@@ -292,7 +254,6 @@ class _TeacherCheckState extends State<TeacherCheck> {
                 });
               }),
               SizedBox(height: height * 0.02),
-
               TextField(
                 decoration: InputDecoration(
                   hintText: '찾으시는 학생을 검색해주세요.',
@@ -311,7 +272,7 @@ class _TeacherCheckState extends State<TeacherCheck> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.blue),
+                    borderSide: const BorderSide(color: Colors.blue),
                   ),
                   filled: true,
                   fillColor: Colors.grey[100],
@@ -328,7 +289,6 @@ class _TeacherCheckState extends State<TeacherCheck> {
                 },
               ),
               SizedBox(height: height * 0.02),
-
               Expanded(
                 child: Builder(
                   builder: (context) {
@@ -370,7 +330,6 @@ class _TeacherCheckState extends State<TeacherCheck> {
                                     ),
                                   ),
                                 ),
-
                                 Expanded(
                                   flex: 2,
                                   child: Text(
@@ -384,7 +343,6 @@ class _TeacherCheckState extends State<TeacherCheck> {
                                     ),
                                   ),
                                 ),
-
                                 SizedBox(width: width * 0.04),
                                 Expanded(
                                   flex: 1,
@@ -395,7 +353,7 @@ class _TeacherCheckState extends State<TeacherCheck> {
                                       style: TextStyle(
                                         color:
                                             student['submitted']
-                                                ? Color(0xFF1CC078)
+                                                ? const Color(0xFF1CC078)
                                                 : Colors.black,
                                         fontWeight: FontWeight.w500,
                                         fontSize: width * 0.04,
@@ -493,7 +451,7 @@ class _TeacherCheckState extends State<TeacherCheck> {
     ValueChanged<String?> onChanged,
   ) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey[300]!),
         borderRadius: BorderRadius.circular(8),
@@ -508,13 +466,13 @@ class _TeacherCheckState extends State<TeacherCheck> {
                     value: e,
                     child: Text(
                       e,
-                      style: TextStyle(fontSize: 14, color: Colors.black),
+                      style: const TextStyle(fontSize: 14, color: Colors.black),
                     ),
                   ),
                 )
                 .toList(),
         onChanged: onChanged,
-        underline: SizedBox(),
+        underline: const SizedBox(),
         isDense: true,
         icon: Icon(Icons.arrow_drop_down, color: Colors.grey[600]),
         dropdownColor: Colors.white,
@@ -667,74 +625,87 @@ class SubmissionDetailDialog extends StatelessWidget {
                 style: TextStyle(color: textSecondary),
               )
             else
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: attachments.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 10),
-                itemBuilder: (context, index) {
-                  final attachment = attachments[index];
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: subtleSurfaceColor,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: borderColor),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                attachment.name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: textPrimary,
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: attachments.length > 3 ? 320 : double.infinity,
+                ),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  physics:
+                      attachments.length > 3
+                          ? const BouncingScrollPhysics()
+                          : const NeverScrollableScrollPhysics(),
+                  itemCount: attachments.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (context, index) {
+                    final attachment = attachments[index];
+                    final isFile = attachment.type.toUpperCase() == 'FILE';
+                    final label = isFile ? '다운로드' : '열기';
+                    final canOpen =
+                        onDownloadAttachment != null &&
+                        attachment.url.isNotEmpty;
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: subtleSurfaceColor,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: borderColor),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  attachment.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: textPrimary,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                attachment.sizeLabel,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: textSecondary,
+                                const SizedBox(height: 4),
+                                Text(
+                                  attachment.sizeLabel,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: textSecondary,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        OutlinedButton(
-                          onPressed:
-                              (onDownloadAttachment != null &&
-                                      attachment.url.isNotEmpty)
-                                  ? () => onDownloadAttachment!(attachment.url)
-                                  : null,
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: primaryColor,
-                            side: const BorderSide(color: primaryColor),
-                            backgroundColor: surfaceColor,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 10,
+                              ],
                             ),
                           ),
-                          child: const Text('다운로드'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                          const SizedBox(width: 8),
+                          OutlinedButton(
+                            onPressed:
+                                canOpen
+                                    ? () =>
+                                        onDownloadAttachment!(attachment.url)
+                                    : null,
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: primaryColor,
+                              side: const BorderSide(color: primaryColor),
+                              backgroundColor: surfaceColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                            ),
+                            child: Text(label),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
           ],
         ),
