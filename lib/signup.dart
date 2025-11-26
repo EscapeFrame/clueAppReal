@@ -198,12 +198,30 @@ class _SignupState extends State<Signup> {
       debugPrint(
         '➡️ posting /app/register token=${_registerToken} grade=$_grade class=$_klass number=$intNumber',
       );
-      await ApiClient.instance.dio.post(
+      final response = await ApiClient.instance.dio.post(
         '/app/register',
         data: formData,
         queryParameters: {'token': _registerToken},
         options: Options(headers: {'token': _registerToken}),
       );
+      // 서버가 회원가입 성공 시 내려주는 access token 저장
+      final authHeader =
+          response.headers.value('Authorization') ?? response.headers.value('authorization');
+      String? access = authHeader?.trim();
+      if ((access == null || access.isEmpty) && response.data is String) {
+        access = (response.data as String).trim();
+      } else if ((access == null || access.isEmpty) && response.data is Map) {
+        final map = response.data as Map;
+        access = map['access_token']?.toString();
+      }
+      debugPrint('ℹ️ Signup response token raw: ${access ?? '(null)'}');
+      if (access != null && access.isNotEmpty) {
+        final bearer = access.toLowerCase().startsWith('bearer ') ? access : 'Bearer $access';
+        await AuthStorage.instance.saveAccessToken(bearer);
+        debugPrint('✅ Access token saved from signup response');
+      } else {
+        debugPrint('⚠️ Access token missing in signup response');
+      }
       if (mounted) {
         ScaffoldMessenger.of(
           context,
