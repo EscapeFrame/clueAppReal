@@ -1,4 +1,6 @@
+import 'package:clue/api_client.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 Future<void> showHamburgerDialog(BuildContext context) {
   return showGeneralDialog(
@@ -28,8 +30,39 @@ Future<void> showHamburgerDialog(BuildContext context) {
   );
 }
 
-class _HamburgerPanel extends StatelessWidget {
+class _HamburgerPanel extends StatefulWidget {
   const _HamburgerPanel();
+
+  @override
+  State<_HamburgerPanel> createState() => _HamburgerPanelState();
+}
+
+class _HamburgerPanelState extends State<_HamburgerPanel> {
+  String? _username;
+  String? _email;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    try {
+      final dio = ApiClient.instance.dio;
+      final res = await dio.get('/api/user/me');
+      if (!mounted) return;
+      if (res.statusCode == 200 && res.data is Map) {
+        final data = Map<String, dynamic>.from(res.data as Map);
+        setState(() {
+          _username = (data['username'] ?? '').toString();
+          _email = (data['email'] ?? '').toString();
+        });
+      }
+    } catch (e) {
+      debugPrint('HamburgerDialog: user fetch failed ($e)');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +70,9 @@ class _HamburgerPanel extends StatelessWidget {
     final width = size.width * 0.78;
     const brand = Color(0xFF2563EB);
     const softBg = Color(0xFFF8FAFF);
+
+    final displayName = (_username?.isNotEmpty ?? false) ? _username! : '사용자';
+    final displayEmail = (_email?.isNotEmpty ?? false) ? _email! : '이메일 정보 없음';
 
     return Material(
       color: Colors.transparent,
@@ -71,11 +107,12 @@ class _HamburgerPanel extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: brand,
                         fontWeight: FontWeight.w800,
+                        fontSize: width * 0.083,
                       ),
                     ),
                     const Spacer(),
                     IconButton(
-                      tooltip: '\ub2eb\uae30',
+                      tooltip: '닫기',
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(
                         Icons.close_rounded,
@@ -115,19 +152,23 @@ class _HamburgerPanel extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '\uacf5\ub355 \ub2d8',
+                            displayName,
                             style: Theme.of(
                               context,
                             ).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w700,
                               color: const Color(0xFF111827),
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '\uacc4\uc815 ID: CLUE-2024-11',
+                            displayEmail,
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(color: const Color(0xFF6B7280)),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -152,9 +193,8 @@ class _HamburgerPanel extends StatelessWidget {
                 children: [
                   _MenuItem(
                     icon: Icons.settings_outlined,
-                    label: '\uc124\uc815',
-                    caption:
-                        '\uc54c\ub9bc \xb7 \ud14c\ub9c8 \xb7 \uacc4\uc815 \uad00\ub9ac',
+                    label: '설정',
+                    caption: '알림 · 테마 · 계정 관리',
                     onTap: () {
                       Navigator.of(context).pop();
                       // TODO: navigate to settings
@@ -162,12 +202,16 @@ class _HamburgerPanel extends StatelessWidget {
                   ),
                   _MenuItem(
                     icon: Icons.chat_bubble_outline,
-                    label: '\ubb38\uc758\ud558\uae30',
-                    caption:
-                        '\uc9c0\uc6d0\ud300\uc5d0 \ubb38\uc758\ud558\uace0 \ub3c4\uc6c0 \ubc1b\uae30',
+                    label: '문의하기',
+                    caption: '지원팀에 문의하고 도움 받기',
                     onTap: () {
                       Navigator.of(context).pop();
-                      // TODO: navigate to support
+                      launchUrl(
+                        Uri.parse(
+                          'https://docs.google.com/forms/d/e/1FAIpQLSfjpcspL56bjZPq19v0D9z2pF2_T-wVCTIWSacmkSGgm9_Q7g/viewform',
+                        ),
+                        mode: LaunchMode.externalApplication,
+                      );
                     },
                   ),
                   const SizedBox(height: 4),
@@ -202,7 +246,7 @@ class _HamburgerPanel extends StatelessWidget {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          '\uc0c8\ub85c\uc6b4 \uacfc\uc81c \uc54c\ub9bc\uc744 \ubc14\ub85c \ubc1b\uc544\ubcf4\uc138\uc694',
+                          '새로운 과제 알림을 바로 받아보세요',
                           style: Theme.of(
                             context,
                           ).textTheme.bodyMedium?.copyWith(
@@ -227,7 +271,7 @@ class _HamburgerPanel extends StatelessWidget {
                           Navigator.of(context).pop();
                           // TODO: go to notification settings
                         },
-                        child: const Text('\uc54c\ub9bc \uc124\uc815'),
+                        child: const Text('알림 설정'),
                       ),
                     ],
                   ),
