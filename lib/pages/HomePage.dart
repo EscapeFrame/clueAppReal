@@ -1,4 +1,3 @@
-import 'package:clue/HamburgerDialog.dart';
 import 'package:clue/config/app_data_.dart';
 import 'package:clue/services/assignment_notification_service.dart';
 import 'package:clue/widgets/mainPage/DayCard.dart';
@@ -11,6 +10,7 @@ import 'package:clue/widgets/mainPage/Timetable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'Alarm.dart';
+import '../HamburgerDialog.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

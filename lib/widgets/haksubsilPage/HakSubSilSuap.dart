@@ -280,7 +280,32 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                   ),
                 ),
                 SizedBox(height: height * 0.003),
-                SizedBox(height: height * 0.01),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: Text(
+                    widget.notice['description'].toString(),
+                    style: TextStyle(fontSize: width * 0.035),
+                  ),
+                ),
+                SizedBox(height: height * 0.004),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.person,
+                      size: width * 0.06,
+                      color: Colors.black54,
+                    ),
+                    SizedBox(width: width * 0.005),
+                    Text(
+                      teacherNameText,
+                      style: TextStyle(
+                        fontSize: width * 0.035,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black45,
+                      ),
+                    ),
+                  ],
+                ),
                 SizedBox(height: 12),
                 Row(
                   children: [
@@ -395,8 +420,9 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                                 ), // changes position of shadow
                                               ),
                                             ],
-                                            borderRadius:
-                                                BorderRadius.circular(12),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
                                             border: Border.all(
                                               width: 0.25,
                                               color: Color(0xffCCCCCC),
@@ -405,16 +431,14 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                           ),
                                           child: Theme(
                                             data: Theme.of(context).copyWith(
-                                              dividerColor:
-                                                  Colors.transparent,
+                                              dividerColor: Colors.transparent,
                                             ),
                                             child: ExpansionTile(
                                               title: Text(
                                                 lesson['directoryName']
-                                                        .toString(),
+                                                    .toString(),
                                                 maxLines: 1,
-                                                overflow:
-                                                    TextOverflow.ellipsis,
+                                                overflow: TextOverflow.ellipsis,
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: width * 0.045,
@@ -425,11 +449,13 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                                             as List?) ??
                                                         const []))
                                                     .map<Widget>((item) {
-                                                      final doc =
-                                                          Map<String, dynamic>.from(
-                                                            (item as Map?) ??
-                                                                const {},
-                                                          );
+                                                      final doc = Map<
+                                                        String,
+                                                        dynamic
+                                                      >.from(
+                                                        (item as Map?) ??
+                                                            const {},
+                                                      );
                                                       return Column(
                                                         children: [
                                                           GestureDetector(
@@ -498,8 +524,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                                                                   doc['title']
                                                                           ?.toString() ??
                                                                       '',
-                                                                  style:
-                                                                      TextStyle(
+                                                                  style: TextStyle(
                                                                     fontWeight:
                                                                         FontWeight
                                                                             .bold,

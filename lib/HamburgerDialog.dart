@@ -5,11 +5,10 @@ Future<void> showHamburgerDialog(BuildContext context) {
     context: context,
     barrierDismissible: true,
     barrierLabel: 'HamburgerMenu',
-    barrierColor: Colors.black54,
-    transitionDuration: const Duration(milliseconds: 280),
-    pageBuilder: (context, animation, secondaryAnimation) {
-      return const SizedBox.shrink();
-    },
+    barrierColor: Colors.black45,
+    transitionDuration: const Duration(milliseconds: 260),
+    pageBuilder:
+        (context, animation, secondaryAnimation) => const SizedBox.shrink(),
     transitionBuilder: (context, animation, secondaryAnimation, child) {
       final curved = CurvedAnimation(
         parent: animation,
@@ -35,129 +34,202 @@ class _HamburgerPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final width = size.width * 0.78; // slide-in panel width
+    final width = size.width * 0.78;
+    const brand = Color(0xFF2563EB);
+    const softBg = Color(0xFFF8FAFF);
 
     return Material(
       color: Colors.transparent,
       child: Container(
         width: width,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            bottomLeft: Radius.circular(0),
+        decoration: BoxDecoration(
+          color: softBg,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(26),
+            bottomLeft: Radius.circular(26),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 24,
+              offset: const Offset(-10, 4),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header (SafeArea only on top)
             SafeArea(
-              top: true,
               bottom: false,
-              child: SizedBox(
-                height: 56,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(18, 12, 6, 4),
                 child: Row(
                   children: [
-                    const SizedBox(width: 8),
+                    Text(
+                      'CLUE',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: brand,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const Spacer(),
                     IconButton(
-                      icon: const Icon(Icons.close, size: 24),
-                      color: Colors.black87,
+                      tooltip: '\ub2eb\uae30',
                       onPressed: () => Navigator.of(context).pop(),
-                      tooltip: '닫기',
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: Colors.black87,
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
-
-            const Divider(height: 1),
-
-            // Scrollable content area
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: const Color(0xFFE5E7EB)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 22,
+                      backgroundColor: Color(0xFFEFF2FF),
+                      child: Icon(Icons.person, color: brand),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '\uacf5\ub355 \ub2d8',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF111827),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '\uacc4\uc815 ID: CLUE-2024-11',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: const Color(0xFF6B7280)),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        // TODO: copy account id
+                      },
+                      icon: const Icon(
+                        Icons.copy_rounded,
+                        color: Color(0xFF6B7280),
+                        size: 18,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
                 children: [
-                  Text(
-                    'CLUE 서비스로 이동',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
                   _MenuItem(
-                    label: '설정',
+                    icon: Icons.settings_outlined,
+                    label: '\uc124\uc815',
+                    caption:
+                        '\uc54c\ub9bc \xb7 \ud14c\ub9c8 \xb7 \uacc4\uc815 \uad00\ub9ac',
                     onTap: () {
                       Navigator.of(context).pop();
-                      // TODO: Navigate to settings page
+                      // TODO: navigate to settings
                     },
                   ),
                   _MenuItem(
-                    label: '문의하기',
+                    icon: Icons.chat_bubble_outline,
+                    label: '\ubb38\uc758\ud558\uae30',
+                    caption:
+                        '\uc9c0\uc6d0\ud300\uc5d0 \ubb38\uc758\ud558\uace0 \ub3c4\uc6c0 \ubc1b\uae30',
                     onTap: () {
                       Navigator.of(context).pop();
-                      // TODO: Navigate to inquiry/contact page
+                      // TODO: navigate to support
                     },
                   ),
+                  const SizedBox(height: 4),
                 ],
               ),
             ),
-
-            // Bottom account/info pill pinned (SafeArea only on bottom)
-            DecoratedBox(
-              decoration: BoxDecoration(
+            Container(
+              decoration: const BoxDecoration(
                 color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(22),
+                  topRight: Radius.circular(22),
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.06),
-                    blurRadius: 12,
-                    spreadRadius: 1,
-                    offset: const Offset(0, -2),
+                    color: Color(0x11000000),
+                    blurRadius: 10,
+                    offset: Offset(0, -2),
                   ),
                 ],
               ),
               child: SafeArea(
                 top: false,
-                bottom: true,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF2F4F7),
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                    child: Row(
-                      children: [
-                        const CircleAvatar(
-                          radius: 14,
-                          backgroundColor: Color(0xFFD9D9D9),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            '공덕현',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.labelLarge?.copyWith(
-                              color: const Color(0xFF2563EB),
-                              fontWeight: FontWeight.w600,
-                            ),
+                  padding: const EdgeInsets.fromLTRB(18, 12, 18, 14),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.notifications_active_outlined,
+                        color: brand,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          '\uc0c8\ub85c\uc6b4 \uacfc\uc81c \uc54c\ub9bc\uc744 \ubc14\ub85c \ubc1b\uc544\ubcf4\uc138\uc694',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF111827),
                           ),
                         ),
-                        const Icon(
-                          Icons.copy_outlined,
-                          size: 18,
-                          color: Color(0xFF2563EB),
+                      ),
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: brand,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                      ],
-                    ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          // TODO: go to notification settings
+                        },
+                        child: const Text('\uc54c\ub9bc \uc124\uc815'),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -170,22 +242,60 @@ class _HamburgerPanel extends StatelessWidget {
 }
 
 class _MenuItem extends StatelessWidget {
+  final IconData icon;
   final String label;
+  final String caption;
   final VoidCallback? onTap;
 
-  const _MenuItem({required this.label, this.onTap});
+  const _MenuItem({
+    required this.icon,
+    required this.label,
+    required this.caption,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
+      borderRadius: BorderRadius.circular(14),
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        child: Text(
-          label,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyLarge?.copyWith(color: Colors.black87),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF3FF),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: const Color(0xFF2563EB)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: const Color(0xFF111827),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    caption,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: const Color(0xFF6B7280),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: Colors.black26),
+          ],
         ),
       ),
     );
