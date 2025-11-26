@@ -140,7 +140,7 @@ class _HamburgerPanelState extends State<_HamburgerPanel> {
                             onPressed: () => Navigator.of(ctx).pop(true),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
-                              backgroundColor: const Color(0xFFF87171),
+                              backgroundColor: const Color(0xFFF56565),
                               foregroundColor: Colors.white,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
