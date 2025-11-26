@@ -216,6 +216,10 @@ class _TeacherCheckState extends State<TeacherCheck> {
                           (_detailLoading
                               ? '과제 정보를 불러오는 중입니다.'
                               : _detailError ?? '과제 제목 정보 없음'),
+                      style: TextStyle(
+                        fontSize: width * 0.055,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   GestureDetector(
