@@ -539,7 +539,7 @@ class SubmissionDetailDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xff2563EB);
+    const primaryColor = Color(0xff0077FF);
     const successColor = Color(0xff16A34A);
     const dangerColor = Color(0xffDC2626);
     const surfaceColor = Colors.white;
@@ -617,8 +617,6 @@ class SubmissionDetailDialog extends StatelessWidget {
                             color: textSecondary,
                           ),
                         ),
-                          ),
-                        ),
                     ],
                   ),
                 ),
@@ -653,6 +651,10 @@ class SubmissionDetailDialog extends StatelessWidget {
                             : null,
                     style: TextButton.styleFrom(
                       foregroundColor: primaryColor,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                     ),
                     child: const Text('전체 다운로드'),
                   ),
@@ -721,6 +723,10 @@ class SubmissionDetailDialog extends StatelessWidget {
                             backgroundColor: surfaceColor,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
                             ),
                           ),
                           child: const Text('다운로드'),
