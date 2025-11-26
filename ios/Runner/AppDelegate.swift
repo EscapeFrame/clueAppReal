@@ -17,6 +17,7 @@ import workmanager
       GeneratedPluginRegistrant.register(with: registry)
     }
     WorkmanagerPlugin.registerTask(withIdentifier: "assignment_sync_task")
+    WorkmanagerPlugin.registerTask(withIdentifier: "assignment_sync_worker_ios")
     WorkmanagerPlugin.registerTask(withIdentifier: Workmanager.iOSBackgroundTask)
     application.setMinimumBackgroundFetchInterval(UIApplication.backgroundFetchIntervalMinimum)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)

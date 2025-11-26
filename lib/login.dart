@@ -132,10 +132,19 @@ class _LoginState extends State<Login> {
         return;
       }
 
-      // --- 저장
-      final bearer = token.startsWith('Bearer ') ? token : 'Bearer $token';
-      await AuthStorage.instance.saveAccessToken(bearer);
-      await AuthStorage.instance.saveRegisterToken(token);
+      // --- 저장 (회원가입 진입 시에는 등록 토큰만 저장하고 Authorization은 비움)
+      final isRegisterFlow = redirectPath == '/signup';
+      final isJwtLike = token.split('.').length == 3;
+      if (isRegisterFlow || !isJwtLike) {
+        debugPrint('ℹ️ registration flow token detected; not saving as access JWT');
+        await AuthStorage.instance.saveAccessToken('');
+        await AuthStorage.instance.saveRegisterToken(token);
+      } else {
+        final bearer = token.startsWith('Bearer ') ? token : 'Bearer $token';
+        await AuthStorage.instance.saveAccessToken(bearer);
+        await AuthStorage.instance.saveRegisterToken(token);
+      }
+      debugPrint('ℹ️ register_token stored (app): $token');
 
       final rt = returnedUri.queryParameters['refresh_token'];
       if (rt != null && rt.isNotEmpty) {
@@ -156,6 +165,9 @@ class _LoginState extends State<Login> {
         if (redirectPath != null) {
           final signupArgs =
               redirectPath == '/signup' ? {'signupToken': token} : null;
+          if (signupArgs != null) {
+            debugPrint('ℹ️ Navigating to signup with token=$token');
+          }
           Navigator.of(context).pushNamedAndRemoveUntil(
             redirectPath,
             (route) => false,

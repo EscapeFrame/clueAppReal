@@ -5,6 +5,7 @@ import 'package:clue/api_client.dart';
 import 'package:clue/auth_storage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 
 class Signup extends StatefulWidget {
@@ -42,7 +43,9 @@ class _SignupState extends State<Signup> {
 
   Future<void> _resolveRegisterToken() async {
     String? sid = _extractTokenFromRouteSync();
+    debugPrint('ℹ️ signup token from route args: $sid');
     sid ??= await AuthStorage.instance.readRegisterToken();
+    debugPrint('ℹ️ signup token from storage: $sid');
 
     if (!mounted) return;
     setState(() {
@@ -112,6 +115,7 @@ class _SignupState extends State<Signup> {
       _firstRegisterError = null;
     });
     try {
+      debugPrint('➡️ calling /app/first-register with token=${_registerToken}');
       final response = await ApiClient.instance.dio.get(
         '/app/first-register',
         queryParameters: {'token': _registerToken},
@@ -167,22 +171,36 @@ class _SignupState extends State<Signup> {
     final intNumber = int.tryParse(_number!) ?? 0;
     setState(() => _submitting = true);
     try {
-      final imageString =
-          _pickedImage == null
-              ? ''
-              : base64Encode(await _pickedImage!.readAsBytes());
-      final payload = <String, dynamic>{
-        'user': {
-          'grade': _grade,
-          'classNo': _klass,
-          'number': intNumber,
-          'username': _username ?? '',
-        },
-        'image': imageString,
+      final userJson = jsonEncode({
+        'grade': _grade,
+        'classNo': _klass,
+        'number': intNumber,
+        'username': _username ?? '',
+      });
+
+      final formDataMap = <String, dynamic>{
+        'user': MultipartFile.fromString(
+          userJson,
+          contentType: MediaType('application', 'json'),
+        ),
       };
+
+      if (_pickedImage != null) {
+        final ext = _pickedImage!.path.toLowerCase();
+        final imageType = ext.endsWith('.png') ? 'png' : 'jpeg';
+        formDataMap['image'] = await MultipartFile.fromFile(
+          _pickedImage!.path,
+          contentType: MediaType('image', imageType),
+        );
+      }
+
+      final formData = FormData.fromMap(formDataMap);
+      debugPrint(
+        '➡️ posting /app/register token=${_registerToken} grade=$_grade class=$_klass number=$intNumber',
+      );
       await ApiClient.instance.dio.post(
         '/app/register',
-        data: payload,
+        data: formData,
         queryParameters: {'token': _registerToken},
         options: Options(headers: {'token': _registerToken}),
       );
