@@ -1,3 +1,4 @@
+import 'package:clue/HamburgerDialog.dart';
 import 'package:clue/api_client.dart';
 import 'package:clue/teacher_page/NTeacherSuap.dart';
 import 'package:dio/dio.dart';
@@ -150,7 +151,7 @@ class _ThaksubsilsuapState extends State<Thaksubsilsuap> {
                           ),
                           SizedBox(width: width * 0.03),
                           GestureDetector(
-                            // onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+                            onTap: () => showHamburgerDialog(context),
                             child: SvgPicture.asset(
                               'assets/images/bars-3.svg',
                               width: width * 0.074,

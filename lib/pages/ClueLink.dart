@@ -1,4 +1,5 @@
-﻿import 'package:clue/api_client.dart';
+﻿import 'package:clue/HamburgerDialog.dart';
+import 'package:clue/api_client.dart';
 import 'package:clue/linksave/LinkList.dart';
 import 'package:clue/linksave/LinkSuccessDialog.dart';
 import 'package:clue/linksave/LinkSujeong.dart' as link_edit;
@@ -351,6 +352,7 @@ class _CluelinkState extends State<Cluelink> {
                           ),
                           SizedBox(width: width * 0.03),
                           GestureDetector(
+                            onTap: () => showHamburgerDialog(context),
                             child: SvgPicture.asset(
                               'assets/images/bars-3.svg',
                               width: width * 0.074,

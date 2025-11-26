@@ -1,3 +1,4 @@
+import 'package:clue/HamburgerDialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -75,7 +76,7 @@ class Markdown_ extends StatelessWidget {
                       ),
                       SizedBox(width: width * 0.03),
                       IconButton(
-                        onPressed: () {},
+                        onPressed: () => showHamburgerDialog(context),
                         icon: SvgPicture.asset(
                           'assets/images/bars-3.svg',
                           width: width * 0.074,

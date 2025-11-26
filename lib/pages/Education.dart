@@ -1,3 +1,4 @@
+import 'package:clue/HamburgerDialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'Alarm.dart';
@@ -116,6 +117,7 @@ class _TopBar extends StatelessWidget {
                   ),
                   SizedBox(width: width * 0.03),
                   GestureDetector(
+                    onTap: () => showHamburgerDialog(context),
                     child: SvgPicture.asset(
                       'assets/images/bars-3.svg',
                       width: width * 0.074,
@@ -280,13 +282,13 @@ class _EducationAppBar extends StatelessWidget {
                         ),
                       ),
                       SizedBox(width: width * 0.03),
-                      GestureDetector(
-                        // onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
-                        child: SvgPicture.asset(
-                          'assets/images/bars-3.svg',
-                          width: width * 0.074,
-                        ),
+                    GestureDetector(
+                      onTap: () => showHamburgerDialog(context),
+                      child: SvgPicture.asset(
+                        'assets/images/bars-3.svg',
+                        width: width * 0.074,
                       ),
+                    ),
                       SizedBox(width: width * 0.0443),
                     ],
                   ),

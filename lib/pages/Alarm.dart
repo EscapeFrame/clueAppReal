@@ -1,4 +1,5 @@
 import 'package:clue/api_client.dart';
+import 'package:clue/HamburgerDialog.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -230,9 +231,12 @@ class _AlarmState extends State<Alarm> {
                         child: Icon(Icons.arrow_back, size: width * 0.07),
                       ),
                       SizedBox(width: width * 0.03),
-                      SvgPicture.asset(
-                        'assets/images/bars-3.svg',
-                        width: width * 0.074,
+                      GestureDetector(
+                        onTap: () => showHamburgerDialog(context),
+                        child: SvgPicture.asset(
+                          'assets/images/bars-3.svg',
+                          width: width * 0.074,
+                        ),
                       ),
                       SizedBox(width: width * 0.0443),
                     ],

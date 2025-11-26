@@ -1,3 +1,4 @@
+import 'package:clue/HamburgerDialog.dart';
 import 'package:clue/config/app_cheat.dart';
 import 'package:clue/chat/chat_message.dart';
 import 'package:clue/chat/chat_screen.dart';
@@ -44,9 +45,12 @@ class SettingsCheat extends StatelessWidget {
                           child: Icon(Icons.arrow_back, size: width * 0.07),
                         ),
                         SizedBox(width: width * 0.03),
-                        SvgPicture.asset(
-                          'assets/images/bars-3.svg',
-                          width: width * 0.074,
+                        GestureDetector(
+                          onTap: () => showHamburgerDialog(context),
+                          child: SvgPicture.asset(
+                            'assets/images/bars-3.svg',
+                            width: width * 0.074,
+                          ),
                         ),
                         SizedBox(width: width * 0.0443),
                       ],

@@ -1,3 +1,4 @@
+import 'package:clue/HamburgerDialog.dart';
 import 'package:clue/api_client.dart';
 import 'package:clue/teacher_page/tHakSubSilSetting.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul.dart';
@@ -957,9 +958,12 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                       child: Icon(Icons.arrow_back, size: width * 0.07),
                     ),
                     SizedBox(width: width * 0.03),
-                    SvgPicture.asset(
-                      'assets/images/bars-3.svg',
-                      width: width * 0.074,
+                    GestureDetector(
+                      onTap: () => showHamburgerDialog(context),
+                      child: SvgPicture.asset(
+                        'assets/images/bars-3.svg',
+                        width: width * 0.074,
+                      ),
                     ),
                     SizedBox(width: width * 0.0443),
                   ],
@@ -1440,7 +1444,7 @@ class _DocumentMarkdownPage extends StatelessWidget {
                       ),
                       SizedBox(width: width * 0.03),
                       IconButton(
-                        onPressed: () {},
+                        onPressed: () => showHamburgerDialog(context),
                         icon: SvgPicture.asset(
                           'assets/images/bars-3.svg',
                           width: width * 0.074,

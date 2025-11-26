@@ -1,4 +1,5 @@
-﻿import 'package:clue/api_client.dart';
+﻿import 'package:clue/HamburgerDialog.dart';
+import 'package:clue/api_client.dart';
 import 'package:clue/config/app_color.dart';
 import 'package:clue/widgets/haksubsilPage/HakSubSilBaroGaBoJa.dart';
 import 'package:dio/dio.dart';
@@ -327,7 +328,7 @@ class _HaksubsilState extends State<Haksubsil> {
                         ),
                         SizedBox(width: width * 0.03),
                         GestureDetector(
-                          // onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+                          onTap: () => showHamburgerDialog(context),
                           child: SvgPicture.asset(
                             'assets/images/bars-3.svg',
                             width: width * 0.074,

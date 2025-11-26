@@ -2,6 +2,7 @@ import 'package:clue/api_client.dart';
 import 'package:clue/auth_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/services.dart';
 
 Future<void> showHamburgerDialog(BuildContext context) {
   return showGeneralDialog(
@@ -41,6 +42,7 @@ class _HamburgerPanel extends StatefulWidget {
 class _HamburgerPanelState extends State<_HamburgerPanel> {
   String? _username;
   String? _email;
+  OverlayEntry? _toastEntry;
 
   @override
   void initState() {
@@ -165,6 +167,66 @@ class _HamburgerPanelState extends State<_HamburgerPanel> {
     Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
   }
 
+  void _showToast(String message) {
+    _toastEntry?.remove();
+    final overlay = Overlay.of(context);
+    if (overlay == null) return;
+    _toastEntry = OverlayEntry(
+      builder: (ctx) {
+        final bottom = MediaQuery.of(ctx).padding.bottom + 24;
+        return Positioned(
+          left: 24,
+          right: 24,
+          bottom: bottom,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.85),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      message,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+    overlay.insert(_toastEntry!);
+    Future.delayed(const Duration(milliseconds: 1600)).then((_) {
+      _toastEntry?.remove();
+      _toastEntry = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -276,8 +338,15 @@ class _HamburgerPanelState extends State<_HamburgerPanel> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () {
-                        // TODO: copy account id
+                      onPressed: () async {
+                        final email = (_email ?? '').trim();
+                        if (email.isEmpty) {
+                          _showToast('복사할 이메일이 없습니다.');
+                          return;
+                        }
+                        await Clipboard.setData(ClipboardData(text: email));
+                        if (!mounted) return;
+                        _showToast('이메일이 복사되었습니다.');
                       },
                       icon: const Icon(
                         Icons.copy_rounded,

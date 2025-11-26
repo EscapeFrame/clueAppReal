@@ -1,3 +1,4 @@
+import 'package:clue/HamburgerDialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -65,7 +66,7 @@ class Tprofilechange extends StatelessWidget {
                           ),
                           SizedBox(width: width * 0.03),
                           GestureDetector(
-                            // onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+                            onTap: () => showHamburgerDialog(context),
                             child: SvgPicture.asset(
                               'assets/images/bars-3.svg',
                               width: width * 0.074,
