@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:clue/api_client.dart';
+import 'package:clue/widgets/common/app_snackbar.dart';
 import 'package:clue/auth_storage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -171,9 +172,7 @@ class _SignupState extends State<Signup> {
     }
     if (_registerToken == null || _registerToken!.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('세션 정보가 없습니다. 다시 시도해주세요.')),
-        );
+        showAppSnackBar(context, '세션 정보가 없습니다. 다시 시도해주세요.');
       }
       return;
     }
@@ -240,9 +239,11 @@ class _SignupState extends State<Signup> {
         debugPrint('⚠️ Access token missing in signup response');
       }
       if (mounted) {
-        ScaffoldMessenger.of(
+        showAppSnackBar(
           context,
-        ).showSnackBar(const SnackBar(content: Text('회원가입 정보가 저장되었습니다.')));
+          '회원가입 정보가 저장되었습니다.',
+          isError: false,
+        );
         await Navigator.of(
           context,
         ).pushNamedAndRemoveUntil('/main', (route) => false);
@@ -250,9 +251,7 @@ class _SignupState extends State<Signup> {
     } catch (e) {
       debugPrint('register failed: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('회원가입 실패: $e')));
+        showAppSnackBar(context, '회원가입 실패: $e');
       }
     } finally {
       if (mounted) {

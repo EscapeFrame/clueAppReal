@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
+import 'package:clue/widgets/common/app_snackbar.dart';
 
 class Asdf extends StatefulWidget {
   const Asdf({super.key});
@@ -85,7 +86,7 @@ class _AsdfState extends State<Asdf> {
   }
 
   void _showSnack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    showAppSnackBar(context, msg);
   }
 
   @override

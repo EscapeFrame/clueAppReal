@@ -2,6 +2,7 @@ import 'package:clue/settings/Settings_ProfileSujeong.dart';
 import 'package:clue/settings/Settings_cheat.dart';
 import 'package:flutter/material.dart';
 import 'package:clue/auth_storage.dart';
+import 'package:clue/widgets/common/app_snackbar.dart';
 
 class SettingsSet extends StatefulWidget {
   const SettingsSet({super.key, this.onProfileUpdated});
@@ -232,9 +233,11 @@ class _SettingsSetState extends State<SettingsSet> {
 
               await AuthStorage.instance.clear();
               if (!mounted) return;
-              ScaffoldMessenger.of(
+              showAppSnackBar(
                 context,
-              ).showSnackBar(const SnackBar(content: Text('로그아웃 되었습니다.')));
+                '로그아웃 되었습니다.',
+                isError: false,
+              );
               // Clear navigation stack and go to login
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 Navigator.of(

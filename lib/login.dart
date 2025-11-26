@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'api_client.dart';
 import 'auth_storage.dart';
+import 'widgets/common/app_snackbar.dart';
 
 /// refresh_token 보조 확장 (AuthStorage에 메서드 없을 때 대비)
 extension _AuthStorageRefreshExt on AuthStorage {
@@ -210,9 +211,7 @@ class _LoginState extends State<Login> {
 
   void _snack(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    showAppSnackBar(context, message);
   }
 
   @override

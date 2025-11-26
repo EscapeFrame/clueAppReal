@@ -1,6 +1,7 @@
 ﻿import 'package:clue/HamburgerDialog.dart';
 import 'package:clue/api_client.dart';
 import 'package:clue/config/app_color.dart';
+import 'package:clue/widgets/common/app_snackbar.dart';
 import 'package:clue/widgets/haksubsilPage/HakSubSilBaroGaBoJa.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -22,82 +23,11 @@ class _HaksubsilState extends State<Haksubsil> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
-  void _showStyledSnackBar(
-    String message, {
-    bool isError = true,
-  }) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-
-    final Color accent =
-        isError ? const Color(0xFFEF4444) : const Color(0xFF22C55E);
-    final Color bg = const Color(0xFF111827).withOpacity(0.96);
-    final IconData icon =
-        isError ? Icons.error_outline_rounded : Icons.check_circle_rounded;
-
-    messenger.showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        content: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.22),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
-              ),
-            ],
-            border: Border.all(
-              color: accent.withOpacity(0.55),
-              width: 1,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: accent.withOpacity(0.18),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Icon(
-                  icon,
-                  size: 18,
-                  color: accent,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  message,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  }
-
   Future<bool> haksubsilJoin(String code) async {
     final trimmed = code.trim();
     if (trimmed.isEmpty) {
       if (mounted) {
-        _showStyledSnackBar('학습실 코드를 입력해 주세요.');
+        showAppSnackBar(context, '학습실 코드를 입력해 주세요.');
       }
       return false;
     }
@@ -116,7 +46,8 @@ class _HaksubsilState extends State<Haksubsil> {
         if (code == 500 && rawMsg.contains('이미')) {
           await _response(); // 이미 참여한 교실이면 목록을 새로고침해 UI에 반영
           if (mounted) {
-            _showStyledSnackBar(
+            showAppSnackBar(
+              context,
               '이미 참여한 학습실입니다. 목록을 새로고침했어요.',
               isError: false,
             );
@@ -124,13 +55,16 @@ class _HaksubsilState extends State<Haksubsil> {
           return true;
         }
         if (mounted) {
-          _showStyledSnackBar('참여에 실패했어요. ($code $rawMsg)');
+          showAppSnackBar(
+            context,
+            '참여에 실패했어요. ($code $rawMsg)',
+          );
         }
       }
     } catch (e) {
       debugPrint("error: $e");
       if (mounted) {
-        _showStyledSnackBar('참여에 실패했어요. ($e)');
+        showAppSnackBar(context, '참여에 실패했어요. ($e)');
       }
     }
     return false;
@@ -274,7 +208,8 @@ class _HaksubsilState extends State<Haksubsil> {
                           Navigator.pop(context);
                           await _response();
                           if (!mounted) return;
-                          _showStyledSnackBar(
+                          showAppSnackBar(
+                            context,
                             '학습실에 참여했어요.',
                             isError: false,
                           );

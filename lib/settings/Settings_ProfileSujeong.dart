@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:clue/HamburgerDialog.dart';
 import 'package:clue/api_client.dart';
+import 'package:clue/widgets/common/app_snackbar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,67 +35,6 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
   int? _profileNumber;
   String? _nameErrorText;
   String? _numberErrorText;
-
-  void _showStyledSnackBar(String message, {bool isError = true}) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-
-    final Color accent =
-        isError ? const Color(0xFFEF4444) : const Color(0xFF22C55E);
-    final Color bg = const Color(0xFF111827).withOpacity(0.96);
-    final IconData icon =
-        isError ? Icons.error_outline_rounded : Icons.check_circle_rounded;
-
-    messenger.showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        content: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.22),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
-              ),
-            ],
-            border: Border.all(color: accent.withOpacity(0.55), width: 1),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: accent.withOpacity(0.18),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Icon(icon, size: 18, color: accent),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  message,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  }
 
   @override
   void initState() {
@@ -218,16 +158,17 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
       await _uploadProfileImage(bytes, picked.name, mime);
       if (!mounted) return;
       await _loadProfileImage();
-      _showStyledSnackBar('프로필 사진을 변경했어요.', isError: false);
+      showAppSnackBar(context, '프로필 사진을 변경했어요.', isError: false);
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode;
-      _showStyledSnackBar(
+      showAppSnackBar(
+        context,
         statusCode == null
             ? '프로필 사진 업로드에 실패했어요.'
             : '프로필 사진 업로드에 실패했어요. ($statusCode)',
       );
     } catch (e) {
-      _showStyledSnackBar('프로필 사진 업로드에 실패했어요. ($e)');
+      showAppSnackBar(context, '프로필 사진 업로드에 실패했어요. ($e)');
     } finally {
       if (!mounted) return;
       setState(() => _isImageUploading = false);
@@ -604,7 +545,7 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
     final classNo = _parseSelectedValue(_selectedClass);
 
     if (grade == null || classNo == null) {
-      _showStyledSnackBar('학년과 반을 선택해 주세요.');
+      showAppSnackBar(context, '학년과 반을 선택해 주세요.');
       return;
     }
 
@@ -631,16 +572,17 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
         _profileClassNo = classNo;
         _profileNumber = parsedNumber;
       });
-      _showStyledSnackBar('변경사항을 저장했습니다.', isError: false);
+      showAppSnackBar(context, '변경사항을 저장했습니다.', isError: false);
       await _loadProfile();
       await _loadProfileImage();
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode;
-      _showStyledSnackBar(
+      showAppSnackBar(
+        context,
         statusCode == null ? '저장에 실패했습니다.' : '저장에 실패했습니다. ($statusCode)',
       );
     } catch (e) {
-      _showStyledSnackBar('저장에 실패했습니다. ($e)');
+      showAppSnackBar(context, '저장에 실패했습니다. ($e)');
     } finally {
       if (!mounted) return;
       setState(() {

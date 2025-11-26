@@ -1,4 +1,5 @@
 import 'package:clue/api_client.dart';
+import 'package:clue/widgets/common/app_snackbar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
@@ -467,12 +468,7 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
                     final id = (widget.tsuap['classRoomId'] ?? '').toString();
                     if (id.isEmpty) {
                       if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('수업 ID를 찾을 수 없어요.'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
+                      showAppSnackBar(context, '수업 ID를 찾을 수 없어요.');
                       return;
                     }
                     final res = await api.patch('/api/class/$id', data: body);
@@ -485,20 +481,16 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
                         'activation': _isActivated,
                       });
                       if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('변경사항이 저장되었습니다.'),
-                          behavior: SnackBarBehavior.floating,
-                          duration: Duration(seconds: 1),
-                        ),
+                      showAppSnackBar(
+                        context,
+                        '변경사항이 저장되었습니다.',
+                        isError: false,
                       );
                     } else {
                       if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('저장 실패: ${res.statusCode}'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
+                      showAppSnackBar(
+                        context,
+                        '저장 실패: ${res.statusCode}',
                       );
                     }
                   } on DioException catch (e) {
@@ -508,20 +500,10 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
                         e.response?.data?.toString() ??
                         e.message ??
                         'unknown error';
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('오류: $code $msg'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
+                    showAppSnackBar(context, '오류: $code $msg');
                   } catch (e) {
                     if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('오류: $e'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
+                    showAppSnackBar(context, '오류: $e');
                   }
                 },
                 child: const Text(

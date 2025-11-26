@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:clue/widgets/common/app_snackbar.dart';
 
 Future<void> downloadFile(
   BuildContext context,
@@ -15,14 +16,16 @@ Future<void> downloadFile(
     final savePath = '${dir.path}/$fileName';
     await Dio().download(url, savePath);
     if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('다운로드 완료: $fileName')));
+      showAppSnackBar(
+        context,
+        '다운로드 완료: $fileName',
+        isError: false,
+      );
     }
     await OpenFile.open(savePath);
   } catch (e) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('다운로드 실패: $e')));
+      showAppSnackBar(context, '다운로드 실패: $e');
     }
   }
 }

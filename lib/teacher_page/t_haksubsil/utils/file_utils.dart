@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:clue/widgets/common/app_snackbar.dart';
 
 String formatFileSize(int bytes) {
   if (bytes >= 1024 * 1024) {
@@ -34,16 +35,16 @@ Future<void> downloadAndOpen(
     final file = File(savePath);
     await file.writeAsBytes(bytes);
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('다운로드 완료: $fileName')),
+      showAppSnackBar(
+        context,
+        '다운로드 완료: $fileName',
+        isError: false,
       );
     }
     await OpenFile.open(savePath);
   } catch (e) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('다운로드 실패: $e')),
-      );
+      showAppSnackBar(context, '다운로드 실패: $e');
     }
   }
 }

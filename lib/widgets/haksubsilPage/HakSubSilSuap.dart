@@ -1,5 +1,6 @@
 import 'package:clue/HamburgerDialog.dart';
 import 'package:clue/api_client.dart';
+import 'package:clue/widgets/common/app_snackbar.dart';
 import 'package:clue/widgets/haksubsilPage/GwaJeJeChul.dart';
 import 'package:clue/widgets/haksubsilPage/HakSubSilGaJa.dart';
 import 'package:clue/widgets/markdown_.dart';
@@ -69,12 +70,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
     final docId = rawId == null ? '' : rawId.toString();
     if (docId.isEmpty) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('문서 정보를 찾을 수 없어요.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      showAppSnackBar(context, '문서 정보를 찾을 수 없어요.');
       return;
     }
 
@@ -110,21 +106,17 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
       debugPrint('document download error: $e');
       closeLoader();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('문서를 불러오는 중 오류가 발생했어요. (${e.message})'),
-          behavior: SnackBarBehavior.floating,
-        ),
+      showAppSnackBar(
+        context,
+        '문서를 불러오는 중 오류가 발생했어요. (${e.message})',
       );
     } catch (e) {
       debugPrint('document download unexpected error: $e');
       closeLoader();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('문서를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.'),
-          behavior: SnackBarBehavior.floating,
-        ),
+      showAppSnackBar(
+        context,
+        '문서를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
       );
     }
   }

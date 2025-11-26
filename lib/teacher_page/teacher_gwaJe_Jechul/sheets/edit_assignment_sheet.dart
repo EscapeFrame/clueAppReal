@@ -1,6 +1,7 @@
 ﻿import 'package:clue/api_client.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/sheets/widgets/assignment_sheet_widgets.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/utils/date_time.dart';
+import 'package:clue/widgets/common/app_snackbar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
@@ -371,9 +372,7 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                                 '')
                             .toString();
                     if (id.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('과제 ID를 찾을 수 없습니다.')),
-                      );
+                      showAppSnackBar(context, '과제 ID를 찾을 수 없습니다.');
                       return;
                     }
                     if (!(formKey.currentState?.validate() ?? false)) {
@@ -386,18 +385,18 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                         startDate == null ? end : formatApiDateTime(startDate);
 
                     if (end.isEmpty || start.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('시작/마감 일시를 선택해 주세요.')),
+                      showAppSnackBar(
+                        context,
+                        '시작/마감 일시를 선택해 주세요.',
                       );
                       return;
                     }
                     if (startDate != null &&
                         endDate != null &&
                         startDate!.isAfter(endDate!)) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('시작 시각이 마감 시각보다 빠를 수 있어야 해요.'),
-                        ),
+                      showAppSnackBar(
+                        context,
+                        '시작 시각이 마감 시각보다 빠를 수 있어야 해요.',
                       );
                       return;
                     }
@@ -430,17 +429,12 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                         Navigator.of(ctx).pop(result);
                       }
                     } on DioException catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            '수정 실패: ${e.response?.statusCode ?? ''}',
-                          ),
-                        ),
+                      showAppSnackBar(
+                        context,
+                        '수정 실패: ${e.response?.statusCode ?? ''}',
                       );
                     } catch (e) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text('오류: $e')));
+                      showAppSnackBar(context, '오류: $e');
                     } finally {
                       setSheetState(() {
                         isSubmitting = false;

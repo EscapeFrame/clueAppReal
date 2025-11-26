@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:clue/widgets/common/app_snackbar.dart';
 
 class TeacherCheck extends StatefulWidget {
   final VoidCallback? onBack;
@@ -460,25 +461,23 @@ class _TeacherCheckState extends State<TeacherCheck> {
         ),
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(
+      showAppSnackBar(
         context,
-      ).showSnackBar(SnackBar(content: Text('다운로드 완료: $fileName')));
+        '다운로드 완료: $fileName',
+        isError: false,
+      );
       await OpenFile.open(savePath);
     } catch (e) {
       if (!mounted) return;
       final message =
           e is DioException ? (e.message ?? e.toString()) : e.toString();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('다운로드 실패: $message')));
+      showAppSnackBar(context, '다운로드 실패: $message');
     }
   }
 
   void _showSnackBar(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    showAppSnackBar(context, message);
   }
 
   Future<void> _openAttachment(String url) async {

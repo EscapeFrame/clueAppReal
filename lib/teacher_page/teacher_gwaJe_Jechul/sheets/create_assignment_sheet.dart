@@ -1,6 +1,7 @@
 ﻿import 'package:clue/api_client.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/sheets/widgets/assignment_sheet_widgets.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/utils/date_time.dart';
+import 'package:clue/widgets/common/app_snackbar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
@@ -354,18 +355,18 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                     final end = formatApiDateTime(endDate);
 
                     if (start.isEmpty || end.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('시작/마감 일시를 모두 선택해 주세요.')),
+                      showAppSnackBar(
+                        context,
+                        '시작/마감 일시를 모두 선택해 주세요.',
                       );
                       return;
                     }
                     if (startDate != null &&
                         endDate != null &&
                         startDate!.isAfter(endDate!)) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('시작 시각이 마감 시각보다 늦을 수 없어요.'),
-                        ),
+                      showAppSnackBar(
+                        context,
+                        '시작 시각이 마감 시각보다 늦을 수 없어요.',
                       );
                       return;
                     }
@@ -423,13 +424,12 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                       } else {
                         detail = e.message ?? '알 수 없는 오류';
                       }
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('생성 실패($status): $detail')),
+                      showAppSnackBar(
+                        context,
+                        '생성 실패($status): $detail',
                       );
                     } catch (e) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text('오류: $e')));
+                      showAppSnackBar(context, '오류: $e');
                     } finally {
                       setSheetState(() {
                         isSubmitting = false;

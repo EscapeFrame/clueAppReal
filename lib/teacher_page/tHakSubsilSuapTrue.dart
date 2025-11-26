@@ -2,6 +2,7 @@ import 'package:clue/HamburgerDialog.dart';
 import 'package:clue/api_client.dart';
 import 'package:clue/teacher_page/tHakSubSilSetting.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul.dart';
+import 'package:clue/widgets/common/app_snackbar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -168,12 +169,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
         classRoomId == null ||
         classRoomId.isEmpty) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to load directory information.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      showAppSnackBar(context, '디렉토리 정보를 불러오지 못했습니다.');
       return;
     }
     try {
@@ -187,22 +183,15 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
         },
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Name saved.'),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(milliseconds: 1200),
-        ),
+      showAppSnackBar(
+        context,
+        '이름을 저장했어요.',
+        isError: false,
       );
       await _loadDetail();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Rename failed: $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      showAppSnackBar(context, '이름 변경에 실패했어요. ($e)');
     }
   }
 
@@ -334,12 +323,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
         classRoomId == null ||
         classRoomId.isEmpty) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('디렉토리 정보를 불러오지 못했습니다.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      showAppSnackBar(context, '디렉토리 정보를 불러오지 못했습니다.');
       return;
     }
     try {
@@ -353,22 +337,15 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
         },
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('디렉토리가 삭제되었습니다.'),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(milliseconds: 1200),
-        ),
+      showAppSnackBar(
+        context,
+        '디렉토리가 삭제되었습니다.',
+        isError: false,
       );
       await _loadDetail();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('삭제 중 오류가 발생했습니다: $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      showAppSnackBar(context, '삭제 중 오류가 발생했습니다. ($e)');
     }
   }
 
@@ -377,7 +354,6 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
     Map<String, dynamic> lesson,
   ) async {
     final lessonName = lesson['directoryName']?.toString() ?? 'Directory';
-    final messenger = ScaffoldMessenger.of(context);
     switch (action) {
       case _DirectoryAction.rename:
         await _renameDirectory(lesson);
@@ -386,10 +362,10 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
         await _deleteDirectory(lesson);
         break;
       case _DirectoryAction.addResource:
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text('Adding resources to $lessonName is available soon.'),
-          ),
+        showAppSnackBar(
+          context,
+          '곧 $lessonName에 자료를 추가할 수 있게 될 예정입니다.',
+          isError: false,
         );
         break;
     }
@@ -508,12 +484,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
             ?.toString();
     if (id == null || id.isEmpty) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('수업 ID를 찾을 수 없습니다.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      showAppSnackBar(context, '수업 ID를 찾을 수 없습니다.');
       return;
     }
 
@@ -521,32 +492,20 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
       final api = ApiClient.instance.dio;
       await api.delete('/api/class/$id');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('수업이 삭제되었습니다.'),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 1),
-        ),
+      showAppSnackBar(
+        context,
+        '수업이 삭제되었습니다.',
+        isError: false,
       );
       Navigator.of(context).pop(true);
     } on DioException catch (e) {
       if (!mounted) return;
       final code = e.response?.statusCode;
       final msg = e.response?.data?.toString() ?? e.message ?? 'unknown error';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('삭제 실패: $code $msg'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      showAppSnackBar(context, '삭제 실패: $code $msg');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('삭제 실패: $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      showAppSnackBar(context, '삭제 실패: $e');
     }
   }
 
@@ -731,8 +690,9 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
         widget.tsuap['classRoomId'] ?? widget.tsuap['classRoomIdStr'];
     final classRoomId = idValue?.toString();
     if (classRoomId == null || classRoomId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('반 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.')),
+      showAppSnackBar(
+        context,
+        '반 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
       );
       return;
     }
@@ -743,15 +703,18 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
         data: {'classRoomId': classRoomId, 'name': name, 'directoryOrder': 0},
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(
+      showAppSnackBar(
         context,
-      ).showSnackBar(const SnackBar(content: Text('새 수업이 추가되었습니다.')));
+        '새 수업이 추가되었습니다.',
+        isError: false,
+      );
       await _loadDetail();
     } catch (e) {
       debugPrint('directory create error: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('수업 추가에 실패했습니다. 다시 시도해 주세요.')),
+      showAppSnackBar(
+        context,
+        '수업 추가에 실패했습니다. 다시 시도해 주세요.',
       );
     }
   }
@@ -760,14 +723,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
     final docId = doc['documentId']?.toString();
     if (docId == null || docId.isEmpty) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            '\ubb38\uc11c \uc815\ubcf4\ub97c \ucc3e\uc744 \uc218 \uc5c6\uc5b4\uc694.',
-          ),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      showAppSnackBar(context, '문서 정보를 찾을 수 없어요.');
       return;
     }
     final String title = doc['title']?.toString() ?? '';
@@ -810,25 +766,17 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
       debugPrint('document fetch error: $e');
       closeLoader();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '\ubb38\uc11c\ub97c \ubd88\ub7ec\uc624\ub294 \uc911 \uc624\ub958\uac00 \ubc1c\uc0dd\ud588\uc5b4\uc694. (${e.message})',
-          ),
-          behavior: SnackBarBehavior.floating,
-        ),
+      showAppSnackBar(
+        context,
+        '문서를 불러오는 중 오류가 발생했어요. (${e.message})',
       );
     } catch (e) {
       debugPrint('document fetch unexpected error: $e');
       closeLoader();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            '\ubb38\uc11c\ub97c \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc5b4\uc694. \uc7a0\uc2dc \ud6c4 \ub2e4\uc2dc \uc2dc\ub3c4\ud574 \uc8fc\uc138\uc694.',
-          ),
-          behavior: SnackBarBehavior.floating,
-        ),
+      showAppSnackBar(
+        context,
+        '문서를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
       );
     }
   }

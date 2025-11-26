@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:clue/widgets/common/app_snackbar.dart';
 
 class LinkEditPayload {
   const LinkEditPayload({
@@ -282,10 +283,9 @@ class _LinkEditDialogState extends State<_LinkEditDialog> {
                                   final valid = _formKey.currentState?.validate() ?? false;
                                   if (!valid) return;
                                   if (_selected.isEmpty) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('태그를 1개 이상 선택해주세요.'),
-                                      ),
+                                    showAppSnackBar(
+                                      context,
+                                      '태그를 1개 이상 선택해주세요.',
                                     );
                                     return;
                                   }

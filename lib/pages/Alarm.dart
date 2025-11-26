@@ -1,5 +1,6 @@
 import 'package:clue/api_client.dart';
 import 'package:clue/HamburgerDialog.dart';
+import 'package:clue/widgets/common/app_snackbar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -852,9 +853,7 @@ class _AlarmState extends State<Alarm> {
               final trimmedTitle = titleController.text.trim();
               final trimmedContent = contentController.text.trim();
               if (trimmedTitle.isEmpty || trimmedContent.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('제목과 내용을 입력해 주세요.')),
-                );
+                showAppSnackBar(context, '제목과 내용을 입력해 주세요.');
                 return;
               }
               setModalState(() => isSubmitting = true);
@@ -891,8 +890,9 @@ class _AlarmState extends State<Alarm> {
                   Navigator.of(dialogContext).pop();
                 }
               } catch (_) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('공지 작성에 실패했습니다. 다시 시도해 주세요.')),
+                showAppSnackBar(
+                  context,
+                  '공지 작성에 실패했습니다. 다시 시도해 주세요.',
                 );
               } finally {
                 if (mounted) {

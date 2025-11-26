@@ -1,6 +1,7 @@
 import 'package:clue/HamburgerDialog.dart';
 import 'package:clue/api_client.dart';
 import 'package:clue/teacher_page/NTeacherSuap.dart';
+import 'package:clue/widgets/common/app_snackbar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -350,9 +351,11 @@ class _ThaksubsilsuapState extends State<Thaksubsilsuap> {
     );
 
     if (created == true && mounted) {
-      ScaffoldMessenger.of(
+      showAppSnackBar(
         context,
-      ).showSnackBar(const SnackBar(content: Text('수업이 생성되었습니다.')));
+        '수업이 생성되었습니다.',
+        isError: false,
+      );
     }
   }
 }
@@ -437,8 +440,9 @@ class _CreateClassDialogState extends State<_CreateClassDialog> {
     final target = _targetController.text.trim();
 
     if (name.isEmpty || sort == null || sort.isEmpty || target.isEmpty) {
-      ScaffoldMessenger.of(widget.hostContext).showSnackBar(
-        const SnackBar(content: Text('name, sort, target을 입력해 주세요.')),
+      showAppSnackBar(
+        widget.hostContext,
+        'name, sort, target을 입력해 주세요.',
       );
       return;
     }
@@ -465,22 +469,22 @@ class _CreateClassDialogState extends State<_CreateClassDialog> {
         if (!mounted) return;
         Navigator.of(context).pop(true);
       } else {
-        ScaffoldMessenger.of(
+        showAppSnackBar(
           widget.hostContext,
-        ).showSnackBar(SnackBar(content: Text('생성 실패: ${res.statusCode}')));
+          '생성 실패: ${res.statusCode}',
+        );
       }
     } on DioException catch (e) {
       if (!mounted) return;
       final code = e.response?.statusCode;
       final msg = e.response?.data?.toString() ?? e.message ?? 'unknown error';
-      ScaffoldMessenger.of(
+      showAppSnackBar(
         widget.hostContext,
-      ).showSnackBar(SnackBar(content: Text('오류: $code $msg')));
+        '오류: $code $msg',
+      );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        widget.hostContext,
-      ).showSnackBar(SnackBar(content: Text('오류: $e')));
+      showAppSnackBar(widget.hostContext, '오류: $e');
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

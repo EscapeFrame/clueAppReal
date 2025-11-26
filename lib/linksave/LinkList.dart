@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:clue/widgets/common/app_snackbar.dart';
 
 import 'LinkDelete.dart';
 
@@ -47,9 +48,7 @@ class LinkList extends StatelessWidget {
       final uri = Uri.tryParse(normalizedUrl);
       final isHttp = uri != null && (uri.isScheme('http') || uri.isScheme('https'));
       if (!isHttp) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('올바른 링크가 아닙니다.')),
-        );
+        showAppSnackBar(context, '올바른 링크가 아닙니다.');
         return;
       }
       final launched = await launchUrlString(
@@ -57,9 +56,7 @@ class LinkList extends StatelessWidget {
         mode: LaunchMode.externalApplication,
       );
       if (!launched) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('링크를 열지 못했습니다.')),
-        );
+        showAppSnackBar(context, '링크를 열지 못했습니다.');
       }
     }
 

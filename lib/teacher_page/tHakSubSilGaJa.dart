@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:clue/api_client.dart';
 import 'package:clue/teacher_page/t_haksubsil/data/haksubsil_service.dart';
+import 'package:clue/widgets/common/app_snackbar.dart';
 import 'package:clue/widgets/haksubsil/dialogs/upload_choice_menu.dart';
 import 'package:clue/widgets/haksubsil/dialogs/upload_file_dialog.dart';
 import 'package:clue/widgets/haksubsil/dialogs/url_input_dialog.dart';
@@ -293,20 +294,21 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       final dio = ApiClient.instance.dio;
       await dio.delete('/api/assignments/attachment/$attachmentId');
       if (!mounted) return;
-      ScaffoldMessenger.of(
+      showAppSnackBar(
         context,
-      ).showSnackBar(const SnackBar(content: Text('첨부가 삭제되었습니다.')));
+        '첨부가 삭제되었습니다.',
+        isError: false,
+      );
       await _loadDetail();
     } on DioException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('삭제 실패: ${e.message ?? '알 수 없는 오류'}')),
+      showAppSnackBar(
+        context,
+        '삭제 실패: ${e.message ?? '알 수 없는 오류'}',
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('삭제 실패: $e')));
+      showAppSnackBar(context, '삭제 실패: $e');
     }
   }
 
@@ -337,12 +339,9 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     final assignmentId = _resolveCurrentAssignmentId();
     if (assignmentId == null) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            '\uACFC\uC81C ID\uB97C \uCC3E\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.',
-          ),
-        ),
+      showAppSnackBar(
+        context,
+        '과제 ID를 찾지 못했습니다.',
       );
       return;
     }
@@ -371,25 +370,20 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       });
       await _loadDetail();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('\uC800\uC7A5\uB418\uC5C8\uC2B5\uB2C8\uB2E4.'),
-        ),
+      showAppSnackBar(
+        context,
+        '저장되었습니다.',
+        isError: false,
       );
     } on DioException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '\uC800\uC7A5 \uC2E4\uD328: ${e.message ?? '알 수 없는 오류'}',
-          ),
-        ),
+      showAppSnackBar(
+        context,
+        '저장 실패: ${e.message ?? '알 수 없는 오류'}',
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('\uC800\uC7A5 \uC2E4\uD328: $e')));
+      showAppSnackBar(context, '저장 실패: $e');
     }
   }
 
@@ -630,12 +624,9 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                     if (controller.uploadedFiles.isEmpty &&
                         controller.uploadedUrls.isEmpty) {
                       if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            '\uC800\uC7A5\uD560 \uCCA8\uBD80\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.',
-                          ),
-                        ),
+                      showAppSnackBar(
+                        context,
+                        '저장할 첨부가 없습니다.',
                       );
                       return;
                     }
@@ -769,11 +760,9 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     final attachmentId = (attachment['attachmentId'] ?? '').toString();
     if (attachmentId.isEmpty) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('업로드된 파일만 다운로드할 수 있어요.'),
-          behavior: SnackBarBehavior.floating,
-        ),
+      showAppSnackBar(
+        context,
+        '업로드된 파일만 다운로드할 수 있어요.',
       );
       return;
     }
@@ -790,11 +779,9 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
           await HaksubsilService.downloadAttachmentBytes(attachmentId);
       if (bytes == null) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('파일을 다운로드할 수 없어요. 다시 시도해 주세요.'),
-            behavior: SnackBarBehavior.floating,
-          ),
+        showAppSnackBar(
+          context,
+          '파일을 다운로드할 수 없어요. 다시 시도해 주세요.',
         );
         return;
       }
@@ -808,12 +795,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       await OpenFile.open(file.path);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('다운로드 중 오류가 발생했어요: $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      showAppSnackBar(context, '다운로드 중 오류가 발생했어요: $e');
     }
   }
 

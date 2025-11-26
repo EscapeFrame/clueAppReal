@@ -3,6 +3,7 @@ import 'package:clue/teacher_page/teacher_check.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/data/assignment_service.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/sheets/create_assignment_sheet.dart';
 import 'package:clue/teacher_page/teacher_gwaJe_Jechul/sheets/edit_assignment_sheet.dart';
+import 'package:clue/widgets/common/app_snackbar.dart';
 import 'package:flutter/material.dart';
 
 class TeacherGwajeJechul extends StatefulWidget {
@@ -71,9 +72,11 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                       dataList.insert(0, created);
                     });
                     if (!mounted) return;
-                    ScaffoldMessenger.of(
+                    showAppSnackBar(
                       context,
-                    ).showSnackBar(const SnackBar(content: Text('과제가 생성됐어요.')));
+                      '과제가 생성됐어요.',
+                      isError: false,
+                    );
                   }
                 },
                 backgroundColor: const Color(0xff0077FF),
@@ -290,8 +293,10 @@ class TeacherGwajeJechulState extends State<TeacherGwajeJechul> {
                                 dataList[index] = updated;
                               });
                               if (!mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('내용이 업데이트됐어요.')),
+                              showAppSnackBar(
+                                context,
+                                '내용이 업데이트됐어요.',
+                                isError: false,
                               );
                             }
                           },
