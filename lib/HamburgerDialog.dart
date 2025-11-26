@@ -1,4 +1,5 @@
 import 'package:clue/api_client.dart';
+import 'package:clue/auth_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -62,6 +63,106 @@ class _HamburgerPanelState extends State<_HamburgerPanel> {
     } catch (e) {
       debugPrint('HamburgerDialog: user fetch failed ($e)');
     }
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    final theme = Theme.of(context);
+    final confirm =
+        await showDialog<bool>(
+          context: context,
+          builder: (ctx) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              backgroundColor: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEE2E2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.logout_rounded,
+                            color: Color(0xFFDC2626),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            '로그아웃',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF111827),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      '로그아웃하시겠습니까?',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: const Color(0xFF4B5563),
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.of(ctx).pop(false),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              side: const BorderSide(color: Color(0xFFE5E7EB)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              '취소',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.of(ctx).pop(true),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              backgroundColor: const Color(0xFFF87171),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text('로그아웃'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ) ??
+        false;
+    if (!confirm) return;
+    await AuthStorage.instance.clear();
+    if (!mounted) return;
+    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
   }
 
   @override
@@ -218,62 +319,75 @@ class _HamburgerPanelState extends State<_HamburgerPanel> {
                 ],
               ),
             ),
-            Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(22),
-                  topRight: Radius.circular(22),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0x11000000),
-                    blurRadius: 10,
-                    offset: Offset(0, -2),
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 12, 18, 14),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.notifications_active_outlined,
-                        color: brand,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          '새로운 과제 알림을 바로 받아보세요',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF111827),
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(18, 10, 18, 16),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: () async {
+                    await _logout(context);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFE5E7EB)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.06),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEE2E2),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.logout_rounded,
+                            color: Color(0xFFDC2626),
                           ),
                         ),
-                      ),
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: brand,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '로그아웃',
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.titleMedium?.copyWith(
+                                  color: const Color(0xFF1F2937),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                '다시 로그인해서 언제든 돌아올 수 있어요',
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: const Color(0xFF6B7280)),
+                              ),
+                            ],
                           ),
                         ),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          // TODO: go to notification settings
-                        },
-                        child: const Text('알림 설정'),
-                      ),
-                    ],
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          color: Color(0xFF9CA3AF),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
