@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:clue/api_client.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TeacherCheck extends StatefulWidget {
@@ -399,10 +403,24 @@ class _TeacherCheckState extends State<TeacherCheck> {
               (ctx) => SubmissionDetailDialog(
                 detail: detail,
                 fallbackStudent: student,
-                onDownloadAttachment: (url) => _openAttachment(url),
-                onDownloadAll: (urls) async {
-                  for (final url in urls) {
-                    await _openAttachment(url);
+                onAttachmentAction: (attachment) async {
+                  final upperType = attachment.type.toUpperCase();
+                  if (upperType == 'FILE') {
+                    await _downloadAttachmentFile(attachment);
+                  } else if (attachment.url.isNotEmpty) {
+                    await _openAttachment(attachment.url);
+                  } else {
+                    _showSnackBar('열 수 있는 링크가 없습니다.');
+                  }
+                },
+                onDownloadAll: (attachments) async {
+                  for (final attachment in attachments) {
+                    final upperType = attachment.type.toUpperCase();
+                    if (upperType == 'FILE') {
+                      await _downloadAttachmentFile(attachment);
+                    } else if (attachment.url.isNotEmpty) {
+                      await _openAttachment(attachment.url);
+                    }
                   }
                 },
               ),
@@ -414,6 +432,45 @@ class _TeacherCheckState extends State<TeacherCheck> {
       _showSnackBar(e.message ?? '제출 정보를 불러오지 못했습니다.');
     } catch (e) {
       _showSnackBar('제출 정보를 불러오지 못했습니다: $e');
+    }
+  }
+
+  Future<void> _downloadAttachmentFile(SubmissionAttachment attachment) async {
+    final id = attachment.id;
+    if (id.isEmpty) {
+      _showSnackBar('다운로드 ID를 찾을 수 없습니다.');
+      return;
+    }
+    debugPrint('submissionAttachmentId: $id');
+    final base = ApiClient.instance.dio.options.baseUrl;
+    final baseUrl =
+        base.endsWith('/') ? base.substring(0, base.length - 1) : base;
+    final downloadUrl = '$baseUrl/api/submissions/$id/download';
+    final fileName =
+        attachment.name.isNotEmpty ? attachment.name : 'attachment_$id';
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final savePath = '${dir.path}${Platform.pathSeparator}$fileName';
+      await ApiClient.instance.dio.download(
+        downloadUrl,
+        savePath,
+        options: Options(
+          responseType: ResponseType.bytes,
+          followRedirects: true,
+        ),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('다운로드 완료: $fileName')));
+      await OpenFile.open(savePath);
+    } catch (e) {
+      if (!mounted) return;
+      final message =
+          e is DioException ? (e.message ?? e.toString()) : e.toString();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('다운로드 실패: $message')));
     }
   }
 
@@ -430,10 +487,12 @@ class _TeacherCheckState extends State<TeacherCheck> {
       _showSnackBar('잘못된 링크입니다.');
       return;
     }
-    // 스킴이 없으면 https를 붙여 외부 브라우저에서 열리도록 보정
-    final hasScheme = Uri.tryParse(normalized)?.hasScheme == true;
-    if (!hasScheme) {
-      normalized = 'https://$normalized';
+    final parsed = Uri.tryParse(normalized);
+    if (parsed == null || !(parsed.hasScheme)) {
+      normalized =
+          normalized.startsWith('//')
+              ? 'https:$normalized'
+              : 'https://$normalized';
     }
     final uri = Uri.tryParse(normalized);
     if (uri == null) {
@@ -441,7 +500,7 @@ class _TeacherCheckState extends State<TeacherCheck> {
       return;
     }
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      _showSnackBar('파일을 열 수 없습니다.');
+      _showSnackBar('링크를 열 수 없습니다.');
     }
   }
 
@@ -498,14 +557,16 @@ class _TeacherCheckState extends State<TeacherCheck> {
 class SubmissionDetailDialog extends StatelessWidget {
   final Map<String, dynamic> detail;
   final Map<String, dynamic> fallbackStudent;
-  final Future<void> Function(String url)? onDownloadAttachment;
-  final Future<void> Function(List<String> urls)? onDownloadAll;
+  final Future<void> Function(SubmissionAttachment attachment)?
+  onAttachmentAction;
+  final Future<void> Function(List<SubmissionAttachment> attachments)?
+  onDownloadAll;
 
   const SubmissionDetailDialog({
     super.key,
     required this.detail,
     required this.fallbackStudent,
-    this.onDownloadAttachment,
+    this.onAttachmentAction,
     this.onDownloadAll,
   });
 
@@ -610,16 +671,7 @@ class SubmissionDetailDialog extends StatelessWidget {
                   TextButton(
                     onPressed:
                         onDownloadAll != null
-                            ? () {
-                              final urls =
-                                  attachments
-                                      .map((e) => e.url)
-                                      .where((url) => url.isNotEmpty)
-                                      .toList();
-                              if (urls.isNotEmpty) {
-                                onDownloadAll!(urls);
-                              }
-                            }
+                            ? () => onDownloadAll!(attachments)
                             : null,
                     style: TextButton.styleFrom(
                       foregroundColor: primaryColor,
@@ -655,9 +707,9 @@ class SubmissionDetailDialog extends StatelessWidget {
                     final attachment = attachments[index];
                     final isFile = attachment.type.toUpperCase() == 'FILE';
                     final label = isFile ? '다운로드' : '열기';
-                    final canOpen =
-                        onDownloadAttachment != null &&
-                        attachment.url.isNotEmpty;
+                    final canAction =
+                        (isFile && attachment.id.isNotEmpty) ||
+                        (!isFile && attachment.url.isNotEmpty);
                     return Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
@@ -697,9 +749,8 @@ class SubmissionDetailDialog extends StatelessWidget {
                           const SizedBox(width: 8),
                           OutlinedButton(
                             onPressed:
-                                canOpen
-                                    ? () =>
-                                        onDownloadAttachment!(attachment.url)
+                                canAction
+                                    ? () => onAttachmentAction?.call(attachment)
                                     : null,
                             style: OutlinedButton.styleFrom(
                               foregroundColor: primaryColor,
