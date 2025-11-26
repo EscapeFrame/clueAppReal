@@ -105,16 +105,12 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
           _isProfileLoading = false;
         });
       }
-    } on DioException catch (e) {
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       if (!mounted) return;
+      showAppSnackBar(context, '프로필 정보를 불러오지 못했습니다. 다시 시도해주세요.');
       setState(() {
-        _profileError = '사용자 정보를 불러오지 못했습니다. ${e.response?.statusCode ?? ''}';
-        _isProfileLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _profileError = '사용자 정보를 불러오지 못했습니다. $e';
         _isProfileLoading = false;
       });
     }
@@ -159,16 +155,10 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
       if (!mounted) return;
       await _loadProfileImage();
       showAppSnackBar(context, '프로필 사진을 변경했어요.', isError: false);
-    } on DioException catch (e) {
-      final statusCode = e.response?.statusCode;
-      showAppSnackBar(
-        context,
-        statusCode == null
-            ? '프로필 사진 업로드에 실패했어요.'
-            : '프로필 사진 업로드에 실패했어요. ($statusCode)',
-      );
-    } catch (e) {
-      showAppSnackBar(context, '프로필 사진 업로드에 실패했어요. ($e)');
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
+      showAppSnackBar(context, '프로필 사진 업로드에 실패했습니다. 다시 시도해주세요.');
     } finally {
       if (!mounted) return;
       setState(() => _isImageUploading = false);
@@ -575,14 +565,10 @@ class _SettingsProfileSujeongState extends State<SettingsProfileSujeong> {
       showAppSnackBar(context, '변경사항을 저장했습니다.', isError: false);
       await _loadProfile();
       await _loadProfileImage();
-    } on DioException catch (e) {
-      final statusCode = e.response?.statusCode;
-      showAppSnackBar(
-        context,
-        statusCode == null ? '저장에 실패했습니다.' : '저장에 실패했습니다. ($statusCode)',
-      );
-    } catch (e) {
-      showAppSnackBar(context, '저장에 실패했습니다. ($e)');
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
+      showAppSnackBar(context, '프로필을 저장하지 못했습니다. 다시 시도해주세요.');
     } finally {
       if (!mounted) return;
       setState(() {

@@ -248,10 +248,11 @@ class _SignupState extends State<Signup> {
           context,
         ).pushNamedAndRemoveUntil('/main', (route) => false);
       }
-    } catch (e) {
-      debugPrint('register failed: $e');
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       if (mounted) {
-        showAppSnackBar(context, '회원가입 실패: $e');
+        showAppSnackBar(context, '회원가입에 실패했습니다. 다시 시도해주세요.');
       }
     } finally {
       if (mounted) {

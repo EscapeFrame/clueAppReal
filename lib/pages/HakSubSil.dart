@@ -57,14 +57,15 @@ class _HaksubsilState extends State<Haksubsil> {
         if (mounted) {
           showAppSnackBar(
             context,
-            '참여에 실패했어요. ($code $rawMsg)',
+            '학습실 정보를 불러오지 못했습니다. 다시 시도해주세요.',
           );
         }
       }
-    } catch (e) {
-      debugPrint("error: $e");
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       if (mounted) {
-        showAppSnackBar(context, '참여에 실패했어요. ($e)');
+        showAppSnackBar(context, '학습실 정보를 불러오지 못했습니다. 다시 시도해주세요.');
       }
     }
     return false;
@@ -252,13 +253,12 @@ class _HaksubsilState extends State<Haksubsil> {
       });
 
       debugPrint(res.data.toString());
-    } on DioException catch (e) {
-      //Dio 패키지에서 http 통신 중 발생하는 예외타입
-      debugPrint(
-        'EEError: ${e.response?.statusCode} ${e.response?.data ?? e.message}',
-      );
-    } catch (e) {
-      debugPrint('Error: $e');
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
+      if (mounted) {
+        showAppSnackBar(context, '학습실 정보를 불러오지 못했습니다. 다시 시도해주세요.');
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

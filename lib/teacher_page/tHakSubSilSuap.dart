@@ -43,18 +43,12 @@ class _ThaksubsilsuapState extends State<Thaksubsilsuap> {
         teacherHakSubSil = list;
         _isLoading = false;
       });
-    } on DioException catch (e) {
-      debugPrint('status : ${e.response?.statusCode}');
-      debugPrint('data   : ${e.response?.data}');
-      debugPrint('headers: ${e.response?.headers}');
-      debugPrint('msg    : ${e.message}');
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       if (mounted) {
         setState(() => _isLoading = false);
-      }
-    } catch (e) {
-      debugPrint("EERROORR : $e");
-      if (mounted) {
-        setState(() => _isLoading = false);
+        showAppSnackBar(context, '수업 목록을 불러오지 못했습니다. 다시 시도해주세요.');
       }
     }
   }
@@ -474,17 +468,11 @@ class _CreateClassDialogState extends State<_CreateClassDialog> {
           '생성 실패: ${res.statusCode}',
         );
       }
-    } on DioException catch (e) {
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       if (!mounted) return;
-      final code = e.response?.statusCode;
-      final msg = e.response?.data?.toString() ?? e.message ?? 'unknown error';
-      showAppSnackBar(
-        widget.hostContext,
-        '오류: $code $msg',
-      );
-    } catch (e) {
-      if (!mounted) return;
-      showAppSnackBar(widget.hostContext, '오류: $e');
+      showAppSnackBar(widget.hostContext, '수업 생성에 실패했습니다. 다시 시도해주세요.');
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

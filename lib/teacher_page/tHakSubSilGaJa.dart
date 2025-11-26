@@ -69,10 +69,14 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       } else {
         controller.error = '\uC0C1\uC138 \uC870\uD68C \uC2E4\uD328(${res.statusCode})';
       }
-    } on DioException catch (e) {
-      controller.error = '\uC0C1\uC138 \uC624\uB958: ${e.message}';
-    } catch (e) {
-      controller.error = '\uC0C1\uC138 \uC608\uC678: $e';
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
+      const msg = '과제 정보를 불러오지 못했습니다. 다시 시도해주세요.';
+      controller.error = msg;
+      if(mounted) {
+        showAppSnackBar(context, msg);
+      }
     } finally {
       controller.loading = false;
       if (mounted) setState(() {});
@@ -300,15 +304,11 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
         isError: false,
       );
       await _loadDetail();
-    } on DioException catch (e) {
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       if (!mounted) return;
-      showAppSnackBar(
-        context,
-        '삭제 실패: ${e.message ?? '알 수 없는 오류'}',
-      );
-    } catch (e) {
-      if (!mounted) return;
-      showAppSnackBar(context, '삭제 실패: $e');
+      showAppSnackBar(context, '첨부파일 삭제에 실패했습니다. 다시 시도해주세요.');
     }
   }
 
@@ -375,15 +375,14 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
         '저장되었습니다.',
         isError: false,
       );
-    } on DioException catch (e) {
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       if (!mounted) return;
       showAppSnackBar(
         context,
-        '저장 실패: ${e.message ?? '알 수 없는 오류'}',
+        '저장에 실패했습니다. 다시 시도해주세요.',
       );
-    } catch (e) {
-      if (!mounted) return;
-      showAppSnackBar(context, '저장 실패: $e');
     }
   }
 
@@ -793,9 +792,11 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       await file.writeAsBytes(bytes, flush: true);
       if (!mounted) return;
       await OpenFile.open(file.path);
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       if (!mounted) return;
-      showAppSnackBar(context, '다운로드 중 오류가 발생했어요: $e');
+      showAppSnackBar(context, '파일을 다운로드하지 못했습니다. 다시 시도해주세요.');
     }
   }
 

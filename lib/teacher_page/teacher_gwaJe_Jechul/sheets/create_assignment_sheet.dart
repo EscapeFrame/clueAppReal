@@ -413,23 +413,13 @@ Future<Map<String, dynamic>?> showCreateAssignmentSheet({
                       if (Navigator.of(ctx).canPop()) {
                         Navigator.of(ctx).pop(result);
                       }
-                    } on DioException catch (e) {
-                      final status = e.response?.statusCode ?? 0;
-                      final data = e.response?.data;
-                      String detail;
-                      if (data is Map && data['message'] != null) {
-                        detail = data['message'].toString();
-                      } else if (data is String) {
-                        detail = data;
-                      } else {
-                        detail = e.message ?? '알 수 없는 오류';
-                      }
+                    } catch (e, st) {
+                      debugPrint('로그 컨텍스트: $e');
+                      debugPrint('$st');
                       showAppSnackBar(
                         context,
-                        '생성 실패($status): $detail',
+                        '과제를 생성하지 못했습니다. 다시 시도해주세요.',
                       );
-                    } catch (e) {
-                      showAppSnackBar(context, '오류: $e');
                     } finally {
                       setSheetState(() {
                         isSubmitting = false;

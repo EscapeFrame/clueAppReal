@@ -58,10 +58,12 @@ class _AlarmState extends State<Alarm> {
         _notices = fetched;
         _applyCategoryFilter();
       });
-    } on DioException catch (e) {
-      debugPrint('공지 요청 실패: ${e.response?.data ?? e.message}');
-    } catch (e) {
-      debugPrint('공지 알 수 없는 오류: $e');
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
+      if (mounted) {
+        showAppSnackBar(context, '알림 정보를 불러오지 못했습니다. 다시 시도해주세요.');
+      }
     }
   }
 
@@ -75,10 +77,12 @@ class _AlarmState extends State<Alarm> {
       setState(() {
         _userRole = role;
       });
-    } on DioException catch (e) {
-      debugPrint('user role request failed: ${e.response?.data ?? e.message}');
-    } catch (e) {
-      debugPrint('user role unexpected error: $e');
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
+      if (mounted) {
+        showAppSnackBar(context, '알림 정보를 불러오지 못했습니다. 다시 시도해주세요.');
+      }
     }
   }
 
@@ -139,12 +143,12 @@ class _AlarmState extends State<Alarm> {
       }
       if (!mounted) return;
       _showNoticeDetailModal(detail);
-    } on DioException catch (e) {
-      debugPrint(
-        'notice detail request failed($noticeId): ${e.response?.data ?? e.message}',
-      );
-    } catch (e) {
-      debugPrint('notice detail unexpected error($noticeId): $e');
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
+      if (mounted) {
+        showAppSnackBar(context, '알림 정보를 불러오지 못했습니다. 다시 시도해주세요.');
+      }
     }
   }
 
@@ -889,7 +893,9 @@ class _AlarmState extends State<Alarm> {
                 if (mounted) {
                   Navigator.of(dialogContext).pop();
                 }
-              } catch (_) {
+              } catch (e, st) {
+                debugPrint('로그 컨텍스트: $e');
+                debugPrint('$st');
                 showAppSnackBar(
                   context,
                   '공지 작성에 실패했습니다. 다시 시도해 주세요.',

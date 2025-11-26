@@ -214,11 +214,13 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       await file.writeAsBytes(bytes, flush: true);
       if (!mounted) return;
       await OpenFile.open(file.path);
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       if (!mounted) return;
       showAppSnackBar(
         context,
-        '파일 다운로드 중 오류가 발생했습니다: $e',
+        '파일을 다운로드하지 못했습니다. 다시 시도해주세요.',
       );
     }
   }
@@ -274,10 +276,14 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
           }
         }
       }
-    } on DioException catch (e) {
-      controller.error = '상세 오류: ${e.message}';
-    } catch (e) {
-      controller.error = '상세 예외: $e';
+    } catch (e, st) {
+      final msg = '과제 정보를 불러오지 못했습니다. 다시 시도해주세요.';
+      controller.error = msg;
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
+      if (mounted) {
+        showAppSnackBar(context, msg);
+      }
     } finally {
       controller.loading = false;
       if (mounted) {
@@ -597,15 +603,11 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
         isError: false,
       );
       await _loadDetail();
-    } on DioException catch (e) {
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       if (!mounted) return;
-      showAppSnackBar(
-        context,
-        '삭제 실패: ${e.message ?? '알 수 없는 오류'}',
-      );
-    } catch (e) {
-      if (!mounted) return;
-      showAppSnackBar(context, '삭제 실패: $e');
+      showAppSnackBar(context, '첨부파일 삭제에 실패했습니다. 다시 시도해주세요.');
     }
   }
 
@@ -677,15 +679,14 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
         '제출되었습니다.',
         isError: false,
       );
-    } on DioException catch (e) {
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       if (!mounted) return;
       showAppSnackBar(
         context,
-        '제출 실패: ${e.message ?? '알 수 없는 오류'}',
+        '과제 제출에 실패했습니다. 다시 시도해주세요.',
       );
-    } catch (e) {
-      if (!mounted) return;
-      showAppSnackBar(context, '제출 실패: $e');
     }
   }
 
@@ -715,15 +716,14 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
         '제출이 취소되었습니다.',
         isError: false,
       );
-    } on DioException catch (e) {
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       if (!mounted) return;
       showAppSnackBar(
         context,
-        '취소 실패: ${e.message ?? '알 수 없는 오류'}',
+        '제출 취소에 실패했습니다. 다시 시도해주세요.',
       );
-    } catch (e) {
-      if (!mounted) return;
-      showAppSnackBar(context, '취소 실패: $e');
     }
   }
 

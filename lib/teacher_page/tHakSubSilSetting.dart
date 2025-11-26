@@ -493,17 +493,12 @@ class _ThaksubsilsettingState extends State<Thaksubsilsetting> {
                         '저장 실패: ${res.statusCode}',
                       );
                     }
-                  } on DioException catch (e) {
-                    if (!mounted) return;
-                    final code = e.response?.statusCode;
-                    final msg =
-                        e.response?.data?.toString() ??
-                        e.message ??
-                        'unknown error';
-                    showAppSnackBar(context, '오류: $code $msg');
-                  } catch (e) {
-                    if (!mounted) return;
-                    showAppSnackBar(context, '오류: $e');
+                  } catch (e, st) {
+                    debugPrint('로그 컨텍스트: $e');
+                    debugPrint('$st');
+                    if (mounted) {
+                      showAppSnackBar(context, '설정을 저장하지 못했습니다. 다시 시도해주세요.');
+                    }
                   }
                 },
                 child: const Text(

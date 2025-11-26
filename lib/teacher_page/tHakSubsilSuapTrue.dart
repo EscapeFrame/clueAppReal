@@ -79,8 +79,12 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
           }
         });
       }
-    } catch (e) {
-      debugPrint('classRoom load error: $e');
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
+      if (mounted) {
+        showAppSnackBar(context, '수업 정보를 불러오지 못했습니다. 다시 시도해주세요.');
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -189,9 +193,11 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
         isError: false,
       );
       await _loadDetail();
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       if (!mounted) return;
-      showAppSnackBar(context, '이름 변경에 실패했어요. ($e)');
+      showAppSnackBar(context, '이름 변경에 실패했습니다. 다시 시도해주세요.');
     }
   }
 
@@ -343,9 +349,11 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
         isError: false,
       );
       await _loadDetail();
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       if (!mounted) return;
-      showAppSnackBar(context, '삭제 중 오류가 발생했습니다. ($e)');
+      showAppSnackBar(context, '디렉토리 삭제에 실패했습니다. 다시 시도해주세요.');
     }
   }
 
@@ -498,14 +506,11 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
         isError: false,
       );
       Navigator.of(context).pop(true);
-    } on DioException catch (e) {
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       if (!mounted) return;
-      final code = e.response?.statusCode;
-      final msg = e.response?.data?.toString() ?? e.message ?? 'unknown error';
-      showAppSnackBar(context, '삭제 실패: $code $msg');
-    } catch (e) {
-      if (!mounted) return;
-      showAppSnackBar(context, '삭제 실패: $e');
+      showAppSnackBar(context, '수업 삭제에 실패했습니다. 다시 시도해주세요.');
     }
   }
 
@@ -709,8 +714,9 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
         isError: false,
       );
       await _loadDetail();
-    } catch (e) {
-      debugPrint('directory create error: $e');
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       if (!mounted) return;
       showAppSnackBar(
         context,
@@ -762,21 +768,14 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
               ),
         ),
       );
-    } on DioException catch (e) {
-      debugPrint('document fetch error: $e');
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       closeLoader();
       if (!mounted) return;
       showAppSnackBar(
         context,
-        '문서를 불러오는 중 오류가 발생했어요. (${e.message})',
-      );
-    } catch (e) {
-      debugPrint('document fetch unexpected error: $e');
-      closeLoader();
-      if (!mounted) return;
-      showAppSnackBar(
-        context,
-        '문서를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
+        '문서 정보를 불러오지 못했습니다. 다시 시도해주세요.',
       );
     }
   }

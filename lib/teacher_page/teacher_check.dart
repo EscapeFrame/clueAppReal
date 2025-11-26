@@ -64,22 +64,18 @@ class _TeacherCheckState extends State<TeacherCheck> {
           _detailLoading = false;
         });
       }
-    } on DioException catch (e) {
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       if (!mounted) return;
+      const msg = '과제 정보를 불러오지 못했습니다. 다시 시도해주세요.';
       setState(() {
         _assignmentTitle = null;
         _assignmentEndDate = null;
-        _detailError = e.message ?? '과제 정보를 불러오지 못했습니다.';
+        _detailError = msg;
         _detailLoading = false;
       });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _assignmentTitle = null;
-        _assignmentEndDate = null;
-        _detailError = '과제 정보를 불러오지 못했습니다: $e';
-        _detailLoading = false;
-      });
+      _showSnackBar(msg);
     }
   }
 
@@ -182,18 +178,16 @@ class _TeacherCheckState extends State<TeacherCheck> {
           _studentsError = '제출 정보를 불러오지 못했습니다 (${res.statusCode}).';
         });
       }
-    } on DioException catch (e) {
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       if (!mounted) return;
+      const msg = '학생 제출 정보를 불러오지 못했습니다. 다시 시도해주세요.';
       setState(() {
         _studentsLoading = false;
-        _studentsError = e.message ?? '제출 정보를 불러오지 못했습니다.';
+        _studentsError = msg;
       });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _studentsLoading = false;
-        _studentsError = '제출 정보를 불러오지 못했습니다: $e';
-      });
+      _showSnackBar(msg);
     }
   }
 
@@ -429,10 +423,10 @@ class _TeacherCheckState extends State<TeacherCheck> {
       } else {
         _showSnackBar('제출 정보를 불러오지 못했습니다 (${res.statusCode}).');
       }
-    } on DioException catch (e) {
-      _showSnackBar(e.message ?? '제출 정보를 불러오지 못했습니다.');
-    } catch (e) {
-      _showSnackBar('제출 정보를 불러오지 못했습니다: $e');
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
+      _showSnackBar('상세 제출 정보를 불러오지 못했습니다. 다시 시도해주세요.');
     }
   }
 
@@ -467,11 +461,11 @@ class _TeacherCheckState extends State<TeacherCheck> {
         isError: false,
       );
       await OpenFile.open(savePath);
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       if (!mounted) return;
-      final message =
-          e is DioException ? (e.message ?? e.toString()) : e.toString();
-      showAppSnackBar(context, '다운로드 실패: $message');
+      showAppSnackBar(context, '파일을 다운로드하지 못했습니다. 다시 시도해주세요.');
     }
   }
 

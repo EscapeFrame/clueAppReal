@@ -23,9 +23,11 @@ Future<void> downloadFile(
       );
     }
     await OpenFile.open(savePath);
-  } catch (e) {
+  } catch (e, st) {
+    debugPrint('로그 컨텍스트: $e');
+    debugPrint('$st');
     if (context.mounted) {
-      showAppSnackBar(context, '다운로드 실패: $e');
+      showAppSnackBar(context, '파일을 다운로드하지 못했습니다. 다시 시도해주세요.');
     }
   }
 }

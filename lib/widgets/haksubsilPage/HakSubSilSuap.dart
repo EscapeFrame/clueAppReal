@@ -102,21 +102,14 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
       await Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => Markdown_(markdowndata: rendered)),
       );
-    } on DioException catch (e) {
-      debugPrint('document download error: $e');
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
       closeLoader();
       if (!mounted) return;
       showAppSnackBar(
         context,
-        '문서를 불러오는 중 오류가 발생했어요. (${e.message})',
-      );
-    } catch (e) {
-      debugPrint('document download unexpected error: $e');
-      closeLoader();
-      if (!mounted) return;
-      showAppSnackBar(
-        context,
-        '문서를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
+        '수업 정보를 불러오지 못했습니다. 다시 시도해주세요.',
       );
     }
   }

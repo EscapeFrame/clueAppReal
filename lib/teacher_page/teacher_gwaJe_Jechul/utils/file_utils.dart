@@ -29,8 +29,12 @@ Future<void> downloadAndOpenFile(
       isError: false,
     );
     await OpenFile.open(savePath);
-  } catch (e) {
-    showAppSnackBar(context, '다운로드 실패: $e');
+  } catch (e, st) {
+    debugPrint('로그 컨텍스트: $e');
+    debugPrint('$st');
+    if (context.mounted) {
+      showAppSnackBar(context, '제출 파일을 불러오지 못했습니다. 다시 시도해주세요.');
+    }
   }
 }
 

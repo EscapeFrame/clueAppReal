@@ -187,12 +187,12 @@ class _LoginState extends State<Login> {
       debugPrint('❌ PlatformException: ${e.code} / ${e.message}');
       const cancel = {'CANCELED', 'CANCELLED', 'userCancelled', 'userCanceled'};
       _snack(
-        cancel.contains(e.code) ? '로그인을 취소했어요.' : '로그인 중 오류가 발생했습니다.',
+        cancel.contains(e.code) ? '로그인을 취소했어요.' : '로그인에 실패했습니다. 다시 시도해주세요.',
       );
     } catch (e, st) {
-      debugPrint('❌ OAuth 예외: $e');
-      debugPrintStack(stackTrace: st);
-      _snack('로그인 중 알 수 없는 오류가 발생했습니다.');
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
+      _snack('로그인에 실패했습니다. 다시 시도해주세요.');
     } finally {
       if (mounted) setState(() => _loggingIn = false);
     }

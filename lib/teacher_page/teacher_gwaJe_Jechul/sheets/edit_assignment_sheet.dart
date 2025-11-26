@@ -428,13 +428,13 @@ Future<Map<String, dynamic>?> showEditAssignmentSheet({
                       if (Navigator.of(ctx).canPop()) {
                         Navigator.of(ctx).pop(result);
                       }
-                    } on DioException catch (e) {
+                    } catch (e, st) {
+                      debugPrint('로그 컨텍스트: $e');
+                      debugPrint('$st');
                       showAppSnackBar(
                         context,
-                        '수정 실패: ${e.response?.statusCode ?? ''}',
+                        '과제 정보를 수정하지 못했습니다. 다시 시도해주세요.',
                       );
-                    } catch (e) {
-                      showAppSnackBar(context, '오류: $e');
                     } finally {
                       setSheetState(() {
                         isSubmitting = false;

@@ -78,8 +78,10 @@ class _AsdfState extends State<Asdf> {
       } else {
         _showSnack('리다이렉트가 아님 (code: $code)');
       }
-    } catch (e) {
-      _showSnack('요청 실패: $e');
+    } catch (e, st) {
+      debugPrint('로그 컨텍스트: $e');
+      debugPrint('$st');
+      _showSnack('요청을 처리하는 중 문제가 발생했습니다.');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
