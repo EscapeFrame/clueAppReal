@@ -539,6 +539,15 @@ class SubmissionDetailDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const primaryColor = Color(0xff2563EB);
+    const successColor = Color(0xff16A34A);
+    const dangerColor = Color(0xffDC2626);
+    const surfaceColor = Colors.white;
+    const subtleSurfaceColor = Color(0xffF8FAFC);
+    const borderColor = Color(0xffE2E8F0);
+    const textPrimary = Color(0xff0F172A);
+    const textSecondary = Color(0xff475569);
+
     final submitted =
         detail['IsSubmitted'] == true || detail['isSubmitted'] == true;
     final submittedAtRaw = detail['submittedAt']?.toString();
@@ -554,6 +563,7 @@ class SubmissionDetailDialog extends StatelessWidget {
     final number = fallbackStudent['number']?.toString() ?? '';
 
     return Dialog(
+      backgroundColor: surfaceColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -567,10 +577,7 @@ class SubmissionDetailDialog extends StatelessWidget {
                 Text(
                   submitted ? '제출완료' : '미제출',
                   style: TextStyle(
-                    color:
-                        submitted
-                            ? const Color(0xff2563EB)
-                            : const Color(0xffDC2626),
+                    color: submitted ? successColor : dangerColor,
                     fontWeight: FontWeight.w700,
                     fontSize: 18,
                   ),
@@ -585,8 +592,8 @@ class SubmissionDetailDialog extends StatelessWidget {
               children: [
                 const CircleAvatar(
                   radius: 28,
-                  backgroundColor: Color(0xffE2E8F0),
-                  child: Icon(Icons.person, color: Color(0xff475569)),
+                  backgroundColor: subtleSurfaceColor,
+                  child: Icon(Icons.person, color: textSecondary),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -598,14 +605,18 @@ class SubmissionDetailDialog extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w600,
+                          color: textPrimary,
                         ),
                       ),
+                      if (submittedAt != null) const SizedBox(height: 2),
                       if (submittedAt != null)
                         Text(
-                          '제출일: ${_formatDateTime(submittedAt)}',
+                          '제출: ${_formatDateTime(submittedAt)}',
                           style: const TextStyle(
                             fontSize: 14,
-                            color: Color(0xff6B7280),
+                            color: textSecondary,
+                          ),
+                        ),
                           ),
                         ),
                     ],
@@ -622,6 +633,7 @@ class SubmissionDetailDialog extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
+                    color: textPrimary,
                   ),
                 ),
                 if (attachments.isNotEmpty)
@@ -639,6 +651,9 @@ class SubmissionDetailDialog extends StatelessWidget {
                               }
                             }
                             : null,
+                    style: TextButton.styleFrom(
+                      foregroundColor: primaryColor,
+                    ),
                     child: const Text('전체 다운로드'),
                   ),
               ],
@@ -647,7 +662,7 @@ class SubmissionDetailDialog extends StatelessWidget {
             if (attachments.isEmpty)
               const Text(
                 '제출된 파일이 없습니다.',
-                style: TextStyle(color: Color(0xff6B7280)),
+                style: TextStyle(color: textSecondary),
               )
             else
               ListView.separated(
@@ -663,9 +678,9 @@ class SubmissionDetailDialog extends StatelessWidget {
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xffF8FAFC),
+                      color: subtleSurfaceColor,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xffE2E8F0)),
+                      border: Border.all(color: borderColor),
                     ),
                     child: Row(
                       children: [
@@ -679,6 +694,7 @@ class SubmissionDetailDialog extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w600,
+                                  color: textPrimary,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -686,7 +702,7 @@ class SubmissionDetailDialog extends StatelessWidget {
                                 attachment.sizeLabel,
                                 style: const TextStyle(
                                   fontSize: 12,
-                                  color: Color(0xff6B7280),
+                                  color: textSecondary,
                                 ),
                               ),
                             ],
@@ -700,6 +716,9 @@ class SubmissionDetailDialog extends StatelessWidget {
                                   ? () => onDownloadAttachment!(attachment.url)
                                   : null,
                           style: OutlinedButton.styleFrom(
+                            foregroundColor: primaryColor,
+                            side: const BorderSide(color: primaryColor),
+                            backgroundColor: surfaceColor,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
