@@ -517,85 +517,100 @@ class _CluelinkState extends State<Cluelink> {
           Expanded(
             child: Container(
               color: Colors.grey.shade200,
-              child:
-                  _filteredLinks.isEmpty
-                      ? const Nolink()
-                      : ListView.separated(
-                        padding: EdgeInsets.fromLTRB(
-                          width * 0.05,
-                          height * 0.02,
-                          width * 0.05,
-                          height * 0.04,
-                        ),
-                        itemBuilder: (context, index) {
-                          final item = _filteredLinks[index];
-                          final tags =
-                              (item['tags'] as List?)?.cast<String>() ??
-                              const <String>[];
-                          final canModify = item['mine'] == true;
-                          final id = item['id'] as int?;
-                          final originalIndex = _links.indexOf(item);
-                          return LinkList(
-                            title: item['title'] as String? ?? '',
-                            url: item['url'] as String? ?? '',
-                            description: item['description'] as String?,
-                            tags: tags,
-                            restrictByGrade: item['restrictByGrade'] == true,
-                            restrictByClass: item['restrictByClass'] == true,
-                            createdAt: item['createdAt'] as String?,
-                            showActions: canModify,
-                            onDelete:
-                                !canModify || originalIndex == -1
-                                    ? null
-                                    : () async {
-                                      await _deleteLink(
-                                        item['id'] as int?,
-                                        originalIndex,
-                                      );
-                                    },
-                            onEdit:
-                                !canModify || originalIndex == -1 || id == null
-                                    ? null
-                                    : () async {
-                                      final edited = await link_edit
-                                          .showLinkEditDialog(
-                                            context,
-                                            initial: link_edit.LinkEditPayload(
-                                              title:
-                                                  item['title'] as String? ??
-                                                  '',
-                                              url: item['url'] as String? ?? '',
-                                              description:
-                                                  (item['description']
-                                                      as String?) ??
-                                                  '',
-                                              tags: List<String>.from(tags),
-                                              restrictByGrade:
-                                                  item['restrictByGrade'] ==
-                                                  true,
-                                              restrictByClass:
-                                                  item['restrictByClass'] ==
-                                                  true,
-                                            ),
-                                            allTags: _collectAllTags(),
-                                          );
-                                      if (edited != null) {
-                                        await _submitEditLink(id, edited);
-                                        if (!context.mounted) return;
-                                        await showDialog<void>(
-                                          context: context,
-                                          barrierDismissible: false,
-                                          builder:
-                                              (_) => const LinkSuccessDialog(),
+              child: RefreshIndicator(
+                onRefresh: _fetchLinkSave,
+                color: const Color(0xFF5FA8FF),
+                backgroundColor: const Color(0xFFD6EAFF),
+                child:
+                    _filteredLinks.isEmpty
+                        ? ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: EdgeInsets.only(top: height * 0.02),
+                          children: const [Nolink()],
+                        )
+                        : ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: EdgeInsets.fromLTRB(
+                            width * 0.05,
+                            height * 0.02,
+                            width * 0.05,
+                            height * 0.04,
+                          ),
+                          itemBuilder: (context, index) {
+                            final item = _filteredLinks[index];
+                            final tags =
+                                (item['tags'] as List?)?.cast<String>() ??
+                                const <String>[];
+                            final canModify = item['mine'] == true;
+                            final id = item['id'] as int?;
+                            final originalIndex = _links.indexOf(item);
+                            return LinkList(
+                              title: item['title'] as String? ?? '',
+                              url: item['url'] as String? ?? '',
+                              description: item['description'] as String?,
+                              tags: tags,
+                              restrictByGrade: item['restrictByGrade'] == true,
+                              restrictByClass: item['restrictByClass'] == true,
+                              createdAt: item['createdAt'] as String?,
+                              showActions: canModify,
+                              onDelete:
+                                  !canModify || originalIndex == -1
+                                      ? null
+                                      : () async {
+                                        await _deleteLink(
+                                          item['id'] as int?,
+                                          originalIndex,
                                         );
-                                      }
-                                    },
-                          );
-                        },
-                        separatorBuilder:
-                            (_, __) => SizedBox(height: height * 0.02),
-                        itemCount: _filteredLinks.length,
-                      ),
+                                      },
+                              onEdit:
+                                  !canModify ||
+                                          originalIndex == -1 ||
+                                          id == null
+                                      ? null
+                                      : () async {
+                                        final edited = await link_edit
+                                            .showLinkEditDialog(
+                                              context,
+                                              initial: link_edit.LinkEditPayload(
+                                                title:
+                                                    item['title'] as String? ??
+                                                    '',
+                                                url:
+                                                    item['url'] as String? ??
+                                                    '',
+                                                description:
+                                                    (item['description']
+                                                        as String?) ??
+                                                    '',
+                                                tags: List<String>.from(tags),
+                                                restrictByGrade:
+                                                    item['restrictByGrade'] ==
+                                                    true,
+                                                restrictByClass:
+                                                    item['restrictByClass'] ==
+                                                    true,
+                                              ),
+                                              allTags: _collectAllTags(),
+                                            );
+                                        if (edited != null) {
+                                          await _submitEditLink(id, edited);
+                                          if (!context.mounted) return;
+                                          await showDialog<void>(
+                                            context: context,
+                                            barrierDismissible: false,
+                                            builder:
+                                                (_) =>
+                                                    const LinkSuccessDialog(),
+                                          );
+                                        }
+                                      },
+                            );
+                          },
+                          separatorBuilder:
+                              (_, __) => SizedBox(height: height * 0.02),
+                          itemCount: _filteredLinks.length,
+                        ),
+              ),
             ),
           ),
         ],

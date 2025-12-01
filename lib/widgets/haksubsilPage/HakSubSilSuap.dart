@@ -378,12 +378,12 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                             style: TextStyle(fontSize: width * 0.045),
                           ),
                         ),
-                        Tab(
-                          child: Text(
-                            '수행평가',
-                            style: TextStyle(fontSize: width * 0.045),
-                          ),
-                        ),
+                        // Tab(
+                        //   child: Text(
+                        //     '수행평가',
+                        //     style: TextStyle(fontSize: width * 0.045),
+                        //   ),
+                        // ),
                       ],
                     ),
                     Expanded(
@@ -669,12 +669,12 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                               ),
                             ),
                           ),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF1F3F5),
-                            ),
-                            child: const Placeholder(),
-                          ),
+                          // Container(
+                          //   decoration: BoxDecoration(
+                          //     color: const Color(0xFFF1F3F5),
+                          //   ),
+                          //   child: const Placeholder(),
+                          // ),
                         ],
                       ),
                     ),

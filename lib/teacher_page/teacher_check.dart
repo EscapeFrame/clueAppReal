@@ -227,7 +227,7 @@ class _TeacherCheckState extends State<TeacherCheck> {
     await _localNotifications.show(
       0,
       '다운로드 완료',
-      filePath,
+      '다운로드가 완료되었습니다.',
       const NotificationDetails(android: androidDetails, iOS: iosDetails),
       payload: filePath,
     );
@@ -511,7 +511,7 @@ class _TeacherCheckState extends State<TeacherCheck> {
       if (showSnackbar) {
         showAppSnackBar(
           context,
-          '다운로드 완료: $safeName\n(${dir.path})',
+          '다운로드가 완료되었습니다.',
           isError: false,
         );
       }

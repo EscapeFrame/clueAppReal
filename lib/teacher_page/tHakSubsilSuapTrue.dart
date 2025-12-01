@@ -187,11 +187,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
         },
       );
       if (!mounted) return;
-      showAppSnackBar(
-        context,
-        '이름을 저장했어요.',
-        isError: false,
-      );
+      showAppSnackBar(context, '이름을 저장했어요.', isError: false);
       await _loadDetail();
     } catch (e, st) {
       debugPrint('로그 컨텍스트: $e');
@@ -343,11 +339,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
         },
       );
       if (!mounted) return;
-      showAppSnackBar(
-        context,
-        '디렉토리가 삭제되었습니다.',
-        isError: false,
-      );
+      showAppSnackBar(context, '디렉토리가 삭제되었습니다.', isError: false);
       await _loadDetail();
     } catch (e, st) {
       debugPrint('로그 컨텍스트: $e');
@@ -500,11 +492,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
       final api = ApiClient.instance.dio;
       await api.delete('/api/class/$id');
       if (!mounted) return;
-      showAppSnackBar(
-        context,
-        '수업이 삭제되었습니다.',
-        isError: false,
-      );
+      showAppSnackBar(context, '수업이 삭제되었습니다.', isError: false);
       Navigator.of(context).pop(true);
     } catch (e, st) {
       debugPrint('로그 컨텍스트: $e');
@@ -695,10 +683,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
         widget.tsuap['classRoomId'] ?? widget.tsuap['classRoomIdStr'];
     final classRoomId = idValue?.toString();
     if (classRoomId == null || classRoomId.isEmpty) {
-      showAppSnackBar(
-        context,
-        '반 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
-      );
+      showAppSnackBar(context, '반 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
       return;
     }
     try {
@@ -708,20 +693,13 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
         data: {'classRoomId': classRoomId, 'name': name, 'directoryOrder': 0},
       );
       if (!mounted) return;
-      showAppSnackBar(
-        context,
-        '새 수업이 추가되었습니다.',
-        isError: false,
-      );
+      showAppSnackBar(context, '새 수업이 추가되었습니다.', isError: false);
       await _loadDetail();
     } catch (e, st) {
       debugPrint('로그 컨텍스트: $e');
       debugPrint('$st');
       if (!mounted) return;
-      showAppSnackBar(
-        context,
-        '수업 추가에 실패했습니다. 다시 시도해 주세요.',
-      );
+      showAppSnackBar(context, '수업 추가에 실패했습니다. 다시 시도해 주세요.');
     }
   }
 
@@ -773,78 +751,75 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
       debugPrint('$st');
       closeLoader();
       if (!mounted) return;
-      showAppSnackBar(
-        context,
-        '문서 정보를 불러오지 못했습니다. 다시 시도해주세요.',
-      );
+      showAppSnackBar(context, '문서 정보를 불러오지 못했습니다. 다시 시도해주세요.');
     }
   }
 
-  Widget _buildAddLessonCard(double width, double height) {
-    final borderRadius = width * 0.03;
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: width * 0.05,
-        vertical: height * 0.004,
-      ),
-      child: InkWell(
-        onTap: _onTapAddLessonCard,
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: CustomPaint(
-          painter: _DashedRectPainter(
-            color: const Color(0xff7EA6FF),
-            strokeWidth: 1.5,
-            dashLength: 7,
-            dashGap: 4,
-            radius: borderRadius,
-          ),
-          child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: width * 0.04,
-              vertical: height * 0.012,
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0xffF4F7FF),
-              borderRadius: BorderRadius.circular(borderRadius),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: width * 0.1,
-                  height: width * 0.1,
-                  decoration: BoxDecoration(
-                    color: const Color(0xffE3EDFF),
-                    borderRadius: BorderRadius.circular(width * 0.05),
-                  ),
-                  child: const Icon(
-                    Icons.add,
-                    color: Color(0xff0057FF),
-                    size: 22,
-                  ),
-                ),
-                SizedBox(width: width * 0.03),
-                Expanded(
-                  child: Text(
-                    '새 수업',
-                    style: TextStyle(
-                      color: const Color(0xff0057FF),
-                      fontWeight: FontWeight.w700,
-                      fontSize: width * 0.038,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: const Color(0xff0057FF),
-                  size: width * 0.038,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _buildAddLessonCard(double width, double height) {
+  //   final borderRadius = width * 0.03;
+  //   return Padding(
+  //     padding: EdgeInsets.symmetric(
+  //       horizontal: width * 0.05,
+  //       vertical: height * 0.004,
+  //     ),
+  //     child: InkWell(
+  //       onTap: _onTapAddLessonCard,
+  //       borderRadius: BorderRadius.circular(borderRadius),
+  //       child: CustomPaint(
+  //         painter: _DashedRectPainter(
+  //           color: const Color(0xff7EA6FF),
+  //           strokeWidth: 1.5,
+  //           dashLength: 7,
+  //           dashGap: 4,
+  //           radius: borderRadius,
+  //         ),
+  //         child: Container(
+  //           padding: EdgeInsets.symmetric(
+  //             horizontal: width * 0.04,
+  //             vertical: height * 0.012,
+  //           ),
+  //           decoration: BoxDecoration(
+  //             color: const Color(0xffF4F7FF),
+  //             borderRadius: BorderRadius.circular(borderRadius),
+  //           ),
+  //           child: Row(
+  //             children: [
+  //               Container(
+  //                 width: width * 0.1,
+  //                 height: width * 0.1,
+  //                 decoration: BoxDecoration(
+  //                   color: const Color(0xffE3EDFF),
+  //                   borderRadius: BorderRadius.circular(width * 0.05),
+  //                 ),
+  //                 child: const Icon(
+  //                   Icons.add,
+  //                   color: Color(0xff0057FF),
+  //                   size: 22,
+  //                 ),
+  //               ),
+  //               SizedBox(width: width * 0.03),
+  //               Expanded(
+  //                 child: Text(
+  //                   '새 수업',
+  //                   style: TextStyle(
+  //                     color: const Color(0xff0057FF),
+  //                     fontWeight: FontWeight.w700,
+  //                     fontSize: width * 0.038,
+  //                   ),
+  //                 ),
+  //               ),
+  //               Icon(
+  //                 Icons.arrow_forward_ios_rounded,
+  //                 color: const Color(0xff0057FF),
+  //                 size: width * 0.038,
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -1020,12 +995,12 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                             style: TextStyle(fontSize: width * 0.045),
                           ),
                         ),
-                        Tab(
-                          child: Text(
-                            '사용자',
-                            style: TextStyle(fontSize: width * 0.045),
-                          ),
-                        ),
+                        // Tab(
+                        //   child: Text(
+                        //     '사용자',
+                        //     style: TextStyle(fontSize: width * 0.045),
+                        //   ),
+                        // ),
                         Tab(
                           child: Text(
                             '설정',
@@ -1049,7 +1024,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                                   return Column(
                                     children: [
                                       SizedBox(height: height * 0.012),
-                                      _buildAddLessonCard(width, height),
+                                      // _buildAddLessonCard(width, height),
                                     ],
                                   );
                                 }
@@ -1262,7 +1237,7 @@ class _HaksubsilsuapState extends State<Thaksubsilsuaptrue> {
                               ],
                             ),
                           ),
-                          Container(child: const Placeholder()),
+                          // Container(child: const Placeholder()),
                           Container(
                             child: Theme(
                               data: Theme.of(context).copyWith(
