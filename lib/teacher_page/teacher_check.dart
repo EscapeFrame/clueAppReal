@@ -1,6 +1,5 @@
 ﻿import 'dart:io';
 
-import 'dart:typed_data';
 import 'package:clue/api_client.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -491,36 +490,22 @@ class _TeacherCheckState extends State<TeacherCheck> {
         attachment.name.isNotEmpty ? attachment.name : 'attachment_$id';
     final safeName = _sanitizeFileName(fileName);
     try {
-      final res = await ApiClient.instance.dio.get(
+      final dir = await _resolveDownloadDirectory();
+      final file = File(p.join(dir.path, safeName));
+      final res = await ApiClient.instance.dio.download(
         downloadUrl,
+        file.path,
         options: Options(
           responseType: ResponseType.bytes,
           followRedirects: true,
           validateStatus: (status) => status != null && status < 500,
         ),
       );
-      if (res.statusCode != 200 || res.data == null) {
+      if (res.statusCode != 200) {
         if (!mounted) return null;
         showAppSnackBar(context, '파일을 다운로드할 수 없습니다. 다시 시도해주세요.');
         return null;
       }
-      final data = res.data;
-      List<int> bytes;
-      if (data is List<int>) {
-        bytes = data;
-      } else if (data is Uint8List) {
-        bytes = data.toList();
-      } else {
-        bytes = List<int>.from(data as List);
-      }
-      if (bytes.isEmpty) {
-        if (!mounted) return null;
-        showAppSnackBar(context, '파일을 다운로드할 수 없습니다. 다시 시도해주세요.');
-        return null;
-      }
-      final dir = await _resolveDownloadDirectory();
-      final file = File(p.join(dir.path, safeName));
-      await file.writeAsBytes(bytes, flush: true);
       if (!mounted) return null;
       await _showDownloadNotification(file.path);
       if (showSnackbar) {
