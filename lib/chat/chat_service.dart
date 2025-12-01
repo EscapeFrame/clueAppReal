@@ -9,7 +9,10 @@ class ChatService {
   final Map<String, List<ChatMessage>> _rooms = {};
   final Map<String, StreamController<List<ChatMessage>>> _controllers = {};
 
-  Stream<List<ChatMessage>> messagesStream(String roomId, {String? titleForSeed}) {
+  Stream<List<ChatMessage>> messagesStream(
+    String roomId, {
+    String? titleForSeed,
+  }) {
     _rooms.putIfAbsent(roomId, () => <ChatMessage>[]);
     _controllers.putIfAbsent(
       roomId,
@@ -68,7 +71,8 @@ class ChatService {
     if (list.isNotEmpty) return;
 
     final today = DateTime.now();
-    DateTime at(int h, int m) => DateTime(today.year, today.month, today.day, h, m);
+    DateTime at(int h, int m) =>
+        DateTime(today.year, today.month, today.day, h, m);
 
     final seed = <ChatMessage>[
       ChatMessage(

@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 
 import 'package:clue/api_client.dart';
 import 'package:dio/dio.dart';
@@ -398,14 +398,15 @@ class _TeacherCheckState extends State<TeacherCheck> {
               (ctx) => SubmissionDetailDialog(
                 detail: detail,
                 fallbackStudent: student,
-                onAttachmentAction: (attachment) async {
-                  final upperType = attachment.type.toUpperCase();
-                  if (upperType == 'FILE') {
-                    await _downloadAttachmentFile(attachment);
-                  } else if (attachment.url.isNotEmpty) {
-                    await _openAttachment(attachment.url);
-                  } else {
-                    _showSnackBar('열 수 있는 링크가 없습니다.');
+                onDownloadAttachment: _downloadAttachmentFile, // 버튼용(스낵바 있음)
+                onOpenAttachment: _openAttachment,
+                onOpenFileTile: (attachment) async {
+                  final path = await _downloadAttachmentFile(
+                    attachment,
+                    showSnackbar: false,
+                  );
+                  if (path != null && path.isNotEmpty) {
+                    await OpenFile.open(path); // 파일 뷰, 스낵바 없음
                   }
                 },
                 onDownloadAll: (attachments) async {
@@ -430,13 +431,15 @@ class _TeacherCheckState extends State<TeacherCheck> {
     }
   }
 
-  Future<void> _downloadAttachmentFile(SubmissionAttachment attachment) async {
-    final id = attachment.id;
-    if (id.isEmpty) {
+  Future<String?> _downloadAttachmentFile(
+    SubmissionAttachment attachment, {
+    bool showSnackbar = true,
+  }) async {
+    if ((attachment.id).isEmpty) {
       _showSnackBar('다운로드 ID를 찾을 수 없습니다.');
-      return;
+      return null;
     }
-    debugPrint('submissionAttachmentId: $id');
+    final id = attachment.id;
     final base = ApiClient.instance.dio.options.baseUrl;
     final baseUrl =
         base.endsWith('/') ? base.substring(0, base.length - 1) : base;
@@ -454,18 +457,17 @@ class _TeacherCheckState extends State<TeacherCheck> {
           followRedirects: true,
         ),
       );
-      if (!mounted) return;
-      showAppSnackBar(
-        context,
-        '다운로드 완료: $fileName',
-        isError: false,
-      );
-      await OpenFile.open(savePath);
+      if (!mounted) return null;
+      if (showSnackbar) {
+        showAppSnackBar(context, '다운로드 완료: $fileName', isError: false);
+      }
+      return savePath;
     } catch (e, st) {
-      debugPrint('로그 컨텍스트: $e');
+      debugPrint('다운로드 에러: $e');
       debugPrint('$st');
-      if (!mounted) return;
+      if (!mounted) return null;
       showAppSnackBar(context, '파일을 다운로드하지 못했습니다. 다시 시도해주세요.');
+      return null;
     }
   }
 
@@ -550,8 +552,10 @@ class _TeacherCheckState extends State<TeacherCheck> {
 class SubmissionDetailDialog extends StatelessWidget {
   final Map<String, dynamic> detail;
   final Map<String, dynamic> fallbackStudent;
-  final Future<void> Function(SubmissionAttachment attachment)?
-  onAttachmentAction;
+  final Future<String?> Function(SubmissionAttachment)? onDownloadAttachment;
+  final Future<void> Function(String url)? onOpenAttachment;
+  final Future<void> Function(SubmissionAttachment)? onOpenFileTile;
+
   final Future<void> Function(List<SubmissionAttachment> attachments)?
   onDownloadAll;
 
@@ -559,7 +563,9 @@ class SubmissionDetailDialog extends StatelessWidget {
     super.key,
     required this.detail,
     required this.fallbackStudent,
-    this.onAttachmentAction,
+    this.onDownloadAttachment,
+    this.onOpenAttachment,
+    this.onOpenFileTile,
     this.onDownloadAll,
   });
 
@@ -660,21 +666,6 @@ class SubmissionDetailDialog extends StatelessWidget {
                     color: textPrimary,
                   ),
                 ),
-                if (attachments.isNotEmpty)
-                  TextButton(
-                    onPressed:
-                        onDownloadAll != null
-                            ? () => onDownloadAll!(attachments)
-                            : null,
-                    style: TextButton.styleFrom(
-                      foregroundColor: primaryColor,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                    ),
-                    child: const Text('전체 다운로드'),
-                  ),
               ],
             ),
             const SizedBox(height: 8),
@@ -703,63 +694,79 @@ class SubmissionDetailDialog extends StatelessWidget {
                     final canAction =
                         (isFile && attachment.id.isNotEmpty) ||
                         (!isFile && attachment.url.isNotEmpty);
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: subtleSurfaceColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: borderColor),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  attachment.name,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    color: textPrimary,
+                    return InkWell(
+                      onTap:
+                          canAction
+                              ? () async {
+                                if (isFile) {
+                                  await onOpenFileTile?.call(
+                                    attachment,
+                                  ); // 스낵바 없이 다운로드+뷰
+                                } else if (attachment.url.isNotEmpty) {
+                                  await onOpenAttachment?.call(attachment.url);
+                                }
+                              }
+                              : null,
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: subtleSurfaceColor,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: borderColor),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    attachment.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: textPrimary,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  attachment.sizeLabel,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: textSecondary,
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    attachment.sizeLabel,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: textSecondary,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          OutlinedButton(
-                            onPressed:
-                                canAction
-                                    ? () => onAttachmentAction?.call(attachment)
-                                    : null,
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: primaryColor,
-                              side: const BorderSide(color: primaryColor),
-                              backgroundColor: surfaceColor,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 10,
+                                ],
                               ),
                             ),
-                            child: Text(label),
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            OutlinedButton(
+                              onPressed:
+                                  canAction
+                                      ? () =>
+                                          onDownloadAttachment?.call(attachment)
+                                      : null,
+                              child: Text(label), // 버튼 = 다운로드만(스낵바 있음)
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: primaryColor,
+                                side: const BorderSide(color: primaryColor),
+                                backgroundColor: surfaceColor,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
