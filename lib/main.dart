@@ -1,5 +1,6 @@
 ﻿import 'package:clue/api_client.dart';
 import 'package:clue/login.dart';
+import 'package:clue/pages/quiz.dart';
 import 'package:clue/signup.dart';
 import 'package:clue/pages/ClueLink.dart';
 import 'package:clue/pages/Education.dart';
@@ -166,7 +167,8 @@ class _MainScreenState extends State<MainScreen> {
       const HomePage(), // index 0
       const Haksubsil(), // index 1 (student default)
       const Cluelink(), // index 2 (center diamond)
-      const Education(), // index 3
+      // const Education(), // index 3
+      const Quiz(),
       const Settings(), // index 4
     ];
     _navigatorKeys = List.generate(
