@@ -1,10 +1,13 @@
 ﻿import 'dart:io';
 
+import 'dart:typed_data';
 import 'package:clue/api_client.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:clue/widgets/common/app_snackbar.dart';
 
@@ -30,6 +33,9 @@ class _TeacherCheckState extends State<TeacherCheck> {
   DateTime? _assignmentEndDate;
   bool _detailLoading = false;
   String? _detailError;
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
+  bool _notificationInitialized = false;
 
   Future<void> _fetchAssignmentDetail(String idStr) async {
     setState(() {
@@ -84,6 +90,7 @@ class _TeacherCheckState extends State<TeacherCheck> {
     super.initState();
     _allStudents = [];
     filteredStudents = [];
+    _ensureLocalNotifications();
     final idStr = (widget.assignmentId ?? '').toString();
     if (idStr.isNotEmpty) {
       _fetchAssignmentDetail(idStr);
@@ -189,6 +196,42 @@ class _TeacherCheckState extends State<TeacherCheck> {
       });
       _showSnackBar(msg);
     }
+  }
+
+  Future<void> _ensureLocalNotifications() async {
+    if (_notificationInitialized) return;
+    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const iosInit = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+    await _localNotifications.initialize(
+      const InitializationSettings(android: androidInit, iOS: iosInit),
+    );
+    _notificationInitialized = true;
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
+  }
+
+  Future<void> _showDownloadNotification(String filePath) async {
+    await _ensureLocalNotifications();
+    const androidDetails = AndroidNotificationDetails(
+      'downloads',
+      '다운로드',
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority,
+    );
+    const iosDetails = DarwinNotificationDetails();
+    await _localNotifications.show(
+      0,
+      '다운로드 완료',
+      filePath,
+      const NotificationDetails(android: androidDetails, iOS: iosDetails),
+      payload: filePath,
+    );
   }
 
   @override
@@ -446,29 +489,98 @@ class _TeacherCheckState extends State<TeacherCheck> {
     final downloadUrl = '$baseUrl/api/submissions/$id/download';
     final fileName =
         attachment.name.isNotEmpty ? attachment.name : 'attachment_$id';
+    final safeName = _sanitizeFileName(fileName);
     try {
-      final dir = await getApplicationDocumentsDirectory();
-      final savePath = '${dir.path}${Platform.pathSeparator}$fileName';
-      await ApiClient.instance.dio.download(
+      final res = await ApiClient.instance.dio.get(
         downloadUrl,
-        savePath,
         options: Options(
           responseType: ResponseType.bytes,
           followRedirects: true,
+          validateStatus: (status) => status != null && status < 500,
         ),
       );
-      if (!mounted) return null;
-      if (showSnackbar) {
-        showAppSnackBar(context, '다운로드 완료: $fileName', isError: false);
+      if (res.statusCode != 200 || res.data == null) {
+        if (!mounted) return null;
+        showAppSnackBar(context, '파일을 다운로드할 수 없습니다. 다시 시도해주세요.');
+        return null;
       }
-      return savePath;
+      final data = res.data;
+      List<int> bytes;
+      if (data is List<int>) {
+        bytes = data;
+      } else if (data is Uint8List) {
+        bytes = data.toList();
+      } else {
+        bytes = List<int>.from(data as List);
+      }
+      if (bytes.isEmpty) {
+        if (!mounted) return null;
+        showAppSnackBar(context, '파일을 다운로드할 수 없습니다. 다시 시도해주세요.');
+        return null;
+      }
+      final dir = await _resolveDownloadDirectory();
+      final file = File(p.join(dir.path, safeName));
+      await file.writeAsBytes(bytes, flush: true);
+      if (!mounted) return null;
+      await _showDownloadNotification(file.path);
+      if (showSnackbar) {
+        showAppSnackBar(
+          context,
+          '다운로드 완료: $safeName\n(${dir.path})',
+          isError: false,
+        );
+      }
+      return file.path;
     } catch (e, st) {
-      debugPrint('다운로드 에러: $e');
+      debugPrint('다운로드 오류: $e');
       debugPrint('$st');
       if (!mounted) return null;
       showAppSnackBar(context, '파일을 다운로드하지 못했습니다. 다시 시도해주세요.');
       return null;
     }
+  }
+
+  Future<Directory> _resolveDownloadDirectory() async {
+    Directory? targetDir;
+    if (Platform.isAndroid) {
+      // Try shared "Download" so it appears in 내파일/다운로드
+      final sharedDownload = await _androidSharedDownloadsDirectory();
+      if (sharedDownload != null) {
+        targetDir = sharedDownload;
+      }
+      try {
+        final dirs = await getExternalStorageDirectories(
+          type: StorageDirectory.downloads,
+        );
+        if (dirs != null && dirs.isNotEmpty) {
+          targetDir = dirs.first;
+        }
+      } catch (_) {
+        // fallback below
+      }
+      targetDir ??= await getExternalStorageDirectory();
+    } else if (Platform.isIOS) {
+      targetDir = await getApplicationDocumentsDirectory();
+    }
+    targetDir ??= await getApplicationDocumentsDirectory();
+    if (!await targetDir.exists()) {
+      await targetDir.create(recursive: true);
+    }
+    return targetDir;
+  }
+
+  Future<Directory?> _androidSharedDownloadsDirectory() async {
+    final dir = Directory('/storage/emulated/0/Download');
+    if (await dir.exists()) {
+      return dir;
+    }
+    return null;
+  }
+
+  String _sanitizeFileName(String name) {
+    final invalid = RegExp(r'[\\/:*?"<>|]');
+    final cleaned = name.replaceAll(invalid, '_').trim();
+    return cleaned.isEmpty ? 'attachment' : cleaned;
   }
 
   void _showSnackBar(String message) {
@@ -748,10 +860,17 @@ class SubmissionDetailDialog extends StatelessWidget {
                             OutlinedButton(
                               onPressed:
                                   canAction
-                                      ? () =>
-                                          onDownloadAttachment?.call(attachment)
+                                      ? () async {
+                                        if (isFile) {
+                                          await onDownloadAttachment
+                                              ?.call(attachment);
+                                        } else if (attachment.url.isNotEmpty) {
+                                          await onOpenAttachment
+                                              ?.call(attachment.url);
+                                        }
+                                      }
                                       : null,
-                              child: Text(label), // 버튼 = 다운로드만(스낵바 있음)
+                              child: Text(label), // 버튼 = 다운로드/열기(파일/URL 구분)
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: primaryColor,
                                 side: const BorderSide(color: primaryColor),
