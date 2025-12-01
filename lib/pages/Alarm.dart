@@ -92,6 +92,10 @@ class _AlarmState extends State<Alarm> {
     return role != 'STUDENT';
   }
 
+  Future<void> _refreshAll() async {
+    await Future.wait([_fetchNotices(), _fetchUserRole()]);
+  }
+
   Future<void> _createNotice({
     required String type,
     required String title,
@@ -253,34 +257,41 @@ class _AlarmState extends State<Alarm> {
             Expanded(
               child: Container(
                 color: const Color(0xFFF5F5F5),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildCategoryChips(context),
-                      const SizedBox(height: 12),
-                      if (_filteredNotices.isEmpty) _buildEmptyNoticeMessage(),
-                      if (_filteredNotices.isNotEmpty)
-                        ..._filteredNotices.map((notice) {
-                          final noticeId =
-                              (notice['noticeId'] ?? '').toString();
-                          return _buildNoticeItem(
-                            title: (notice['title'] ?? '').toString(),
-                            date: _formatNoticeDate(
-                              notice['createdAt']?.toString(),
-                            ),
-                            onTap:
-                                noticeId.isEmpty || noticeId == 'null'
-                                    ? null
-                                    : () => _fetchNoticeDetail(noticeId),
-                          );
-                        }),
-                      const SizedBox(height: 12),
-                    ],
+                child: RefreshIndicator(
+                  onRefresh: _refreshAll,
+                  color: const Color(0xFF5FA8FF),
+                  backgroundColor: const Color(0xFFD6EAFF),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildCategoryChips(context),
+                        const SizedBox(height: 12),
+                        if (_filteredNotices.isEmpty)
+                          _buildEmptyNoticeMessage(),
+                        if (_filteredNotices.isNotEmpty)
+                          ..._filteredNotices.map((notice) {
+                            final noticeId =
+                                (notice['noticeId'] ?? '').toString();
+                            return _buildNoticeItem(
+                              title: (notice['title'] ?? '').toString(),
+                              date: _formatNoticeDate(
+                                notice['createdAt']?.toString(),
+                              ),
+                              onTap:
+                                  noticeId.isEmpty || noticeId == 'null'
+                                      ? null
+                                      : () => _fetchNoticeDetail(noticeId),
+                            );
+                          }),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -896,10 +907,7 @@ class _AlarmState extends State<Alarm> {
               } catch (e, st) {
                 debugPrint('로그 컨텍스트: $e');
                 debugPrint('$st');
-                showAppSnackBar(
-                  context,
-                  '공지 작성에 실패했습니다. 다시 시도해 주세요.',
-                );
+                showAppSnackBar(context, '공지 작성에 실패했습니다. 다시 시도해 주세요.');
               } finally {
                 if (mounted) {
                   setModalState(() => isSubmitting = false);
