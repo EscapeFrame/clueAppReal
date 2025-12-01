@@ -55,38 +55,58 @@ class AttachmentsSection extends StatelessWidget {
                 ),
                 SizedBox(width: width * 0.02),
                 Expanded(
-                  child: GestureDetector(
-                    onTap: onTap == null ? null : () => onTap!(f),
-                    child: Text(
-                      (f['name'] ?? '').toString(),
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: width * 0.03,
-                        color: Colors.blue,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        onTap: onTap == null ? null : () => onTap!(f),
+                        child: Text(
+                          (f['name'] ?? '').toString(),
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: width * 0.03,
+                            color: Colors.blue,
+                          ),
+                        ),
                       ),
-                    ),
+                      if ((f['kind'] ?? '') != 'URL' &&
+                          (f['sizeText'] ?? '').toString().isNotEmpty)
+                        Padding(
+                          padding: EdgeInsets.only(top: width * 0.006),
+                          child: Text(
+                            (f['sizeText'] ?? '').toString(),
+                            style: TextStyle(
+                              fontSize: width * 0.026,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-                SizedBox(width: width * 0.015),
-                if ((f['kind'] ?? '') != 'URL' &&
-                    (f['sizeText'] ?? '').toString().isNotEmpty)
-                  Text(
-                    '(${f['sizeText']})',
-                    style: TextStyle(
-                      fontSize: width * 0.025,
-                      color: Colors.grey,
-                    ),
-                  ),
                 if ((f['kind'] ?? '').toString().toUpperCase() != 'URL' &&
                     onDownload != null)
-                  IconButton(
-                    icon: const Icon(Icons.download_rounded),
-                    color: const Color(0xFF0D6EFD),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    splashRadius: width * 0.05,
-                    onPressed: () => onDownload!(f),
-                    tooltip: '다운로드',
+                  Padding(
+                    padding: EdgeInsets.only(left: width * 0.02),
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        minimumSize: Size.zero,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: width * 0.02,
+                          vertical: width * 0.015,
+                        ),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () => onDownload!(f),
+                      child: Text(
+                        '받기',
+                        style: TextStyle(
+                          fontSize: width * 0.03,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF6B7280),
+                        ),
+                      ),
+                    ),
                   ),
                 if (removeCallback != null)
                   IconButton(

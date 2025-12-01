@@ -17,6 +17,7 @@ import 'package:clue/widgets/haksubsil/widgets/sections/description_section.dart
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -41,6 +42,9 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
   final GlobalKey _uploadButtonKey = GlobalKey();
   List<Map<String, dynamic>> _assignmentAttachments = const [];
   final Set<String> _removedSubmissionAttachmentIds = <String>{};
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
+  bool _notificationInitialized = false;
 
   Widget _buildDetailHeader({
     required BuildContext context,
@@ -225,9 +229,11 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       await file.writeAsBytes(bytes, flush: true);
       if (!mounted) return;
       if (openAfterDownload) {
+        await _showDownloadNotification(file.path);
         await OpenFile.open(file.path);
       } else {
-        showAppSnackBar(context, '다운로드 완료: ${file.path}', isError: false);
+        await _showDownloadNotification(file.path);
+        showAppSnackBar(context, '다운로드 완료', isError: false);
       }
     } catch (e, st) {
       debugPrint('로그 컨텍스트: $e');
@@ -245,7 +251,46 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
   @override
   void initState() {
     super.initState();
+    _ensureLocalNotifications();
     _loadDetail();
+  }
+
+  Future<void> _ensureLocalNotifications() async {
+    if (_notificationInitialized) return;
+    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const iosInit = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+    await _localNotifications.initialize(
+      const InitializationSettings(android: androidInit, iOS: iosInit),
+    );
+    _notificationInitialized = true;
+    // Android 13+ 권한
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.requestNotificationsPermission();
+  }
+
+  Future<void> _showDownloadNotification(String filePath) async {
+    await _ensureLocalNotifications();
+    const androidDetails = AndroidNotificationDetails(
+      'downloads',
+      '다운로드',
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority,
+    );
+    const iosDetails = DarwinNotificationDetails();
+    await _localNotifications.show(
+      0,
+      '다운로드 완료',
+      filePath,
+      const NotificationDetails(android: androidDetails, iOS: iosDetails),
+      payload: filePath,
+    );
   }
 
   Future<void> _loadDetail() async {
