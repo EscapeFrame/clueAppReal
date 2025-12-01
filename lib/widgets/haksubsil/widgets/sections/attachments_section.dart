@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 class AttachmentsSection extends StatelessWidget {
   final List<Map<String, dynamic>> attachments;
   final void Function(Map<String, dynamic> item)? onTap;
+  final void Function(Map<String, dynamic> item)? onDownload;
   final String title;
   final double verticalPaddingFactor;
 
@@ -11,6 +12,7 @@ class AttachmentsSection extends StatelessWidget {
     super.key,
     required this.attachments,
     this.onTap,
+    this.onDownload,
     this.title = '첨부파일',
     this.verticalPaddingFactor = 0.024,
   });
@@ -74,6 +76,17 @@ class AttachmentsSection extends StatelessWidget {
                       fontSize: width * 0.025,
                       color: Colors.grey,
                     ),
+                  ),
+                if ((f['kind'] ?? '').toString().toUpperCase() != 'URL' &&
+                    onDownload != null)
+                  IconButton(
+                    icon: const Icon(Icons.download_rounded),
+                    color: const Color(0xFF0D6EFD),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    splashRadius: width * 0.05,
+                    onPressed: () => onDownload!(f),
+                    tooltip: '다운로드',
                   ),
                 if (removeCallback != null)
                   IconButton(

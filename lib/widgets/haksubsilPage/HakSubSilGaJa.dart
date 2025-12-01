@@ -20,6 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:path/path.dart' as p;
 
 class Haksubsilgaja extends StatefulWidget {
   final Map<String, dynamic> assignment;
@@ -166,8 +167,9 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
   }
 
   Future<void> _handleAssignmentAttachmentTap(
-    Map<String, dynamic> attachment,
-  ) async {
+    Map<String, dynamic> attachment, {
+    bool openAfterDownload = true,
+  }) async {
     final kind = (attachment['kind'] ?? '').toString().toUpperCase();
     if (kind == 'URL') {
       await _openAttachmentLink(attachment);
@@ -176,52 +178,62 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
     final attachmentId = (attachment['attachmentId'] ?? '').toString();
     if (attachmentId.isEmpty) {
       if (!mounted) return;
-      showAppSnackBar(
-        context,
-        '다운로드할 첨부 정보를 찾을 수 없습니다.',
-      );
+      showAppSnackBar(context, '다운로드할 첨부 정보를 찾을 수 없습니다.');
       return;
     }
     final fileName = (attachment['name'] ?? 'attachment').toString();
-    await _downloadAssignmentAttachment(attachmentId, fileName);
+    await _downloadAssignmentAttachment(
+      attachmentId,
+      fileName,
+      openAfterDownload: openAfterDownload,
+    );
   }
 
   Future<void> _handleAttachmentTap(Map<String, dynamic> attachment) async {
-    await _handleAssignmentAttachmentTap(attachment);
+    await _handleAssignmentAttachmentTap(attachment, openAfterDownload: true);
   }
 
   Future<void> _downloadAssignmentAttachment(
     String attachmentId,
-    String fileName,
-  ) async {
+    String fileName, {
+    bool openAfterDownload = true,
+  }) async {
     try {
       final bytes = await HaksubsilService.downloadAttachmentBytes(
         attachmentId,
       );
       if (bytes == null) {
         if (!mounted) return;
-        showAppSnackBar(
-          context,
-          '파일 다운로드에 실패했습니다. 다시 시도해주세요.',
-        );
+        showAppSnackBar(context, '파일 다운로드에 실패했습니다. 다시 시도해주세요.');
         return;
       }
       final safeName = _sanitizeFileName(
         fileName.isEmpty ? 'attachment-$attachmentId' : fileName,
       );
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File('${dir.path}/$safeName');
+      Directory dir = await getApplicationDocumentsDirectory();
+      if (Platform.isAndroid) {
+        // Try to save to public Downloads for easier access; fallback to app docs.
+        final downloads = Directory('/storage/emulated/0/Download');
+        if (await downloads.exists()) {
+          dir = downloads;
+        } else {
+          final ext = await getExternalStorageDirectory();
+          if (ext != null) dir = ext;
+        }
+      }
+      final file = File(p.join(dir.path, safeName));
       await file.writeAsBytes(bytes, flush: true);
       if (!mounted) return;
-      await OpenFile.open(file.path);
+      if (openAfterDownload) {
+        await OpenFile.open(file.path);
+      } else {
+        showAppSnackBar(context, '다운로드 완료: ${file.path}', isError: false);
+      }
     } catch (e, st) {
       debugPrint('로그 컨텍스트: $e');
       debugPrint('$st');
       if (!mounted) return;
-      showAppSnackBar(
-        context,
-        '파일을 다운로드하지 못했습니다. 다시 시도해주세요.',
-      );
+      showAppSnackBar(context, '파일을 다운로드하지 못했습니다. 다시 시도해주세요.');
     }
   }
 
@@ -597,11 +609,7 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
         _removedSubmissionAttachmentIds.add(attachmentId);
       });
       if (!mounted) return;
-      showAppSnackBar(
-        context,
-        '첨부가 삭제되었습니다.',
-        isError: false,
-      );
+      showAppSnackBar(context, '첨부가 삭제되었습니다.', isError: false);
       await _loadDetail();
     } catch (e, st) {
       debugPrint('로그 컨텍스트: $e');
@@ -674,19 +682,12 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       controller.notifyListeners();
       await _loadDetail();
       if (!mounted) return;
-      showAppSnackBar(
-        context,
-        '제출되었습니다.',
-        isError: false,
-      );
+      showAppSnackBar(context, '제출되었습니다.', isError: false);
     } catch (e, st) {
       debugPrint('로그 컨텍스트: $e');
       debugPrint('$st');
       if (!mounted) return;
-      showAppSnackBar(
-        context,
-        '과제 제출에 실패했습니다. 다시 시도해주세요.',
-      );
+      showAppSnackBar(context, '과제 제출에 실패했습니다. 다시 시도해주세요.');
     }
   }
 
@@ -711,19 +712,12 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
       controller.notifyListeners();
       await _loadDetail();
       if (!mounted) return;
-      showAppSnackBar(
-        context,
-        '제출이 취소되었습니다.',
-        isError: false,
-      );
+      showAppSnackBar(context, '제출이 취소되었습니다.', isError: false);
     } catch (e, st) {
       debugPrint('로그 컨텍스트: $e');
       debugPrint('$st');
       if (!mounted) return;
-      showAppSnackBar(
-        context,
-        '제출 취소에 실패했습니다. 다시 시도해주세요.',
-      );
+      showAppSnackBar(context, '제출 취소에 실패했습니다. 다시 시도해주세요.');
     }
   }
 
@@ -994,6 +988,11 @@ class _HaksubsilgajaState extends State<Haksubsilgaja> {
                   title: '첨부파일',
                   attachments: assignmentAttachments,
                   onTap: _handleAttachmentTap,
+                  onDownload:
+                      (item) => _handleAssignmentAttachmentTap(
+                        item,
+                        openAfterDownload: false,
+                      ),
                 ),
               if (uploadedFileAttachments.isNotEmpty)
                 AttachmentsSection(
