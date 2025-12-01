@@ -91,8 +91,13 @@ class _LoginState extends State<Login> {
           returnedUri.queryParameters['access_token'] ??
           returnedUri.queryParameters['code'] ??
           '';
+      String refreshToken =
+          returnedUri.queryParameters['refresh_token'] ??
+          returnedUri.queryParameters['rt'] ??
+          '';
 
-      if (token.isEmpty && (returnedUri.fragment.isNotEmpty)) {
+      if ((token.isEmpty || refreshToken.isEmpty) &&
+          returnedUri.fragment.isNotEmpty) {
         // fragment: token=...&refresh_token=...
         final fragPairs = returnedUri.fragment.split('&');
         for (final p in fragPairs) {
@@ -100,11 +105,25 @@ class _LoginState extends State<Login> {
           if (parts.length == 2) {
             final k = parts[0];
             final v = parts[1];
-            if (k == 'token' || k == 'access_token' || k == 'code') {
+            if (token.isEmpty &&
+                (k == 'token' || k == 'access_token' || k == 'code')) {
               token = v;
-              break;
+            } else if (refreshToken.isEmpty &&
+                (k == 'refresh_token' || k == 'rt')) {
+              refreshToken = v;
             }
           }
+        }
+      }
+
+      // --- fallback: 콜백 문자열이 'refresh_token<token>' 형태로 오는 경우 파싱
+      if (refreshToken.isEmpty) {
+        final uriStr = returnedUri.toString();
+        final matchEq = RegExp(r'refresh_token=([^&#]+)').firstMatch(uriStr);
+        final matchNoEq = RegExp(r'refresh_token([^=&#?]+)').firstMatch(uriStr);
+        final raw = matchEq?.group(1) ?? matchNoEq?.group(1);
+        if (raw != null && raw.isNotEmpty) {
+          refreshToken = Uri.decodeComponent(raw);
         }
       }
 
@@ -137,7 +156,9 @@ class _LoginState extends State<Login> {
       final isRegisterFlow = redirectPath == '/signup';
       final isJwtLike = token.split('.').length == 3;
       if (isRegisterFlow || !isJwtLike) {
-        debugPrint('ℹ️ registration flow token detected; not saving as access JWT');
+        debugPrint(
+          'ℹ️ registration flow token detected; not saving as access JWT',
+        );
         await AuthStorage.instance.saveAccessToken('');
         await AuthStorage.instance.saveRegisterToken(token);
       } else {
@@ -147,11 +168,18 @@ class _LoginState extends State<Login> {
       }
       debugPrint('ℹ️ register_token stored (app): $token');
 
-      final rt = returnedUri.queryParameters['refresh_token'];
-      if (rt != null && rt.isNotEmpty) {
-        await AuthStorage.instance.saveRefreshToken(rt);
+      if (refreshToken.isNotEmpty) {
+        await AuthStorage.instance.saveRefreshToken(refreshToken);
       }
-      debugPrint('✅ AccessToken/RefreshToken 저장 완료');
+      String _mask(String value) =>
+          value.isEmpty
+              ? 'none'
+              : value.length <= 8
+              ? value
+              : '${value.substring(0, 8)}...';
+      debugPrint(
+        '✅ AccessToken/RefreshToken 저장 완료: access="${_mask(token)}" / refresh="${_mask(refreshToken)}"',
+      );
 
       // 커스텀탭 → 액티비티 복귀 안정화를 위해 아주 짧게 대기
       await Future.delayed(const Duration(milliseconds: 120));
