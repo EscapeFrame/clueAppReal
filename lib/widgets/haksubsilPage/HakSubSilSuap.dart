@@ -217,14 +217,11 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
       if (!mounted) return;
       showAppSnackBar(context, '새로고침에 실패했어요. 다시 시도해 주세요.');
     }
-  }
-
-  Future<void> _refreshAssignments() async {
-    final future = gwaJeJeChul();
+    final assignmentsFuture = gwaJeJeChul();
     setState(() {
-      _assignmentsFuture = future;
+      _assignmentsFuture = assignmentsFuture;
     });
-    await future;
+    await assignmentsFuture;
   }
 
   @override
@@ -578,7 +575,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                               color: const Color.fromARGB(255, 245, 245, 245),
                             ),
                             child: RefreshIndicator(
-                              onRefresh: _refreshAssignments,
+                              onRefresh: _refreshClassDetail,
                               color: const Color(0xFF5FA8FF),
                               backgroundColor: const Color(0xFFD6EAFF),
                               child: AnimatedSwitcher(
