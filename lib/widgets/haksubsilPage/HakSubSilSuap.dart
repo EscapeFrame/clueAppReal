@@ -18,6 +18,7 @@ class Haksubsilsuap extends StatefulWidget {
 }
 
 class _HaksubsilsuapState extends State<Haksubsilsuap> {
+  late Map<String, dynamic> _notice;
   static const List<Map<String, dynamic>> _fallbackAssignments = [
     {
       'title': 'asdf',
@@ -52,6 +53,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
     },
   ];
   late List<Map<String, dynamic>> assignments;
+  Future<List<Map<String, dynamic>>>? _assignmentsFuture;
   bool showAssignmentDetail = false;
   Map<String, dynamic>? selectedAssignment;
   void closeAssignmentDetail() {
@@ -107,10 +109,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
       debugPrint('$st');
       closeLoader();
       if (!mounted) return;
-      showAppSnackBar(
-        context,
-        '수업 정보를 불러오지 못했습니다. 다시 시도해주세요.',
-      );
+      showAppSnackBar(context, '수업 정보를 불러오지 못했습니다. 다시 시도해주세요.');
     }
   }
 
@@ -119,8 +118,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
       final assignmentsApi = ApiClient.instance.dio;
 
       final String? idStr =
-          (widget.notice['classRoomIdStr'] ?? widget.notice['classRoomId'])
-              ?.toString();
+          (_notice['classRoomIdStr'] ?? _notice['classRoomId'])?.toString();
 
       final submissionsRes = await assignmentsApi.get(
         '/api/submissions/$idStr',
@@ -163,16 +161,24 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
   @override
   void initState() {
     super.initState();
+    _notice = Map<String, dynamic>.from(widget.notice);
+    _setAssignmentsFromNotice(_notice);
+    _assignmentsFuture = gwaJeJeChul();
+  }
 
-    gwaJeJeChul();
+  void updateSubmissionStatus(int index, bool submitted) {
+    setState(() {
+      assignments[index]['submitted'] = submitted;
+      assignments[index]['status'] = submitted ? '제출 완료' : '미제출';
+      _notice['assignments'] = assignments;
+    });
+  }
 
-    // debugPrint(widget.notice.toString());
-    // assignments 초기화 및 file → files 변환
-    final rawAssignments = widget.notice['assignments'];
+  void _setAssignmentsFromNotice(Map<String, dynamic> notice) {
+    final rawAssignments = notice['assignments'];
     if (rawAssignments is List) {
       assignments = List<Map<String, dynamic>>.from(
         rawAssignments.map((a) {
-          // file → files 변환
           if (a['files'] == null) {
             if (a['file'] != null) {
               a['files'] = [a['file']];
@@ -188,27 +194,52 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
     }
   }
 
-  void updateSubmissionStatus(int index, bool submitted) {
+  Future<void> _refreshClassDetail() async {
+    final String? idStr =
+        (_notice['classRoomIdStr'] ?? _notice['classRoomId'])?.toString();
+    if (idStr == null || idStr.isEmpty) return;
+
+    try {
+      final api = ApiClient.instance.dio;
+      final res = await api.get('/api/class/$idStr/all');
+      final data = res.data;
+      if (data is Map) {
+        final updated = Map<String, dynamic>.from(data);
+        updated['classRoomIdStr'] =
+            (updated['classRoomId'] ?? idStr).toString();
+        setState(() {
+          _notice = updated;
+          _setAssignmentsFromNotice(_notice);
+        });
+      }
+    } catch (e) {
+      debugPrint('class refresh error: $e');
+      if (!mounted) return;
+      showAppSnackBar(context, '새로고침에 실패했어요. 다시 시도해 주세요.');
+    }
+  }
+
+  Future<void> _refreshAssignments() async {
+    final future = gwaJeJeChul();
     setState(() {
-      assignments[index]['submitted'] = submitted;
-      assignments[index]['status'] = submitted ? '제출됨' : '미제출';
-      widget.notice['assignments'] = assignments;
+      _assignmentsFuture = future;
     });
+    await future;
   }
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
-    final teacherNames = widget.notice['teacherNames'];
+    final teacherNames = _notice['teacherNames'];
     String teacherNameText = '';
     if (teacherNames is List && teacherNames.isNotEmpty) {
       teacherNameText = teacherNames
           .where((name) => name != null)
           .map((name) => name.toString())
           .join(', ');
-    } else if (widget.notice['teacherName'] != null) {
-      teacherNameText = widget.notice['teacherName'].toString();
+    } else if (_notice['teacherName'] != null) {
+      teacherNameText = _notice['teacherName'].toString();
     }
 
     return Scaffold(
@@ -261,7 +292,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    widget.notice['classRoomName'].toString(),
+                    _notice['classRoomName'].toString(),
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: width * 0.065,
@@ -272,7 +303,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 3),
                   child: Text(
-                    widget.notice['description'].toString(),
+                    _notice['description'].toString(),
                     style: TextStyle(fontSize: width * 0.035),
                   ),
                 ),
@@ -308,7 +339,7 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                     ),
                     SizedBox(width: 8),
                     Text(
-                      widget.notice['code'].toString(),
+                      _notice['code'].toString(),
                       style: TextStyle(
                         fontSize: width * 0.035,
                         fontWeight: FontWeight.w500,
@@ -369,172 +400,175 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                             child: Builder(
                               builder: (context) {
                                 final lessons =
-                                    (widget.notice['directoryList'] as List?) ??
+                                    (_notice['directoryList'] as List?) ??
                                     const [];
                                 if (lessons.isEmpty) {
-                                  return Center(
-                                    child: Text(
-                                      '수업이 없습니다.',
-                                      style: TextStyle(
-                                        fontSize: width * 0.04,
-                                        color: const Color(0xff6B7280),
-                                      ),
-                                    ),
-                                  );
-                                }
-                                return ListView.builder(
-                                  itemCount: lessons.length,
-                                  itemBuilder: (context, index) {
-                                    final lesson =
-                                        (lessons[index] as Map?) ?? const {};
-                                    return Column(
+                                  return RefreshIndicator(
+                                    onRefresh: _refreshClassDetail,
+                                    color: const Color(0xFF5FA8FF),
+                                    backgroundColor: const Color(0xFFD6EAFF),
+                                    child: ListView(
+                                      physics:
+                                          const AlwaysScrollableScrollPhysics(),
                                       children: [
-                                        SizedBox(height: height * 0.01),
-                                        Container(
-                                          margin: EdgeInsets.symmetric(
-                                            horizontal: width * 0.05,
-                                            vertical: height * 0.003,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.grey.withOpacity(
-                                                  0.1,
-                                                ),
-                                                spreadRadius: 5,
-                                                blurRadius: 7,
-                                                offset: Offset(
-                                                  0,
-                                                  3,
-                                                ), // changes position of shadow
-                                              ),
-                                            ],
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                            border: Border.all(
-                                              width: 0.25,
-                                              color: Color(0xffCCCCCC),
-                                            ),
-                                            color: Colors.white,
-                                          ),
-                                          child: Theme(
-                                            data: Theme.of(context).copyWith(
-                                              dividerColor: Colors.transparent,
-                                            ),
-                                            child: ExpansionTile(
-                                              title: Text(
-                                                lesson['directoryName']
-                                                    .toString(),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: width * 0.045,
-                                                ),
-                                              ),
-                                              children: [
-                                                ...(((lesson['documentList']
-                                                            as List?) ??
-                                                        const []))
-                                                    .map<Widget>((item) {
-                                                      final doc = Map<
-                                                        String,
-                                                        dynamic
-                                                      >.from(
-                                                        (item as Map?) ??
-                                                            const {},
-                                                      );
-                                                      return Column(
-                                                        children: [
-                                                          GestureDetector(
-                                                            onTap:
-                                                                () =>
-                                                                    _openDocumentMarkdown(
-                                                                      doc,
-                                                                    ),
-                                                            child: Container(
-                                                              margin:
-                                                                  EdgeInsets.only(
-                                                                    left:
-                                                                        width *
-                                                                        0.028,
-                                                                    right:
-                                                                        width *
-                                                                        0.028,
-                                                                    bottom:
-                                                                        height *
-                                                                        0.012,
-                                                                  ),
-                                                              decoration: BoxDecoration(
-                                                                color: Color(
-                                                                  0xffF5F5F5,
-                                                                ),
-                                                                borderRadius:
-                                                                    BorderRadius.circular(
-                                                                      12,
-                                                                    ),
-                                                                // boxShadow: [
-                                                                //   BoxShadow(
-                                                                //     color: Colors
-                                                                //         .black
-                                                                //         .withOpacity(
-                                                                //           0.05,
-                                                                //         ),
-                                                                //     blurRadius: 6,
-                                                                //     offset: Offset(
-                                                                //       0,
-                                                                //       2,
-                                                                //     ),
-                                                                //   ),
-                                                                // ],
-                                                                // color: const Color.fromARGB(255, 245, 245, 245),
-                                                                border: Border.all(
-                                                                  width: 0.01,
-                                                                  color: Color(
-                                                                    0xffCCCCCC,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              child: ListTile(
-                                                                shape: RoundedRectangleBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius.circular(
-                                                                        12,
-                                                                      ),
-                                                                ),
-                                                                contentPadding:
-                                                                    EdgeInsets.symmetric(
-                                                                      horizontal:
-                                                                          width *
-                                                                          0.04,
-                                                                    ),
-                                                                title: Text(
-                                                                  doc['title']
-                                                                          ?.toString() ??
-                                                                      '',
-                                                                  style: TextStyle(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                    fontSize:
-                                                                        width *
-                                                                        0.035,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      );
-                                                    }),
-                                              ],
+                                        SizedBox(height: height * 0.1),
+                                        Center(
+                                          child: Text(
+                                            '수업이 없습니다.',
+                                            style: TextStyle(
+                                              fontSize: width * 0.04,
+                                              color: const Color(0xff6B7280),
                                             ),
                                           ),
                                         ),
                                       ],
-                                    );
-                                  },
+                                    ),
+                                  );
+                                }
+                                return RefreshIndicator(
+                                  onRefresh: _refreshClassDetail,
+                                  color: const Color(0xFF5FA8FF),
+                                  backgroundColor: const Color(0xFFD6EAFF),
+                                  child: ListView.builder(
+                                    physics:
+                                        const AlwaysScrollableScrollPhysics(),
+                                    itemCount: lessons.length,
+                                    itemBuilder: (context, index) {
+                                      final lesson =
+                                          (lessons[index] as Map?) ?? const {};
+                                      return Column(
+                                        children: [
+                                          SizedBox(height: height * 0.01),
+                                          Container(
+                                            margin: EdgeInsets.symmetric(
+                                              horizontal: width * 0.05,
+                                              vertical: height * 0.003,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.grey
+                                                      .withOpacity(0.1),
+                                                  spreadRadius: 5,
+                                                  blurRadius: 7,
+                                                  offset: Offset(
+                                                    0,
+                                                    3,
+                                                  ), // changes position of shadow
+                                                ),
+                                              ],
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border: Border.all(
+                                                width: 0.25,
+                                                color: Color(0xffCCCCCC),
+                                              ),
+                                              color: Colors.white,
+                                            ),
+                                            child: Theme(
+                                              data: Theme.of(context).copyWith(
+                                                dividerColor:
+                                                    Colors.transparent,
+                                              ),
+                                              child: ExpansionTile(
+                                                title: Text(
+                                                  lesson['directoryName']
+                                                      .toString(),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: width * 0.045,
+                                                  ),
+                                                ),
+                                                children: [
+                                                  ...(((lesson['documentList']
+                                                              as List?) ??
+                                                          const []))
+                                                      .map<Widget>((item) {
+                                                        final doc = Map<
+                                                          String,
+                                                          dynamic
+                                                        >.from(
+                                                          (item as Map?) ??
+                                                              const {},
+                                                        );
+                                                        return Column(
+                                                          children: [
+                                                            GestureDetector(
+                                                              onTap:
+                                                                  () =>
+                                                                      _openDocumentMarkdown(
+                                                                        doc,
+                                                                      ),
+                                                              child: Container(
+                                                                margin: EdgeInsets.only(
+                                                                  left:
+                                                                      width *
+                                                                      0.028,
+                                                                  right:
+                                                                      width *
+                                                                      0.028,
+                                                                  bottom:
+                                                                      height *
+                                                                      0.012,
+                                                                ),
+                                                                decoration: BoxDecoration(
+                                                                  color: Color(
+                                                                    0xffF5F5F5,
+                                                                  ),
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(
+                                                                        12,
+                                                                      ),
+                                                                  border: Border.all(
+                                                                    width: 0.01,
+                                                                    color: Color(
+                                                                      0xffCCCCCC,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                child: ListTile(
+                                                                  shape: RoundedRectangleBorder(
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                          12,
+                                                                        ),
+                                                                  ),
+                                                                  contentPadding:
+                                                                      EdgeInsets.symmetric(
+                                                                        horizontal:
+                                                                            width *
+                                                                            0.04,
+                                                                      ),
+                                                                  title: Text(
+                                                                    doc['title']
+                                                                            ?.toString() ??
+                                                                        '',
+                                                                    style: TextStyle(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                      fontSize:
+                                                                          width *
+                                                                          0.035,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        );
+                                                      }),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
                                 );
                               },
                             ),
@@ -543,77 +577,99 @@ class _HaksubsilsuapState extends State<Haksubsilsuap> {
                             decoration: BoxDecoration(
                               color: const Color.fromARGB(255, 245, 245, 245),
                             ),
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 300),
-                              switchInCurve: Curves.easeOut,
-                              switchOutCurve: Curves.easeIn,
-                              transitionBuilder: (
-                                Widget child,
-                                Animation<double> animation,
-                              ) {
-                                return FadeTransition(
-                                  opacity: animation,
-                                  child: SlideTransition(
-                                    position: Tween<Offset>(
-                                      begin: const Offset(
-                                        0.1,
-                                        0,
-                                      ), // 오른쪽에서 슬라이드 인
-                                      end: Offset.zero,
-                                    ).animate(animation),
-                                    child: child,
-                                  ),
-                                );
-                              },
-                              child:
-                                  showAssignmentDetail
-                                      ? Haksubsilgaja(
-                                        key: const ValueKey('detail'),
-                                        assignment: selectedAssignment!,
-                                        onClose: closeAssignmentDetail,
-                                      )
-                                      : FutureBuilder<
-                                        List<Map<String, dynamic>>
-                                      >(
-                                        future: gwaJeJeChul(),
-                                        builder: (context, snapshot) {
-                                          if (snapshot.connectionState !=
-                                              ConnectionState.done) {
-                                            return const Center(
-                                              child:
-                                                  CircularProgressIndicator(),
-                                            );
-                                          }
-                                          final list =
-                                              snapshot.data ??
-                                              const <Map<String, dynamic>>[];
-                                          if (list.isEmpty) {
-                                            return Center(
-                                              child: Text(
-                                                '과제가 없습니다.',
-                                                style: TextStyle(
-                                                  fontSize: width * 0.04,
-                                                  color: const Color(
-                                                    0xff6B7280,
+                            child: RefreshIndicator(
+                              onRefresh: _refreshAssignments,
+                              color: const Color(0xFF5FA8FF),
+                              backgroundColor: const Color(0xFFD6EAFF),
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 300),
+                                switchInCurve: Curves.easeOut,
+                                switchOutCurve: Curves.easeIn,
+                                transitionBuilder: (
+                                  Widget child,
+                                  Animation<double> animation,
+                                ) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: SlideTransition(
+                                      position: Tween<Offset>(
+                                        begin: const Offset(
+                                          0.1,
+                                          0,
+                                        ), // 오른쪽에서 슬라이드 인
+                                        end: Offset.zero,
+                                      ).animate(animation),
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child:
+                                    showAssignmentDetail
+                                        ? Haksubsilgaja(
+                                          key: const ValueKey('detail'),
+                                          assignment: selectedAssignment!,
+                                          onClose: closeAssignmentDetail,
+                                        )
+                                        : FutureBuilder<
+                                          List<Map<String, dynamic>>
+                                        >(
+                                          future: _assignmentsFuture,
+                                          builder: (context, snapshot) {
+                                            if (snapshot.connectionState !=
+                                                ConnectionState.done) {
+                                              return ListView(
+                                                physics:
+                                                    const AlwaysScrollableScrollPhysics(),
+                                                children: const [
+                                                  SizedBox(height: 120),
+                                                  Center(
+                                                    child:
+                                                        CircularProgressIndicator(),
                                                   ),
-                                                ),
-                                              ),
+                                                ],
+                                              );
+                                            }
+                                            final list =
+                                                snapshot.data ??
+                                                const <Map<String, dynamic>>[];
+                                            if (list.isEmpty) {
+                                              return ListView(
+                                                physics:
+                                                    const AlwaysScrollableScrollPhysics(),
+                                                children: [
+                                                  SizedBox(
+                                                    height: height * 0.1,
+                                                  ),
+                                                  Center(
+                                                    child: Text(
+                                                      '과제가 없습니다.',
+                                                      style: TextStyle(
+                                                        fontSize: width * 0.04,
+                                                        color: const Color(
+                                                          0xff6B7280,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            }
+                                            return Gwajejechul(
+                                              key: const ValueKey('list'),
+                                              dataList: list,
+                                              onSubmissionChanged:
+                                                  updateSubmissionStatus,
+                                              onCardClick: (assignment) {
+                                                setState(() {
+                                                  selectedAssignment =
+                                                      assignment;
+                                                  showAssignmentDetail = true;
+                                                });
+                                              },
                                             );
-                                          }
-                                          return Gwajejechul(
-                                            key: const ValueKey('list'),
-                                            dataList: list,
-                                            onSubmissionChanged:
-                                                updateSubmissionStatus,
-                                            onCardClick: (assignment) {
-                                              setState(() {
-                                                selectedAssignment = assignment;
-                                                showAssignmentDetail = true;
-                                              });
-                                            },
-                                          );
-                                        },
-                                      ),
+                                          },
+                                        ),
+                              ),
                             ),
                           ),
                           Container(
